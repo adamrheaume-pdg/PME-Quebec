@@ -1,0 +1,36 @@
+name: Extraire source PME Quebec
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/extract-source.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  extract:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Recuperer le depot
+        uses: actions/checkout@v4
+
+      - name: Extraire la version 5.10.4
+        run: |
+          rm -rf source-5.10.4
+          mkdir -p source-5.10.4
+          unzip -o PME-Quebec-5.10.4-Barcode-Camera-Fix.zip -d source-5.10.4
+          find source-5.10.4 -type f | head -100
+
+      - name: Publier le code source extrait dans le depot
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add source-5.10.4
+          if git diff --cached --quiet; then
+            echo "Aucun changement a publier"
+          else
+            git commit -m "Extract PME Quebec 5.10.4 source for repair"
+            git push
+          fi

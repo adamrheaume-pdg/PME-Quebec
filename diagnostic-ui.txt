@@ -1,0 +1,2144 @@
+=== FILE INFO ===
+ 18781 source-5.10.4/PME-Quebec-5.10-Native-Wyze-Source/app/src/main/assets/index.html
+   309 source-5.10.4/PME-Quebec-5.10-Native-Wyze-Source/app/src/main/java/com/pmequebec/app/MainActivity.java
+    16 source-5.10.4/PME-Quebec-5.10-Native-Wyze-Source/app/src/main/AndroidManifest.xml
+ 19106 total
+
+=== HTML KEYWORDS ===
+9-  <link rel="manifest" href="manifest.json">
+10-  <style>
+11-    :root{--bg:#f3f4f6;--card:#fff;--ink:#111827;--muted:#6b7280;--line:#e5e7eb;--accent:#001F97;--ok:#059669;--danger:#dc2626}
+12-    *{box-sizing:border-box} body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink)}
+13:    header{background:#111827;color:#fff;padding:18px 16px;position:sticky;top:0;z-index:5}
+14:    header h1{font-size:20px;margin:0} header small{color:#cbd5e1}
+15-    main{max-width:920px;margin:auto;padding:16px}
+16-    .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+17-    .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px;box-shadow:0 2px 10px rgba(0,0,0,.03)}
+18-    h2{font-size:17px;margin:0 0 12px} h3{font-size:15px;margin:14px 0 8px}
+--
+31-    .quote{display:none}
+32-    .saved-item{padding:10px 0;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:8px}
+33-    @media(max-width:700px){.grid{grid-template-columns:1fr}.line{grid-template-columns:1fr 1fr}.line .desc{grid-column:1/-1}.line .remove{grid-column:2;justify-self:end}}
+34-    @media print{
+35:      body{background:#fff}.no-print,header{display:none!important} main{max-width:none;padding:0}.card{box-shadow:none;border:0}
+36-      #builder{display:none}.quote{display:block}.quote .card{padding:0}.quote h1{font-size:28px}
+37-    }
+38-
+39-    .edit-toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+--
+44-    .brand-logo.show{display:block}
+45-    .ad-card{border:1px solid var(--line);border-radius:12px;padding:12px;margin-top:10px;background:#fafafa}
+46-    .ad-card img{width:100%;max-height:220px;object-fit:cover;border-radius:10px;margin-bottom:8px;display:none}
+47-    .ad-card img.show{display:block}
+48:    .ad-preview{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#fff;margin-bottom:14px}
+49-    .ad-preview img{width:100%;max-height:260px;object-fit:cover;display:block}
+50-    .ad-preview .body{padding:14px}
+51-    .hidden{display:none!important}
+52-
+53-
+54-    .marketing-grid{display:grid;grid-template-columns:320px 1fr;gap:14px}
+55:    .poster-wrap{display:flex;justify-content:center;align-items:flex-start;overflow:auto;padding:8px}
+56-    .poster{
+57:      width:360px;aspect-ratio:4/5;border-radius:18px;overflow:hidden;position:relative;
+58-      background:linear-gradient(135deg,#111827,#374151);color:#fff;border:1px solid var(--line)
+59-    }
+60-    .poster.square{aspect-ratio:1/1}.poster.story{aspect-ratio:9/16}
+61-    .poster-bg{position:absolute;inset:0;background-size:cover;background-position:center;opacity:.42}
+--
+95-    .img-editor-panel{border:1px solid var(--line);border-radius:12px;padding:12px;margin-top:12px;background:#fff}
+96-    .img-editor-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+97-    .img-editor-grid.three{grid-template-columns:repeat(3,1fr)}
+98-    .editor-canvas-wrap{
+99:      position:relative;border:1px solid var(--line);border-radius:10px;overflow:auto;
+100-      background-color:#fff;
+101-      background-image:
+102-        linear-gradient(45deg,#e5e7eb 25%,transparent 25%),
+103-        linear-gradient(-45deg,#e5e7eb 25%,transparent 25%),
+--
+116-      .img-editor-grid,.img-editor-grid.three{grid-template-columns:1fr}
+117-    }
+118-
+119-
+120:    .inventory-table{width:100%;border-collapse:collapse;font-size:14px}
+121:    .inventory-table th,.inventory-table td{padding:9px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
+122:    .inventory-table th{font-size:12px;color:var(--muted)}
+123-    .stock-ok{color:#047857;font-weight:800}.stock-low{color:#b45309;font-weight:800}.stock-zero{color:#b91c1c;font-weight:800}
+124:    .inventory-picker{display:grid;grid-template-columns:2fr .8fr .8fr auto;gap:7px;align-items:end;margin-bottom:10px}
+125:    .inventory-stat{display:inline-flex;gap:5px;align-items:center;border:1px solid var(--line);border-radius:999px;padding:5px 9px;font-size:12px;background:#fff}
+126-    .site-builder-grid{display:grid;grid-template-columns:340px 1fr;gap:14px}
+127:    .site-preview{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#fff;min-height:420px}
+128-    .site-preview-hero{min-height:190px;background:#111827 center/cover no-repeat;color:#fff;padding:28px;display:flex;flex-direction:column;justify-content:end}
+129-    .site-preview-body{padding:24px}
+130-    .site-preview-services{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:16px 0}
+131-    .site-preview-service{border:1px solid var(--line);border-radius:10px;padding:12px}
+132-    .url-preview{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;background:#f3f4f6;padding:9px;border-radius:8px;word-break:break-all}
+133-    .invoice-alert{padding:10px;border-radius:10px;background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;margin-top:8px;display:none}
+134-    .invoice-alert.show{display:block}
+135-    @media(max-width:760px){
+136:      .inventory-picker{grid-template-columns:1fr 1fr}.inventory-picker .wide{grid-column:1/-1}
+137-      .site-builder-grid{grid-template-columns:1fr}.site-preview-services{grid-template-columns:1fr}
+138:      .inventory-table{font-size:12px}
+139-    }
+140-
+141-
+142-    .top-modules{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:12px 0 16px}
+--
+164-    /* v3.04 — correction largeur mobile Entrepôt / Expédition */
+165-    .warehouse-shipping,.warehouse-grid,.warehouse-panel,.shipment-form-grid,.shipment-form-grid>div{min-width:0;max-width:100%}
+166-    .warehouse-panel input,.warehouse-panel textarea,.warehouse-panel select{min-width:0;max-width:100%;width:100%}
+167-    .warehouse-panel table{max-width:100%}
+168:    #warehouseRows td,#shipmentRows td{overflow-wrap:anywhere;word-break:break-word}
+169-    @media(max-width:760px){
+170:      #warehouseShippingSection{width:100%!important;max-width:100%!important;overflow:hidden!important;padding-left:10px!important;padding-right:10px!important}
+171-      #warehouseShippingSection .warehouse-grid{display:block!important;width:100%!important}
+172:      #warehouseShippingSection .warehouse-panel{width:100%!important;max-width:100%!important;margin:0 0 12px!important;padding:12px!important;overflow:hidden!important}
+173-      #warehouseShippingSection .shipment-form-grid{display:block!important;width:100%!important}
+174-      #warehouseShippingSection .shipment-form-grid>div{width:100%!important;margin-bottom:10px!important}
+175-      #warehouseShippingSection .grid{grid-template-columns:1fr!important;width:100%!important}
+176-      #warehouseShippingSection .grid>div{min-width:0!important;width:100%!important}
+177-      #warehouseShippingSection .row{width:100%!important}
+178-      #warehouseShippingSection .row button{flex:1 1 150px;max-width:100%}
+179:      #warehouseShippingSection>div[style*="overflow:auto"],
+180:      #warehouseShippingSection .warehouse-panel>div[style*="overflow:auto"]{width:100%!important;max-width:100%!important;overflow-x:auto!important;-webkit-overflow-scrolling:touch}
+181-      #warehouseShippingSection table{width:max-content!important;min-width:100%!important}
+182-      #warehouseShippingSection input,#warehouseShippingSection textarea,#warehouseShippingSection select{font-size:16px!important}
+183-    }
+184-
+185:    .scanner-panel{border:1px solid var(--line);border-radius:12px;padding:12px;background:#fafafa;margin:12px 0}
+186:    .scanner-video{width:100%;max-height:300px;background:#111;border-radius:10px;display:none}
+187:    .scanner-video.show{display:block}
+188:    .scan-status{padding:8px 10px;border-radius:8px;background:#f3f4f6;margin-top:8px;font-size:13px}
+189-    .po-row{display:grid;grid-template-columns:1.2fr 1.5fr .6fr .8fr auto;gap:8px;align-items:end}
+190-    .supplier-table{width:100%;border-collapse:collapse;font-size:13px}
+191-    .supplier-table th,.supplier-table td{padding:8px;border-bottom:1px solid var(--line);text-align:left}
+192-    .hosting-zone{border:1px dashed var(--line);border-radius:12px;padding:12px;background:#fafafa}
+--
+234-    }
+235-
+236-
+237-    .auth-gate{
+238:      position:fixed;inset:0;z-index:9999;background:rgba(15,23,42,.82);
+239-      display:flex;align-items:center;justify-content:center;padding:16px
+240-    }
+241-    .auth-card{
+242-      width:min(520px,100%);background:#fff;border-radius:18px;padding:20px;
+--
+255-    @media(max-width:560px){.auth-social{grid-template-columns:1fr}}
+256-
+257-
+258-    .mobile-nav-trigger{
+259:      position:fixed;top:12px;left:12px;z-index:9500;
+260-      width:48px;height:48px;border-radius:12px;border:1px solid var(--line);
+261-      background:#fff;font-size:25px;font-weight:800;display:flex;align-items:center;justify-content:center;
+262-      box-shadow:0 4px 18px rgba(0,0,0,.12);cursor:pointer
+263-    }
+264-    .mobile-nav-overlay{
+265:      position:fixed;inset:0;z-index:9400;background:rgba(15,23,42,.45)
+266-    }
+267-    .mobile-nav-drawer{
+268:      position:fixed;top:0;left:0;bottom:0;z-index:9450;width:min(340px,88vw);
+269-      background:#fff;box-shadow:8px 0 28px rgba(0,0,0,.18);padding:76px 14px 18px;
+270:      overflow:auto
+271-    }
+272-    .mobile-nav-title{font-size:18px;font-weight:800;margin:0 0 10px}
+273-    .mobile-nav-list{display:grid;gap:8px}
+274-    .mobile-nav-item{
+--
+291-
+292-
+293-    .social-page-builder{display:grid;grid-template-columns:minmax(320px,1fr) minmax(320px,.9fr);gap:16px}
+294-    .social-profile-preview{
+295:      max-width:430px;margin:auto;background:#0f172a;color:#fff;border-radius:24px;overflow:hidden;
+296-      min-height:720px;box-shadow:0 16px 50px rgba(0,0,0,.18)
+297-    }
+298-    .social-cover{height:150px;background:#334155 center/cover no-repeat;position:relative}
+299-    .social-avatar{
+--
+311-      text-decoration:none
+312-    }
+313-    .social-feed{border-top:1px solid rgba(255,255,255,.12);padding:12px;display:grid;gap:12px}
+314-    .social-post{
+315:      background:#111827;border:1px solid rgba(255,255,255,.1);border-radius:16px;overflow:hidden
+316-    }
+317-    .social-post-media{width:100%;display:block;max-height:560px;object-fit:cover;background:#000}
+318-    .social-post-body{padding:12px}
+319-    .social-post-title{font-weight:800;margin-bottom:5px}
+--
+329-
+330-
+331-    .marketing-image-editor-fix{border:1px solid var(--line);border-radius:14px;padding:12px;margin-top:14px;background:#fff}
+332-    .marketing-editor-stage{
+333:      position:relative;min-height:320px;border:1px solid var(--line);border-radius:12px;overflow:auto;
+334-      display:flex;align-items:center;justify-content:center;padding:10px;
+335-      background:
+336-        linear-gradient(45deg,#e5e7eb 25%,transparent 25%),
+337-        linear-gradient(-45deg,#e5e7eb 25%,transparent 25%),
+--
+344-    .marketing-editor-controls .full{grid-column:1/-1}
+345-    @media(max-width:680px){.marketing-editor-controls{grid-template-columns:1fr}}
+346-
+347-
+348:    .chat-shell{display:grid;grid-template-columns:300px minmax(0,1fr);min-height:620px;border:1px solid #273244;border-radius:18px;overflow:hidden;background:#0b1018;color:#f8fafc}
+349:    .chat-sidebar{background:#111827;border-right:1px solid #273244;min-width:0}
+350:    .chat-sidebar-head{padding:14px;border-bottom:1px solid #273244}.chat-sidebar-head h3{margin:0;color:#fff}
+351-    .chat-search{width:100%;margin-top:10px;background:#1f2937!important;color:#fff!important;border:1px solid #374151!important}
+352:    .chat-contacts{display:grid;max-height:560px;overflow:auto}
+353-    .chat-contact{width:100%;display:grid;grid-template-columns:46px minmax(0,1fr) auto;gap:10px;align-items:center;padding:11px 12px;border:0;border-bottom:1px solid #1f2937;background:transparent;color:#fff;text-align:left;cursor:pointer;min-height:66px}
+354-    .chat-contact:hover,.chat-contact.active{background:#1f2937}
+355:    .chat-avatar{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#374151;color:#fff;font-weight:800;position:relative;overflow:hidden}
+356-    .chat-online-dot{position:absolute;right:1px;bottom:1px;width:11px;height:11px;border-radius:50%;background:#22c55e;border:2px solid #111827}
+357:    .chat-contact-name{font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.chat-contact-preview{font-size:12px;color:#9ca3af;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+358-    .chat-unread{min-width:22px;height:22px;padding:0 6px;border-radius:999px;background:#001F97;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800}
+359-    .chat-main{display:grid;grid-template-rows:auto minmax(360px,1fr) auto;min-width:0;background:#0b1018}
+360:    .chat-header{padding:12px 14px;border-bottom:1px solid #273244;display:flex;align-items:center;gap:10px;background:#111827}.chat-header-title{font-weight:800}.chat-header-sub{font-size:12px;color:#9ca3af}
+361:    .chat-messages{padding:16px;overflow:auto;display:flex;flex-direction:column;gap:8px;background:linear-gradient(180deg,#0b1018,#0d131d)}
+362-    .chat-empty{margin:auto;color:#9ca3af;text-align:center;max-width:280px}.chat-row{display:flex}.chat-row.mine{justify-content:flex-end}
+363-    .chat-bubble{max-width:min(76%,540px);padding:10px 12px;border-radius:18px;background:#1f2937;color:#fff;line-height:1.4;word-break:break-word}.chat-row.mine .chat-bubble{background:#001F97}
+364-    .chat-time{font-size:10px;color:#cbd5e1;margin-top:4px;opacity:.8}
+365-    .chat-composer{padding:10px;border-top:1px solid #273244;background:#111827;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:end}
+366-    .chat-composer textarea{min-height:48px;max-height:140px;resize:vertical;background:#1f2937!important;color:#fff!important;border:1px solid #374151!important}.chat-send{min-width:52px;min-height:48px;border-radius:14px}
+367-    .chat-tools{padding:10px 14px;background:#111827;border-bottom:1px solid #273244;display:flex;gap:8px;flex-wrap:wrap}.chat-tools input,.chat-tools button{min-height:42px}.chat-tools input{background:#1f2937!important;color:#fff!important;border:1px solid #374151!important}
+368:    @media(max-width:760px){.chat-shell{grid-template-columns:1fr;min-height:0}.chat-sidebar{border-right:0;border-bottom:1px solid #273244}.chat-contacts{max-height:230px}.chat-main{grid-template-rows:auto minmax(420px,1fr) auto}.chat-bubble{max-width:86%}}
+369-
+370-  
+371-.chat-attachment-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:8px 10px;border-top:1px solid #273244;background:#111827}
+372-.chat-attachment-bar button{min-height:42px}.chat-img-preview{display:none;align-items:center;gap:8px;background:#1f2937;border:1px solid #374151;border-radius:12px;padding:8px}.chat-img-preview.show{display:flex}
+--
+378-    .main-nav-logout-wrap{margin-top:auto;padding-top:10px;border-top:1px solid rgba(255,255,255,.12)}
+379-    .main-nav-logout{color:#fecaca!important}
+380-
+381-
+382:.chat-sender-label{font-size:11px;font-weight:800;color:#93c5fd;margin:0 4px 3px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+383-.chat-row.mine .chat-sender-label{color:#bfdbfe;text-align:right}
+384:.chat-contact-origin{font-size:11px;color:#93c5fd;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+385-
+386:/* Navigation par pages de module */
+387-#appRoot.single-page-mode .app-module-page{display:none!important}
+388-#appRoot.single-page-mode .app-module-page.active-app-page{display:block!important}
+389-#appRoot.single-page-mode .module-link,
+390-#appRoot.single-page-mode .main-shortcuts-hidden{display:none!important}
+391-#appRoot.single-page-mode .normal-secondary-section{display:none!important}
+392-#appRoot.single-page-mode .normal-secondary-section.active-app-page{display:block!important}
+393-#appRoot.single-page-mode .normal-secondary-section.nav-active-section:not(.active-app-page){display:none!important}
+394-
+395:.app-page-header{
+396-  display:flex;align-items:center;justify-content:space-between;gap:12px;
+397-  margin:0 0 14px;padding:10px 0 12px;border-bottom:1px solid var(--line,#d1d5db)
+398-}
+399:.app-page-header h2{margin:0}
+400-.app-page-back{
+401-  min-width:44px;min-height:44px;border-radius:12px
+402-}
+403-.app-page-title-wrap{display:flex;align-items:center;gap:10px;min-width:0}
+404:.app-page-title{font-weight:800;font-size:20px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+405-@media(max-width:680px){
+406:  .app-page-header{position:sticky;top:0;z-index:20;background:var(--bg,#fff);padding-top:8px}
+407-  .app-page-title{font-size:18px}
+408-}
+409-
+410-
+--
+423-#appPageHost>.app-module-page.active-app-page{display:block!important}
+424-
+425-#appPageHost{
+426-  width:100%;
+427:  min-height:100vh;
+428:  min-height:100dvh;
+429-}
+430-#appPageHost>.app-module-page{
+431-  width:100%!important;
+432-  max-width:none!important;
+--
+457-  display:none!important;
+458-}
+459-
+460-
+461:/* v16.5 — toutes les pages du menu sont en mode normal */
+462-#appPageHost.normal-mode .edit-only,
+463-#appPageHost.normal-mode .editing-only,
+464-#appPageHost.normal-mode .edit-mode-only,
+465-#appPageHost.normal-mode .editor-only,
+--
+496-
+497-
+498-/* v16.7 — Canvas des pages secondaires style fil social sombre */
+499-#appPageHost{
+500:  min-height:100vh;
+501:  min-height:100dvh;
+502-  background:#18191a!important;
+503-  color:#e4e6eb!important;
+504-  padding:18px 12px 40px!important;
+505-  box-sizing:border-box;
+--
+513-  color:#e4e6eb!important;
+514-}
+515-
+516-/* En-tête de page */
+517:#appPageHost .app-page-header{
+518-  position:sticky;
+519-  top:0;
+520-  z-index:30;
+521-  background:rgba(24,25,26,.96)!important;
+--
+550-#appPageHost .section-card,
+551-#appPageHost .box,
+552-#appPageHost .module-card,
+553-#appPageHost .marketing-card,
+554:#appPageHost .inventory-card,
+555-#appPageHost .employee-card,
+556-#appPageHost .payroll-card,
+557-#appPageHost .public-site-card,
+558-#appPageHost .chat-shell,
+--
+564-  box-shadow:0 1px 2px rgba(0,0,0,.35)!important;
+565-}
+566-
+567-/* Même effet pour les blocs directs principaux qui n'ont pas les anciennes classes */
+568:#appPageHost>.app-module-page.active-app-page > div:not(.app-page-header),
+569:#appPageHost>.app-module-page.active-app-page > section:not(.app-page-header){
+570-  background:#242526;
+571-  color:#e4e6eb;
+572-  border-color:#3a3b3c;
+573-  border-radius:14px;
+--
+643-}
+644-
+645-/* Messagerie harmonisée avec le nouveau canvas */
+646-#appPageHost #messagingSection .chat-layout,
+647:#appPageHost #messagingSection .chat-sidebar,
+648-#appPageHost #messagingSection .chat-thread,
+649-#appPageHost #messagingSection .chat-composer,
+650-#appPageHost #messagingSection .chat-add-contact{
+651-  background:#242526!important;
+--
+686-  }
+687-  #appPageHost>.app-module-page.active-app-page{
+688-    width:100%!important;
+689-  }
+690:  #appPageHost .app-page-header{
+691-    padding-left:12px!important;
+692-    padding-right:12px!important;
+693-  }
+694:  #appPageHost>.app-module-page.active-app-page > div:not(.app-page-header),
+695:  #appPageHost>.app-module-page.active-app-page > section:not(.app-page-header){
+696-    border-left:0!important;
+697-    border-right:0!important;
+698-    border-radius:0!important;
+699-  }
+--
+728-}
+729-.chat-presence-name{
+730-  font-weight:800;
+731-  white-space:nowrap;
+732:  overflow:hidden;
+733:  text-overflow:ellipsis;
+734-}
+735-.chat-presence-state{
+736-  font-size:12px;
+737-  color:#b0b3b8;
+--
+745-.chat-status-icon{
+746-  font-size:22px;
+747-  line-height:1;
+748-}
+749:.chat-camera-actions{
+750-  display:flex;
+751-  flex-wrap:wrap;
+752-  gap:8px;
+753-  align-items:center;
+754-}
+755:.chat-camera-btn{
+756-  min-height:44px;
+757-  display:inline-flex;
+758-  align-items:center;
+759-  justify-content:center;
+760-  gap:7px;
+761-}
+762:.chat-camera-preview{
+763-  display:none;
+764-  margin-top:8px;
+765-  background:#18191a;
+766-  border:1px solid #3a3b3c;
+767-  border-radius:12px;
+768-  padding:8px;
+769-}
+770:.chat-camera-preview.active{
+771-  display:block;
+772-}
+773:.chat-camera-preview img{
+774-  display:block;
+775-  width:100%;
+776-  max-height:260px;
+777-  object-fit:contain;
+--
+978-#builder{
+979-  background:#f4f2ee!important;
+980-  color:#1f1f1f!important;
+981-  padding:20px 12px 44px!important;
+982:  min-height:100vh!important;
+983-  box-sizing:border-box!important;
+984-}
+985-
+986-#builder > *{
+--
+991-
+992-/* En-tête principal */
+993-#builder .brand,
+994-#builder .hero,
+995:#builder .topbar,
+996:#builder .builder-header{
+997-  background:#ffffff!important;
+998-  border:1px solid #d6d6d6!important;
+999-  border-radius:12px!important;
+1000-  box-shadow:0 1px 2px rgba(0,0,0,.08)!important;
+--
+1117-#builder #businessProfileCard,
+1118-#builder .business-profile,
+1119-#builder .company-profile{
+1120-  position:relative;
+1121:  overflow:hidden;
+1122-}
+1123-#builder #businessProfileCard::before,
+1124-#builder .business-profile::before,
+1125-#builder .company-profile::before{
+--
+1144-    width:100%!important;
+1145-  }
+1146-  #builder .brand,
+1147-  #builder .hero,
+1148:  #builder .topbar,
+1149:  #builder .builder-header,
+1150-  #builder .card,
+1151-  #builder .panel,
+1152-  #builder .section-card,
+1153-  #builder .box,
+--
+1162-  }
+1163-}
+1164-
+1165-
+1166:/* v17.6 — entête toujours au-dessus, menu toujours sous l'entête */
+1167-:root{
+1168:  --sq-header-height:104px;
+1169-}
+1170-
+1171:/* L'entête principal demeure la couche supérieure de navigation */
+1172:header,
+1173:#appHeader,
+1174:.app-header,
+1175:.site-header,
+1176:.main-header{
+1177-  position:relative!important;
+1178-  top:auto!important;
+1179-  z-index:1000!important;
+1180-}
+1181-
+1182-/* Le bouton hamburger fait partie de l'entête, jamais par-dessus son contenu */
+1183:#menuToggle,
+1184-#hamburgerBtn,
+1185-.hamburger,
+1186:.menu-toggle,
+1187-.drawer-toggle{
+1188-  position:absolute!important;
+1189-  top:50%!important;
+1190-  left:14px!important;
+1191-  transform:translateY(-50%)!important;
+1192-  z-index:1002!important;
+1193-}
+1194-
+1195:/* Le panneau du menu commence sous l'entête */
+1196:#sideMenu,
+1197:#appMenu,
+1198:#menuDrawer,
+1199-#drawer,
+1200:.menu-drawer,
+1201-.side-drawer,
+1202-.drawer,
+1203:.mobile-menu{
+1204:  top:var(--sq-header-height)!important;
+1205:  height:calc(100dvh - var(--sq-header-height))!important;
+1206:  max-height:calc(100dvh - var(--sq-header-height))!important;
+1207-  z-index:900!important;
+1208:  overflow-y:auto!important;
+1209-}
+1210-
+1211:/* Si le menu est horizontal / déroulant, il reste également sous l'entête */
+1212-nav,
+1213-.app-nav,
+1214-.main-nav,
+1215:.menu-panel{
+1216-  z-index:900!important;
+1217-}
+1218-
+1219-/* Aucune page ne doit remonter sous l'entête */
+--
+1225-
+1226-/* Mobile : hauteur réelle plus compacte */
+1227-@media(max-width:720px){
+1228-  :root{
+1229:    --sq-header-height:136px;
+1230-  }
+1231-
+1232:  header,
+1233:  #appHeader,
+1234:  .app-header,
+1235:  .site-header,
+1236:  .main-header{
+1237:    min-height:var(--sq-header-height)!important;
+1238-    box-sizing:border-box!important;
+1239-  }
+1240-
+1241:  #sideMenu,
+1242:  #appMenu,
+1243:  #menuDrawer,
+1244-  #drawer,
+1245:  .menu-drawer,
+1246-  .side-drawer,
+1247-  .drawer,
+1248:  .mobile-menu{
+1249:    top:var(--sq-header-height)!important;
+1250:    height:calc(100dvh - var(--sq-header-height))!important;
+1251-  }
+1252-}
+1253-
+1254-
+1255:/* v17.7 — structure exacte entête + barre menu + tiroir */
+1256-:root{
+1257:  --sq-real-header-height:96px;
+1258-  --sq-nav-bar-height:60px;
+1259-}
+1260-
+1261-/* L'entête est toujours au-dessus de tout */
+1262:body > header{
+1263-  position:sticky!important;
+1264-  top:0!important;
+1265-  z-index:10000!important;
+1266-  background:#ffffff!important;
+1267-  box-shadow:0 1px 0 rgba(0,0,0,.12)!important;
+1268-}
+1269-
+1270:/* Barre dédiée au menu, immédiatement sous l'entête */
+1271-#mainNavBar{
+1272-  position:sticky!important;
+1273:  top:var(--sq-real-header-height)!important;
+1274-  z-index:9950!important;
+1275-  height:var(--sq-nav-bar-height)!important;
+1276-  display:flex!important;
+1277-  align-items:center!important;
+--
+1290-  margin:0!important;
+1291-  z-index:auto!important;
+1292-}
+1293-
+1294:/* Le voile commence SOUS l'entête + la barre de menu */
+1295-#mainNavOverlay{
+1296:  position:fixed!important;
+1297-  left:0!important;
+1298-  right:0!important;
+1299-  bottom:0!important;
+1300:  top:calc(var(--sq-real-header-height) + var(--sq-nav-bar-height))!important;
+1301-  z-index:9700!important;
+1302-  background:rgba(15,23,42,.45)!important;
+1303-}
+1304-
+1305-/* Le vrai tiroir commence lui aussi sous l'entête + la barre */
+1306-#mainNavDrawer{
+1307:  position:fixed!important;
+1308-  left:0!important;
+1309:  top:calc(var(--sq-real-header-height) + var(--sq-nav-bar-height))!important;
+1310-  bottom:0!important;
+1311-  z-index:9800!important;
+1312-  width:min(340px,88vw)!important;
+1313-  height:auto!important;
+1314-  max-height:none!important;
+1315-  padding:14px!important;
+1316-  box-sizing:border-box!important;
+1317:  overflow-y:auto!important;
+1318-  background:#ffffff!important;
+1319-  color:#111827!important;
+1320-}
+1321-
+--
+1342-#mainNavDrawer .mobile-nav-item small{
+1343-  color:#64748b!important;
+1344-}
+1345-
+1346:/* Le contenu reste sous la navigation, jamais au-dessus */
+1347-#appRoot,
+1348-#builder,
+1349-#appPageHost{
+1350-  position:relative!important;
+--
+1365-
+1366-/* v17.9 — thème sombre global */
+1367-:root{--dark-bg:#050505;--dark-card:#111;--dark-card2:#181818;--dark-line:#383838;--dark-text:#f7f7f7;--dark-muted:#b8b8b8;--dark-blue:#4da3ff}
+1368-html,body,#appRoot,#builder,#appPageHost{background:var(--dark-bg)!important;color:var(--dark-text)!important}
+1369:body>header,#mainNavBar{background:#090909!important;color:#fff!important;border-color:var(--dark-line)!important}
+1370:body>header h1,body>header small,body>header .editable-box{color:#fff!important}
+1371-#builder,#appPageHost,.normal-secondary-section,.app-module-page{background:var(--dark-bg)!important;color:var(--dark-text)!important}
+1372:#builder .brand,#builder .hero,#builder .topbar,#builder .builder-header,#builder .card,#builder .panel,#builder .section-card,#builder .box,#builder .quote-card,#builder .invoice-card,#builder .profile-card,#builder .builder-card,#mainEditToolbar,
+1373-#appPageHost .card,#appPageHost .panel,#appPageHost .section-card,#appPageHost .box,#appPageHost .app-module-page,.normal-secondary-section{
+1374-background:var(--dark-card)!important;color:var(--dark-text)!important;border-color:var(--dark-line)!important;box-shadow:0 1px 3px rgba(255,255,255,.04)!important}
+1375-#appRoot h1,#appRoot h2,#appRoot h3,#appRoot h4,#appRoot h5,#appRoot h6,#appRoot label,#builder h1,#builder h2,#builder h3,#builder h4,#builder label{color:#fff!important}
+1376-#appRoot .muted,#appRoot small,#appRoot .hint,#appRoot .help,#builder .muted,#builder small,#builder .hint,#builder .help{color:var(--dark-muted)!important}
+--
+1386-#mainNavDrawer .mobile-nav-title{color:#fff!important}
+1387-#mainNavDrawer .mobile-nav-item{background:#151515!important;color:#fff!important;border-color:#3b3b3b!important}
+1388-#mainNavDrawer .mobile-nav-item small{color:#bcbcbc!important}
+1389-#mainHamburgerBtn{background:#151515!important;color:#fff!important;border-color:#444!important}
+1390:.chat-shell,.chat-sidebar,.chat-main,.chat-header,.chat-composer,.chat-messages{background:#090909!important;color:#fff!important;border-color:#333!important}
+1391-.chat-contact{background:#111!important;color:#fff!important;border-color:#333!important}
+1392-.chat-contact.active{background:#1d3550!important}
+1393-.chat-row.theirs .chat-bubble{background:#292929!important;color:#fff!important}
+1394-.chat-row.mine .chat-bubble{background:#001F97!important;color:#fff!important}
+1395:#appRoot .preview,#appRoot .editor-preview,#appRoot .social-page-builder,#appRoot .social-preview,#appRoot .inventory-item,#appRoot .employee-card,#appRoot .contract-card{background:#101010!important;color:#fff!important;border-color:#383838!important}
+1396-#appRoot a{color:#70b7ff!important}
+1397-#appRoot hr,#builder hr{border-color:#383838!important}
+1398-
+1399-
+--
+1431-button,input,textarea,select{font:inherit}
+1432-button{touch-action:manipulation}
+1433-.hidden-force{display:none!important}
+1434-
+1435:/* Header */
+1436:body>header{
+1437-  min-height:78px!important;
+1438-  padding:14px 72px 14px 20px!important;
+1439-  display:grid!important;
+1440-  grid-template-columns:auto 1fr!important;
+--
+1445-  backdrop-filter:blur(12px);
+1446-  border-bottom:1px solid var(--ui-line)!important;
+1447-  box-shadow:0 4px 18px rgba(0,0,0,.22)!important;
+1448-}
+1449:body>header .brand-logo{
+1450-  grid-row:1/3;
+1451-  width:44px!important;
+1452-  height:44px!important;
+1453-  object-fit:contain!important;
+1454-  border-radius:10px!important;
+1455-}
+1456:#headerTitle{
+1457-  font-size:20px!important;
+1458-  line-height:1.15!important;
+1459-  margin:0!important;
+1460-  letter-spacing:-.2px;
+1461-}
+1462:#headerTagline{
+1463-  font-size:12px!important;
+1464-  margin-top:3px!important;
+1465-  color:var(--ui-muted)!important;
+1466-}
+1467-
+1468:/* Menu bar */
+1469-#mainNavBar{
+1470-  height:54px!important;
+1471-  padding:6px 14px!important;
+1472-  background:#0b0b0b!important;
+--
+1537-
+1538-/* Edit toolbar becomes compact and professional */
+1539-#mainEditToolbar{
+1540-  position:sticky!important;
+1541:  top:calc(var(--sq-real-header-height,78px) + var(--sq-nav-bar-height,54px) + 8px)!important;
+1542-  z-index:120!important;
+1543-  width:min(calc(100% - 24px),var(--ui-max))!important;
+1544-  margin:10px auto!important;
+1545-  padding:9px 12px!important;
+--
+1652-  border-collapse:separate!important;
+1653-  border-spacing:0!important;
+1654-  border:1px solid var(--ui-line)!important;
+1655-  border-radius:12px!important;
+1656:  overflow:hidden!important;
+1657-}
+1658-th{
+1659-  background:#181818!important;
+1660-  color:#f2f4f7!important;
+--
+1665-td,th{padding:10px!important;border-color:#2e2e2e!important}
+1666-td{background:#0f0f0f!important}
+1667-tr:hover td{background:#141414!important}
+1668-
+1669:/* Secondary module headers */
+1670:.app-page-header{
+1671-  position:sticky!important;
+1672:  top:calc(var(--sq-real-header-height,78px) + var(--sq-nav-bar-height,54px))!important;
+1673-  z-index:80!important;
+1674-  margin:-18px -18px 16px!important;
+1675-  padding:12px 14px!important;
+1676-  background:rgba(13,13,13,.96)!important;
+--
+1690-/* Chat polish */
+1691-.chat-shell{
+1692-  border:1px solid var(--ui-line)!important;
+1693-  border-radius:14px!important;
+1694:  overflow:hidden!important;
+1695-  box-shadow:var(--ui-shadow)!important;
+1696-}
+1697:.chat-sidebar{
+1698-  border-right:1px solid var(--ui-line)!important;
+1699-}
+1700-.chat-contact{
+1701-  border-radius:10px!important;
+--
+1737-}
+1738-
+1739-/* Status/toast */
+1740-#sqToast{
+1741:  position:fixed;
+1742-  right:16px;
+1743-  bottom:18px;
+1744-  z-index:20000;
+1745-  max-width:min(360px,calc(100vw - 32px));
+--
+1760-#sqToast.error{border-color:#7a3333}
+1761-
+1762-/* Mobile */
+1763-@media(max-width:760px){
+1764:  body>header{
+1765-    min-height:70px!important;
+1766-    padding:12px 14px!important;
+1767-    grid-template-columns:auto 1fr!important;
+1768-  }
+1769:  #headerTitle{font-size:18px!important}
+1770-  #builder,#appPageHost{padding:10px!important}
+1771-  #builder .card,#appPageHost .card,.normal-secondary-section{
+1772-    padding:14px!important;
+1773-    margin-bottom:10px!important;
+--
+1776-  #mainEditToolbar{
+1777-    width:calc(100% - 16px)!important;
+1778-    margin:8px auto!important;
+1779-  }
+1780:  .app-page-header{
+1781-    margin:-14px -14px 12px!important;
+1782-  }
+1783-  .grid,.builder-grid,.quote-grid{
+1784-    grid-template-columns:1fr!important;
+--
+1797-   ========================================================= */
+1798-#workspaceTabs{
+1799-  display:none;
+1800-  position:sticky;
+1801:  top:calc(var(--sq-real-header-height,78px) + var(--sq-nav-bar-height,54px));
+1802-  z-index:900;
+1803-  width:100%;
+1804-  background:rgba(7,7,7,.97);
+1805-  backdrop-filter:blur(12px);
+--
+1812-  padding:10px 18px;
+1813-  display:flex;
+1814-  align-items:center;
+1815-  gap:8px;
+1816:  overflow-x:auto;
+1817-  scrollbar-width:none;
+1818-}
+1819-.workspace-tabs-inner::-webkit-scrollbar{display:none}
+1820-.workspace-label{
+--
+1847-  color:#fff!important;
+1848-  border-color:#001F97!important;
+1849-}
+1850-body.workspace-active #mainEditToolbar{
+1851:  top:calc(var(--sq-real-header-height,78px) + var(--sq-nav-bar-height,54px) + 60px)!important;
+1852-}
+1853-/* Les anciens en-têtes individuels deviennent inutiles à l'intérieur des espaces regroupés. */
+1854:body.workspace-admin #inventorySection > .app-page-header,
+1855:body.workspace-entrepreneur #marketingEditorCard > .app-page-header,
+1856:body.workspace-entrepreneur #publicSiteEditorCard > .app-page-header,
+1857:body.workspace-employee #timePayrollSection > .app-page-header,
+1858:body.workspace-employee #employeePortalSection > .app-page-header{
+1859-  display:none!important;
+1860-}
+1861-body.workspace-entrepreneur #appPageHost,
+1862-body.workspace-admin #appPageHost,
+--
+1871-    padding:7px 11px!important;
+1872-    font-size:13px!important;
+1873-  }
+1874-  body.workspace-active #mainEditToolbar{
+1875:    top:calc(var(--sq-real-header-height,70px) + var(--sq-nav-bar-height,54px) + 52px)!important;
+1876-  }
+1877-}
+1878-
+1879-
+--
+1973-  border-radius:10px;
+1974-}
+1975-.business-logo-preview{
+1976-  max-width:100%;
+1977:  max-height:100%;
+1978-  object-fit:contain;
+1979-}
+1980-.business-logo-actions{
+1981-  display:flex;
+--
+1992-  border-radius:10px;
+1993-  cursor:pointer;
+1994-  font-weight:700!important;
+1995-}
+1996:.document-business-header{
+1997-  display:flex;
+1998-  justify-content:space-between;
+1999-  gap:24px;
+2000-  align-items:flex-start;
+--
+2034-    flex-wrap:wrap;
+2035-  }
+2036-}
+2037-@media print{
+2038:  .document-business-header{
+2039-    display:flex!important;
+2040-    align-items:flex-start!important;
+2041-    gap:20px!important;
+2042-  }
+--
+2118-   Bleu Facebook / Jaune Snapchat / Vert WhatsApp / Rouge TikTok
+2119-   ========================================================= */
+2120-
+2121-/* Rouge TikTok : entête Temps & Paie */
+2122:#timePayrollSection .payroll-tiktok-header{
+2123-  background:#FE2C55!important;
+2124-  color:#fff!important;
+2125-  border:1px solid #ff6f8b!important;
+2126-  border-radius:14px!important;
+2127-  padding:14px 16px!important;
+2128-  margin-bottom:10px!important;
+2129-}
+2130:#timePayrollSection .payroll-tiktok-header h2,
+2131:#timePayrollSection .payroll-tiktok-header .badge{
+2132-  color:#fff!important;
+2133-}
+2134:#timePayrollSection .payroll-tiktok-header .badge{
+2135-  background:rgba(0,0,0,.28)!important;
+2136-  border-color:rgba(255,255,255,.45)!important;
+2137-}
+2138:#timePayrollSection .payroll-tiktok-header #toggleTimePayrollBtn{
+2139-  background:#111!important;
+2140-  color:#fff!important;
+2141-  border-color:#fff!important;
+2142-}
+--
+2167-#timePayrollSection .contract-assign table{
+2168-  background:#0b0b0b!important;
+2169-  color:#fff!important;
+2170-  border-radius:10px;
+2171:  overflow:hidden;
+2172-}
+2173-#timePayrollSection .contract-assign th,
+2174-#timePayrollSection .contract-assign td{
+2175-  color:#fff!important;
+--
+2271-}
+2272-
+2273-/* Mobile : garder les blocs lisibles sans débordement */
+2274-@media(max-width:760px){
+2275:  #timePayrollSection .payroll-tiktok-header,
+2276-  #timePayrollSection .contract-assign,
+2277-  #timePayrollSection .payroll-snapchat-panel,
+2278-  #timePayrollSection .payroll-facebook-panel{
+2279-    padding:12px!important;
+2280-    border-radius:12px!important;
+2281-  }
+2282:  #timePayrollSection .payroll-tiktok-header{
+2283-    align-items:flex-start!important;
+2284-  }
+2285-}
+2286-
+--
+2353-  min-height:34px!important;
+2354-  padding:6px 9px!important;
+2355-  font-size:12px!important;
+2356-}
+2357:#timePayrollSection.admin-payroll-view .payroll-tiktok-header::after{
+2358-  content:'Administration';
+2359-  display:inline-flex;
+2360-  align-items:center;
+2361-  padding:5px 9px;
+--
+2502-  width:100%;
+2503-  height:360px;
+2504-  margin-top:12px;
+2505-  border-radius:12px;
+2506:  overflow:hidden;
+2507-  background:#1b1b1b;
+2508-  border:1px solid #444;
+2509-}
+2510-.map-legend{
+--
+2861-.employee-profile-photo-placeholder{
+2862-  width:84px;
+2863-  height:84px;
+2864-  border-radius:50%;
+2865:  overflow:hidden;
+2866-  display:flex;
+2867-  align-items:center;
+2868-  justify-content:center;
+2869-  background:#202020;
+--
+2873-}
+2874-.employee-photo-preview img,
+2875-.employee-profile-photo-placeholder img{
+2876-  width:100%;
+2877:  height:100%;
+2878-  object-fit:cover;
+2879-}
+2880-.employee-private-profile{
+2881-  margin:14px 0;
+--
+2955-
+2956-
+2957-/* v21.3 — alerte globale haut gauche */
+2958-.top-left-absence-alert{display:none!important;
+2959: position:fixed;left:12px;top:118px;z-index:12050;
+2960- max-width:min(360px,calc(100vw - 24px));padding:10px 14px;
+2961- border:2px solid #FF4D67;border-radius:12px;color:#fff;
+2962- font-weight:900;font-size:14px;line-height:1.3;
+2963- animation:pendingAbsenceBlink 1s steps(1,end) infinite;
+--
+2968-}
+2969-
+2970-
+2971-/* v21.4 — l'icône de l'entête Temps & Paie devient l'alerte d'absence */
+2972:#timePayrollHeaderAbsenceAlert{
+2973-  flex:0 0 auto;
+2974-  width:44px;
+2975-  min-width:44px;
+2976-  height:44px;
+--
+2983-  color:#fff;
+2984-  border:2px solid #FF4D67;
+2985-  animation:pendingAbsenceBlink 1s steps(1,end) infinite;
+2986-}
+2987:#timePayrollHeaderAbsenceAlert.no-pending{
+2988-  background:#171717!important;
+2989-  border-color:#3b3b3b!important;
+2990-  animation:none!important;
+2991-  color:#777!important;
+2992-}
+2993:#timePayrollHeaderAbsenceAlert .absence-count{
+2994-  position:absolute;
+2995-  transform:translate(15px,-15px);
+2996-  min-width:19px;
+2997-  height:19px;
+--
+3008-  font-weight:1000;
+3009-}
+3010-
+3011-
+3012:/* v21.5 — remplacement réel du bouton menu de Temps & Paie */
+3013:[data-page-header-for="timePayrollSection"] .app-page-title-wrap{
+3014-  display:flex!important;
+3015-  align-items:center!important;
+3016-  gap:14px!important;
+3017-}
+--
+3073-/* =========================================================
+3074-   v21.7 — cloche globale d'absence, visibilité renforcée
+3075-   ========================================================= */
+3076-.global-pending-absence-bell{
+3077:  position:fixed!important;
+3078-  left:10px!important;
+3079-  top:10px!important;
+3080-  z-index:2147483000!important;
+3081-  width:58px!important;
+--
+3270-}
+3271-
+3272-
+3273-/* =========================================================
+3274:   v21.9 — correctif définitif du bouton menu ☰
+3275-   ========================================================= */
+3276-:root{
+3277-  --sq-nav-bar-height:68px!important;
+3278-}
+3279-
+3280-#mainNavBar{
+3281-  position:sticky!important;
+3282:  top:var(--sq-real-header-height)!important;
+3283-  z-index:11000!important;
+3284-  height:var(--sq-nav-bar-height)!important;
+3285-  min-height:68px!important;
+3286-  display:flex!important;
+3287-  align-items:center!important;
+3288-  justify-content:flex-end!important;
+3289-  padding:8px 12px!important;
+3290:  overflow:visible!important;
+3291-  background:#090909!important;
+3292-  border-bottom:1px solid #383838!important;
+3293-  box-sizing:border-box!important;
+3294-}
+--
+3318-  color:#fff!important;
+3319-  font-size:28px!important;
+3320-  line-height:1!important;
+3321-  box-shadow:none!important;
+3322:  overflow:visible!important;
+3323-}
+3324-
+3325-#mainNavBar #mainHamburgerBtn:focus-visible{
+3326-  outline:3px solid #448AFF!important;
+--
+3329-
+3330-/* Le tiroir et le voile commencent toujours sous la barre complète. */
+3331-#mainNavDrawer,
+3332-#mainNavOverlay{
+3333:  top:calc(var(--sq-real-header-height) + var(--sq-nav-bar-height))!important;
+3334-}
+3335-
+3336:/* Le tiroir ne peut jamais masquer la barre de navigation. */
+3337-#mainNavDrawer{z-index:10800!important}
+3338-#mainNavOverlay{z-index:10700!important}
+3339-
+3340-@media(max-width:720px){
+--
+3353-}
+3354-
+3355-
+3356-/* =========================================================
+3357:   v22.0 — navigation stable, aucun chevauchement
+3358-   ========================================================= */
+3359-#workspaceTabs{
+3360-  position:relative!important;
+3361-  top:auto!important;
+--
+3366-  min-height:0!important;
+3367-  margin:0!important;
+3368-  background:#090909!important;
+3369-  border-bottom:1px solid #383838!important;
+3370:  overflow:visible!important;
+3371-}
+3372-
+3373-#workspaceTabs.show{
+3374-  display:block!important;
+--
+3382-  padding:9px 12px!important;
+3383-  display:flex!important;
+3384-  align-items:center!important;
+3385-  gap:8px!important;
+3386:  overflow-x:auto!important;
+3387:  overflow-y:hidden!important;
+3388-  box-sizing:border-box!important;
+3389-}
+3390-
+3391-/* Le contenu commence toujours APRÈS les onglets. */
+--
+3496-  font-weight:1000;
+3497-  line-height:1;
+3498-}
+3499-.employee-message-toast{
+3500:  position:fixed;
+3501-  right:12px;
+3502-  bottom:18px;
+3503-  z-index:12500;
+3504-  width:min(360px,calc(100vw - 24px));
+--
+3526-  color:#c9ced6;
+3527-  font-size:12px;
+3528-  margin-top:2px;
+3529-  white-space:nowrap;
+3530:  overflow:hidden;
+3531:  text-overflow:ellipsis;
+3532-}
+3533-@keyframes employeeMessageToastIn{
+3534-  from{transform:translateY(12px);opacity:0}
+3535-  to{transform:translateY(0);opacity:1}
+--
+3779-}
+3780-
+3781-
+3782-/* =========================================================
+3783:   v23.4 — MODE GOD visuel
+3784-   ========================================================= */
+3785-:root{
+3786:  --god-font-scale:1;
+3787:  --god-spacing-scale:1;
+3788-}
+3789-body{
+3790:  font-size:calc(16px * var(--god-font-scale))!important;
+3791-}
+3792:body.god-compact{
+3793:  --god-spacing-scale:.78;
+3794-}
+3795:body.god-compact #builder .card,
+3796:body.god-compact #appPageHost .card,
+3797:body.god-compact .normal-secondary-section{
+3798-  padding:14px!important;
+3799-  margin-bottom:9px!important;
+3800-}
+3801:.god-mode-launch{
+3802-  background:linear-gradient(135deg,#6b21a8,#001F97)!important;
+3803-  color:#fff!important;
+3804-  border:1px solid #8b5cf6!important;
+3805-  box-shadow:0 0 14px rgba(124,58,237,.35)!important;
+3806-  font-weight:1000!important;
+3807-}
+3808:.god-mode-launch.active{
+3809:  animation:godPulse 1.8s ease-in-out infinite;
+3810-}
+3811:@keyframes godPulse{
+3812-  0%,100%{box-shadow:0 0 10px rgba(124,58,237,.35)}
+3813-  50%{box-shadow:0 0 24px rgba(59,130,246,.65)}
+3814-}
+3815:.god-visual-editor{
+3816:  position:fixed;
+3817-  z-index:2147482000;
+3818-  right:12px;
+3819:  top:calc(var(--sq-real-header-height,78px) + var(--sq-nav-bar-height,54px) + 10px);
+3820-  width:min(370px,calc(100vw - 24px));
+3821:  max-height:calc(100vh - 155px);
+3822-  display:flex;
+3823-  flex-direction:column;
+3824-  border:1px solid #4c3b72;
+3825-  border-radius:16px;
+3826-  background:rgba(10,10,14,.98);
+3827-  color:#fff;
+3828-  box-shadow:0 22px 70px rgba(0,0,0,.55),0 0 32px rgba(91,33,182,.22);
+3829:  overflow:hidden;
+3830-}
+3831:.god-editor-head{
+3832-  display:flex;
+3833-  align-items:center;
+3834-  justify-content:space-between;
+3835-  gap:10px;
+3836-  padding:12px 13px;
+3837-  background:linear-gradient(135deg,#32145f,#173b73);
+3838-  border-bottom:1px solid #62507e;
+3839-}
+3840:.god-editor-head strong{font-size:15px;letter-spacing:.06em}
+3841:.god-editor-head small{display:block;color:#d8c9ff!important;margin-top:2px}
+3842:.god-editor-head button{min-height:34px!important;width:36px;padding:0!important}
+3843:.god-editor-statusbar{
+3844-  display:flex;justify-content:space-between;gap:8px;align-items:center;
+3845-  padding:8px 12px;background:#0e0e13;border-bottom:1px solid #2d2837;
+3846-  font-size:11px;color:#b6b0c4
+3847-}
+3848:.god-live-dot{color:#6ee7a2;font-weight:900}
+3849:.god-editor-scroll{overflow:auto;padding:10px}
+3850:.god-editor-group{
+3851-  padding:11px;margin-bottom:9px;border-radius:12px;
+3852-  border:1px solid #302a3d;background:#121117
+3853-}
+3854:.god-editor-group h3{margin:0 0 9px!important;color:#eee6ff!important}
+3855:.god-editor-group input[type="range"]{padding:0!important;min-height:34px!important}
+3856:.god-color-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+3857:.god-color-grid label{
+3858-  display:grid;grid-template-columns:1fr auto;align-items:center;
+3859-  gap:7px;padding:7px;border-radius:9px;background:#0c0b10
+3860-}
+3861:.god-color-grid input[type="color"]{
+3862-  width:42px!important;height:34px!important;min-height:34px!important;padding:2px!important
+3863-}
+3864:.god-switch{display:flex!important;align-items:center;gap:8px;margin-top:8px!important}
+3865:.god-switch input{width:auto!important;min-height:auto!important}
+3866:body.god-editing [data-god-editable]{
+3867-  outline:1px dashed rgba(139,92,246,.45);
+3868-  outline-offset:3px;
+3869-}
+3870-@media(max-width:700px){
+3871:  .god-visual-editor{
+3872-    left:8px;right:8px;top:auto;bottom:8px;
+3873-    width:auto;max-height:72vh;border-radius:16px
+3874-  }
+3875-}
+--
+3884-}
+3885-
+3886-
+3887-/* v23.7 — éditeur HTML/CSS live */
+3888:.god-code-editor{
+3889-  min-height:150px!important;
+3890-  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace!important;
+3891-  font-size:12px!important;
+3892-  line-height:1.5!important;
+3893-  tab-size:2;
+3894-  white-space:pre;
+3895:  overflow:auto;
+3896-  background:#08090c!important;
+3897-  color:#d7e3ff!important;
+3898-  border-color:#3b465a!important;
+3899-}
+3900:.god-html-toolbar{
+3901-  display:flex;
+3902-  flex-wrap:wrap;
+3903-  gap:7px;
+3904-  margin:8px 0 10px;
+3905-}
+3906:.god-html-toolbar button{
+3907-  min-height:34px!important;
+3908-  padding:6px 9px!important;
+3909-  font-size:11px!important;
+3910-}
+3911:.god-preview-frame-wrap{
+3912-  margin-top:10px;
+3913-  border:1px solid #34384a;
+3914-  border-radius:12px;
+3915:  overflow:hidden;
+3916-  background:#fff;
+3917-}
+3918:.god-preview-frame-head{
+3919-  display:flex;
+3920-  justify-content:space-between;
+3921-  align-items:center;
+3922-  gap:8px;
+--
+3924-  background:#14151b;
+3925-  color:#e9ecf5;
+3926-  font-size:11px;
+3927-}
+3928:.god-html-preview{
+3929-  display:block;
+3930-  width:100%;
+3931-  min-height:260px;
+3932-  border:0;
+3933-  background:#fff;
+3934-}
+3935:.god-custom-live-block{
+3936-  width:min(calc(100% - 24px),var(--ui-max));
+3937-  margin:12px auto 0;
+3938-  padding:0;
+3939-  border-radius:var(--ui-radius);
+3940-}
+3941:.god-custom-live-block.hidden{display:none!important}
+3942:.god-custom-live-block > *:first-child{margin-top:0!important}
+3943-
+3944-
+
+=== STYLE/VIEWPORT ===
+2-<html lang="fr-CA">
+3-<head>
+4-  <meta charset="utf-8" />
+5:  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,viewport-fit=cover" />
+6-  <meta name="theme-color" content="#111827" />
+7-  <!-- Playlist routing fix v2 -->
+8-<title>PME Québec</title>
+9-  <link rel="manifest" href="manifest.json">
+10-  <style>
+11-    :root{--bg:#f3f4f6;--card:#fff;--ink:#111827;--muted:#6b7280;--line:#e5e7eb;--accent:#001F97;--ok:#059669;--danger:#dc2626}
+12:    *{box-sizing:border-box} body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink)}
+13:    header{background:#111827;color:#fff;padding:18px 16px;position:sticky;top:0;z-index:5}
+14-    header h1{font-size:20px;margin:0} header small{color:#cbd5e1}
+15-    main{max-width:920px;margin:auto;padding:16px}
+16-    .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+--
+32-    .saved-item{padding:10px 0;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:8px}
+33-    @media(max-width:700px){.grid{grid-template-columns:1fr}.line{grid-template-columns:1fr 1fr}.line .desc{grid-column:1/-1}.line .remove{grid-column:2;justify-self:end}}
+34-    @media print{
+35:      body{background:#fff}.no-print,header{display:none!important} main{max-width:none;padding:0}.card{box-shadow:none;border:0}
+36-      #builder{display:none}.quote{display:block}.quote .card{padding:0}.quote h1{font-size:28px}
+37-    }
+38-
+--
+45-    .ad-card{border:1px solid var(--line);border-radius:12px;padding:12px;margin-top:10px;background:#fafafa}
+46-    .ad-card img{width:100%;max-height:220px;object-fit:cover;border-radius:10px;margin-bottom:8px;display:none}
+47-    .ad-card img.show{display:block}
+48:    .ad-preview{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#fff;margin-bottom:14px}
+49-    .ad-preview img{width:100%;max-height:260px;object-fit:cover;display:block}
+50:    .ad-preview .body{padding:14px}
+51-    .hidden{display:none!important}
+52-
+53-
+54-    .marketing-grid{display:grid;grid-template-columns:320px 1fr;gap:14px}
+55:    .poster-wrap{display:flex;justify-content:center;align-items:flex-start;overflow:auto;padding:8px}
+56-    .poster{
+57:      width:360px;aspect-ratio:4/5;border-radius:18px;overflow:hidden;position:relative;
+58-      background:linear-gradient(135deg,#111827,#374151);color:#fff;border:1px solid var(--line)
+59-    }
+60-    .poster.square{aspect-ratio:1/1}.poster.story{aspect-ratio:9/16}
+--
+96-    .img-editor-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+97-    .img-editor-grid.three{grid-template-columns:repeat(3,1fr)}
+98-    .editor-canvas-wrap{
+99:      position:relative;border:1px solid var(--line);border-radius:10px;overflow:auto;
+100-      background-color:#fff;
+101-      background-image:
+102-        linear-gradient(45deg,#e5e7eb 25%,transparent 25%),
+--
+106-      background-size:20px 20px;
+107-      background-position:0 0,0 10px,10px -10px,-10px 0px;
+108-      padding:8px;
+109:      touch-action:none;
+110-    }
+111-    #manualEditCanvas{display:block;max-width:100%;height:auto;margin:auto;cursor:crosshair}
+112-    .tool-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+--
+124-    .inventory-picker{display:grid;grid-template-columns:2fr .8fr .8fr auto;gap:7px;align-items:end;margin-bottom:10px}
+125-    .inventory-stat{display:inline-flex;gap:5px;align-items:center;border:1px solid var(--line);border-radius:999px;padding:5px 9px;font-size:12px;background:#fff}
+126-    .site-builder-grid{display:grid;grid-template-columns:340px 1fr;gap:14px}
+127:    .site-preview{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#fff;min-height:420px}
+128-    .site-preview-hero{min-height:190px;background:#111827 center/cover no-repeat;color:#fff;padding:28px;display:flex;flex-direction:column;justify-content:end}
+129:    .site-preview-body{padding:24px}
+130-    .site-preview-services{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:16px 0}
+131-    .site-preview-service{border:1px solid var(--line);border-radius:10px;padding:12px}
+132-    .url-preview{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;background:#f3f4f6;padding:9px;border-radius:8px;word-break:break-all}
+--
+165-    .warehouse-shipping,.warehouse-grid,.warehouse-panel,.shipment-form-grid,.shipment-form-grid>div{min-width:0;max-width:100%}
+166-    .warehouse-panel input,.warehouse-panel textarea,.warehouse-panel select{min-width:0;max-width:100%;width:100%}
+167-    .warehouse-panel table{max-width:100%}
+168:    #warehouseRows td,#shipmentRows td{overflow-wrap:anywhere;word-break:break-word}
+169-    @media(max-width:760px){
+170:      #warehouseShippingSection{width:100%!important;max-width:100%!important;overflow:hidden!important;padding-left:10px!important;padding-right:10px!important}
+171-      #warehouseShippingSection .warehouse-grid{display:block!important;width:100%!important}
+172:      #warehouseShippingSection .warehouse-panel{width:100%!important;max-width:100%!important;margin:0 0 12px!important;padding:12px!important;overflow:hidden!important}
+173-      #warehouseShippingSection .shipment-form-grid{display:block!important;width:100%!important}
+174-      #warehouseShippingSection .shipment-form-grid>div{width:100%!important;margin-bottom:10px!important}
+175-      #warehouseShippingSection .grid{grid-template-columns:1fr!important;width:100%!important}
+176-      #warehouseShippingSection .grid>div{min-width:0!important;width:100%!important}
+177-      #warehouseShippingSection .row{width:100%!important}
+178-      #warehouseShippingSection .row button{flex:1 1 150px;max-width:100%}
+179:      #warehouseShippingSection>div[style*="overflow:auto"],
+180:      #warehouseShippingSection .warehouse-panel>div[style*="overflow:auto"]{width:100%!important;max-width:100%!important;overflow-x:auto!important;-webkit-overflow-scrolling:touch}
+181-      #warehouseShippingSection table{width:max-content!important;min-width:100%!important}
+182-      #warehouseShippingSection input,#warehouseShippingSection textarea,#warehouseShippingSection select{font-size:16px!important}
+183-    }
+--
+235-
+236-
+237-    .auth-gate{
+238:      position:fixed;inset:0;z-index:9999;background:rgba(15,23,42,.82);
+239-      display:flex;align-items:center;justify-content:center;padding:16px
+240-    }
+241-    .auth-card{
+--
+256-
+257-
+258-    .mobile-nav-trigger{
+259:      position:fixed;top:12px;left:12px;z-index:9500;
+260-      width:48px;height:48px;border-radius:12px;border:1px solid var(--line);
+261-      background:#fff;font-size:25px;font-weight:800;display:flex;align-items:center;justify-content:center;
+262-      box-shadow:0 4px 18px rgba(0,0,0,.12);cursor:pointer
+263-    }
+264-    .mobile-nav-overlay{
+265:      position:fixed;inset:0;z-index:9400;background:rgba(15,23,42,.45)
+266-    }
+267-    .mobile-nav-drawer{
+268:      position:fixed;top:0;left:0;bottom:0;z-index:9450;width:min(340px,88vw);
+269-      background:#fff;box-shadow:8px 0 28px rgba(0,0,0,.18);padding:76px 14px 18px;
+270:      overflow:auto
+271-    }
+272-    .mobile-nav-title{font-size:18px;font-weight:800;margin:0 0 10px}
+273-    .mobile-nav-list{display:grid;gap:8px}
+--
+286-    @media(max-width:760px){
+287-      .mobile-nav-trigger{top:8px;left:8px}
+288-      .mobile-nav-drawer{width:92vw}
+289:      body{padding-top:8px}
+290-    }
+291-
+292-
+293-    .social-page-builder{display:grid;grid-template-columns:minmax(320px,1fr) minmax(320px,.9fr);gap:16px}
+294-    .social-profile-preview{
+295:      max-width:430px;margin:auto;background:#0f172a;color:#fff;border-radius:24px;overflow:hidden;
+296-      min-height:720px;box-shadow:0 16px 50px rgba(0,0,0,.18)
+297-    }
+298-    .social-cover{height:150px;background:#334155 center/cover no-repeat;position:relative}
+--
+312-    }
+313-    .social-feed{border-top:1px solid rgba(255,255,255,.12);padding:12px;display:grid;gap:12px}
+314-    .social-post{
+315:      background:#111827;border:1px solid rgba(255,255,255,.1);border-radius:16px;overflow:hidden
+316-    }
+317-    .social-post-media{width:100%;display:block;max-height:560px;object-fit:cover;background:#000}
+318:    .social-post-body{padding:12px}
+319-    .social-post-title{font-weight:800;margin-bottom:5px}
+320-    .social-post-text{white-space:pre-wrap;color:#e5e7eb;line-height:1.42}
+321-    .social-post-meta{font-size:11px;color:#94a3b8;margin-top:8px}
+--
+330-
+331-    .marketing-image-editor-fix{border:1px solid var(--line);border-radius:14px;padding:12px;margin-top:14px;background:#fff}
+332-    .marketing-editor-stage{
+333:      position:relative;min-height:320px;border:1px solid var(--line);border-radius:12px;overflow:auto;
+334-      display:flex;align-items:center;justify-content:center;padding:10px;
+335-      background:
+336-        linear-gradient(45deg,#e5e7eb 25%,transparent 25%),
+--
+339-        linear-gradient(-45deg,transparent 75%,#e5e7eb 75%);
+340-      background-size:20px 20px;background-position:0 0,0 10px,10px -10px,-10px 0
+341-    }
+342:    #marketingFixCanvas{max-width:100%;height:auto;touch-action:none;display:block}
+343-    .marketing-editor-controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px}
+344-    .marketing-editor-controls .full{grid-column:1/-1}
+345-    @media(max-width:680px){.marketing-editor-controls{grid-template-columns:1fr}}
+346-
+347-
+348:    .chat-shell{display:grid;grid-template-columns:300px minmax(0,1fr);min-height:620px;border:1px solid #273244;border-radius:18px;overflow:hidden;background:#0b1018;color:#f8fafc}
+349-    .chat-sidebar{background:#111827;border-right:1px solid #273244;min-width:0}
+350-    .chat-sidebar-head{padding:14px;border-bottom:1px solid #273244}.chat-sidebar-head h3{margin:0;color:#fff}
+351-    .chat-search{width:100%;margin-top:10px;background:#1f2937!important;color:#fff!important;border:1px solid #374151!important}
+352:    .chat-contacts{display:grid;max-height:560px;overflow:auto}
+353-    .chat-contact{width:100%;display:grid;grid-template-columns:46px minmax(0,1fr) auto;gap:10px;align-items:center;padding:11px 12px;border:0;border-bottom:1px solid #1f2937;background:transparent;color:#fff;text-align:left;cursor:pointer;min-height:66px}
+354-    .chat-contact:hover,.chat-contact.active{background:#1f2937}
+355:    .chat-avatar{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#374151;color:#fff;font-weight:800;position:relative;overflow:hidden}
+356-    .chat-online-dot{position:absolute;right:1px;bottom:1px;width:11px;height:11px;border-radius:50%;background:#22c55e;border:2px solid #111827}
+357:    .chat-contact-name{font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.chat-contact-preview{font-size:12px;color:#9ca3af;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+358-    .chat-unread{min-width:22px;height:22px;padding:0 6px;border-radius:999px;background:#001F97;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800}
+359-    .chat-main{display:grid;grid-template-rows:auto minmax(360px,1fr) auto;min-width:0;background:#0b1018}
+360-    .chat-header{padding:12px 14px;border-bottom:1px solid #273244;display:flex;align-items:center;gap:10px;background:#111827}.chat-header-title{font-weight:800}.chat-header-sub{font-size:12px;color:#9ca3af}
+361:    .chat-messages{padding:16px;overflow:auto;display:flex;flex-direction:column;gap:8px;background:linear-gradient(180deg,#0b1018,#0d131d)}
+362-    .chat-empty{margin:auto;color:#9ca3af;text-align:center;max-width:280px}.chat-row{display:flex}.chat-row.mine{justify-content:flex-end}
+363-    .chat-bubble{max-width:min(76%,540px);padding:10px 12px;border-radius:18px;background:#1f2937;color:#fff;line-height:1.4;word-break:break-word}.chat-row.mine .chat-bubble{background:#001F97}
+364-    .chat-time{font-size:10px;color:#cbd5e1;margin-top:4px;opacity:.8}
+--
+379-    .main-nav-logout{color:#fecaca!important}
+380-
+381-
+382:.chat-sender-label{font-size:11px;font-weight:800;color:#93c5fd;margin:0 4px 3px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+383-.chat-row.mine .chat-sender-label{color:#bfdbfe;text-align:right}
+384:.chat-contact-origin{font-size:11px;color:#93c5fd;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+385-
+386-/* Navigation par pages de module */
+387-#appRoot.single-page-mode .app-module-page{display:none!important}
+--
+401-  min-width:44px;min-height:44px;border-radius:12px
+402-}
+403-.app-page-title-wrap{display:flex;align-items:center;gap:10px;min-width:0}
+404:.app-page-title{font-weight:800;font-size:20px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+405-@media(max-width:680px){
+406:  .app-page-header{position:sticky;top:0;z-index:20;background:var(--bg,#fff);padding-top:8px}
+407-  .app-page-title{font-size:18px}
+408-}
+409-
+--
+424-
+425-#appPageHost{
+426-  width:100%;
+427:  min-height:100vh;
+428:  min-height:100dvh;
+429-}
+430-#appPageHost>.app-module-page{
+431-  width:100%!important;
+--
+497-
+498-/* v16.7 — Canvas des pages secondaires style fil social sombre */
+499-#appPageHost{
+500:  min-height:100vh;
+501:  min-height:100dvh;
+502-  background:#18191a!important;
+503-  color:#e4e6eb!important;
+504-  padding:18px 12px 40px!important;
+--
+515-
+516-/* En-tête de page */
+517-#appPageHost .app-page-header{
+518:  position:sticky;
+519-  top:0;
+520-  z-index:30;
+521-  background:rgba(24,25,26,.96)!important;
+--
+729-.chat-presence-name{
+730-  font-weight:800;
+731-  white-space:nowrap;
+732:  overflow:hidden;
+733:  text-overflow:ellipsis;
+734-}
+735-.chat-presence-state{
+736-  font-size:12px;
+--
+979-  background:#f4f2ee!important;
+980-  color:#1f1f1f!important;
+981-  padding:20px 12px 44px!important;
+982:  min-height:100vh!important;
+983-  box-sizing:border-box!important;
+984-}
+985-
+--
+1118-#builder .business-profile,
+1119-#builder .company-profile{
+1120-  position:relative;
+1121:  overflow:hidden;
+1122-}
+1123-#builder #businessProfileCard::before,
+1124-#builder .business-profile::before,
+--
+1202-.drawer,
+1203-.mobile-menu{
+1204-  top:var(--sq-header-height)!important;
+1205:  height:calc(100dvh - var(--sq-header-height))!important;
+1206:  max-height:calc(100dvh - var(--sq-header-height))!important;
+1207-  z-index:900!important;
+1208:  overflow-y:auto!important;
+1209-}
+1210-
+1211-/* Si le menu est horizontal / déroulant, il reste également sous l'entête */
+--
+1247-  .drawer,
+1248-  .mobile-menu{
+1249-    top:var(--sq-header-height)!important;
+1250:    height:calc(100dvh - var(--sq-header-height))!important;
+1251-  }
+1252-}
+1253-
+--
+1260-
+1261-/* L'entête est toujours au-dessus de tout */
+1262-body > header{
+1263:  position:sticky!important;
+1264-  top:0!important;
+1265-  z-index:10000!important;
+1266-  background:#ffffff!important;
+--
+1269-
+1270-/* Barre dédiée au menu, immédiatement sous l'entête */
+1271-#mainNavBar{
+1272:  position:sticky!important;
+1273-  top:var(--sq-real-header-height)!important;
+1274-  z-index:9950!important;
+1275-  height:var(--sq-nav-bar-height)!important;
+--
+1293-
+1294-/* Le voile commence SOUS l'entête + la barre de menu */
+1295-#mainNavOverlay{
+1296:  position:fixed!important;
+1297-  left:0!important;
+1298-  right:0!important;
+1299-  bottom:0!important;
+--
+1304-
+1305-/* Le vrai tiroir commence lui aussi sous l'entête + la barre */
+1306-#mainNavDrawer{
+1307:  position:fixed!important;
+1308-  left:0!important;
+1309-  top:calc(var(--sq-real-header-height) + var(--sq-nav-bar-height))!important;
+1310-  bottom:0!important;
+--
+1314-  max-height:none!important;
+1315-  padding:14px!important;
+1316-  box-sizing:border-box!important;
+1317:  overflow-y:auto!important;
+1318-  background:#ffffff!important;
+1319-  color:#111827!important;
+1320-}
+1321-
+1322-/* Le bouton fermer reste dans le tiroir, sans pousser tout le contenu */
+1323-#mainNavDrawer #mainNavCloseBtn{
+1324:  position:sticky!important;
+1325-  top:0!important;
+1326-  float:right!important;
+1327-  z-index:2!important;
+--
+1421-
+1422-/* Base */
+1423-*{box-sizing:border-box}
+1424:html{scroll-behavior:smooth}
+1425:body{
+1426-  background:var(--ui-bg)!important;
+1427-  color:var(--ui-text)!important;
+1428-  font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important;
+1429-  line-height:1.45;
+1430-}
+1431-button,input,textarea,select{font:inherit}
+1432:button{touch-action:manipulation}
+1433-.hidden-force{display:none!important}
+1434-
+1435-/* Header */
+--
+1537-
+1538-/* Edit toolbar becomes compact and professional */
+1539-#mainEditToolbar{
+1540:  position:sticky!important;
+1541-  top:calc(var(--sq-real-header-height,78px) + var(--sq-nav-bar-height,54px) + 8px)!important;
+1542-  z-index:120!important;
+1543-  width:min(calc(100% - 24px),var(--ui-max))!important;
+--
+1653-  border-spacing:0!important;
+1654-  border:1px solid var(--ui-line)!important;
+1655-  border-radius:12px!important;
+1656:  overflow:hidden!important;
+1657-}
+1658-th{
+1659-  background:#181818!important;
+--
+1668-
+1669-/* Secondary module headers */
+1670-.app-page-header{
+1671:  position:sticky!important;
+1672-  top:calc(var(--sq-real-header-height,78px) + var(--sq-nav-bar-height,54px))!important;
+1673-  z-index:80!important;
+1674-  margin:-18px -18px 16px!important;
+--
+1691-.chat-shell{
+1692-  border:1px solid var(--ui-line)!important;
+1693-  border-radius:14px!important;
+1694:  overflow:hidden!important;
+1695-  box-shadow:var(--ui-shadow)!important;
+1696-}
+1697-.chat-sidebar{
+--
+1738-
+1739-/* Status/toast */
+1740-#sqToast{
+1741:  position:fixed;
+1742-  right:16px;
+1743-  bottom:18px;
+1744-  z-index:20000;
+--
+1797-   ========================================================= */
+1798-#workspaceTabs{
+1799-  display:none;
+1800:  position:sticky;
+1801-  top:calc(var(--sq-real-header-height,78px) + var(--sq-nav-bar-height,54px));
+1802-  z-index:900;
+1803-  width:100%;
+--
+1813-  display:flex;
+1814-  align-items:center;
+1815-  gap:8px;
+1816:  overflow-x:auto;
+1817-  scrollbar-width:none;
+1818-}
+1819-.workspace-tabs-inner::-webkit-scrollbar{display:none}
+--
+2168-  background:#0b0b0b!important;
+2169-  color:#fff!important;
+2170-  border-radius:10px;
+2171:  overflow:hidden;
+2172-}
+2173-#timePayrollSection .contract-assign th,
+2174-#timePayrollSection .contract-assign td{
+--
+2503-  height:360px;
+2504-  margin-top:12px;
+2505-  border-radius:12px;
+2506:  overflow:hidden;
+2507-  background:#1b1b1b;
+2508-  border:1px solid #444;
+2509-}
+--
+2862-  width:84px;
+2863-  height:84px;
+2864-  border-radius:50%;
+2865:  overflow:hidden;
+2866-  display:flex;
+2867-  align-items:center;
+2868-  justify-content:center;
+--
+2912-.accounting-employee-profile-panel{
+2913-  border-color:#4169E1!important;
+2914-}
+2915:.accounting-profile-body{
+2916-  margin-top:14px;
+2917-  padding-top:14px;
+2918-  border-top:1px solid #333;
+--
+2956-
+2957-/* v21.3 — alerte globale haut gauche */
+2958-.top-left-absence-alert{display:none!important;
+2959: position:fixed;left:12px;top:118px;z-index:12050;
+2960- max-width:min(360px,calc(100vw - 24px));padding:10px 14px;
+2961- border:2px solid #FF4D67;border-radius:12px;color:#fff;
+2962- font-weight:900;font-size:14px;line-height:1.3;
+--
+3074-   v21.7 — cloche globale d'absence, visibilité renforcée
+3075-   ========================================================= */
+3076-.global-pending-absence-bell{
+3077:  position:fixed!important;
+3078-  left:10px!important;
+3079-  top:10px!important;
+3080-  z-index:2147483000!important;
+--
+3278-}
+3279-
+3280-#mainNavBar{
+3281:  position:sticky!important;
+3282-  top:var(--sq-real-header-height)!important;
+3283-  z-index:11000!important;
+3284-  height:var(--sq-nav-bar-height)!important;
+--
+3287-  align-items:center!important;
+3288-  justify-content:flex-end!important;
+3289-  padding:8px 12px!important;
+3290:  overflow:visible!important;
+3291-  background:#090909!important;
+3292-  border-bottom:1px solid #383838!important;
+3293-  box-sizing:border-box!important;
+--
+3319-  font-size:28px!important;
+3320-  line-height:1!important;
+3321-  box-shadow:none!important;
+3322:  overflow:visible!important;
+3323-}
+3324-
+3325-#mainNavBar #mainHamburgerBtn:focus-visible{
+--
+3367-  margin:0!important;
+3368-  background:#090909!important;
+3369-  border-bottom:1px solid #383838!important;
+3370:  overflow:visible!important;
+3371-}
+3372-
+3373-#workspaceTabs.show{
+--
+3383-  display:flex!important;
+3384-  align-items:center!important;
+3385-  gap:8px!important;
+3386:  overflow-x:auto!important;
+3387:  overflow-y:hidden!important;
+3388-  box-sizing:border-box!important;
+3389-}
+3390-
+--
+3497-  line-height:1;
+3498-}
+3499-.employee-message-toast{
+3500:  position:fixed;
+3501-  right:12px;
+3502-  bottom:18px;
+3503-  z-index:12500;
+--
+3527-  font-size:12px;
+3528-  margin-top:2px;
+3529-  white-space:nowrap;
+3530:  overflow:hidden;
+3531:  text-overflow:ellipsis;
+3532-}
+3533-@keyframes employeeMessageToastIn{
+3534-  from{transform:translateY(12px);opacity:0}
+--
+3637-[data-workspace-tab-target="notificationsSection"]{
+3638-  cursor:pointer!important;
+3639-  pointer-events:auto!important;
+3640:  touch-action:manipulation!important;
+3641-}
+3642-#workspaceNotificationBell:active,
+3643-#workspacePendingActionBadge:active,
+--
+3695-  border:1px solid #343434!important;
+3696-  box-shadow:none!important;
+3697-}
+3698:#publicAdSlot.ad-preview .body{
+3699-  background:#111!important;
+3700-  color:#fff!important;
+3701-}
+--
+3786-  --god-font-scale:1;
+3787-  --god-spacing-scale:1;
+3788-}
+3789:body{
+3790-  font-size:calc(16px * var(--god-font-scale))!important;
+3791-}
+3792-body.god-compact{
+--
+3813-  50%{box-shadow:0 0 24px rgba(59,130,246,.65)}
+3814-}
+3815-.god-visual-editor{
+3816:  position:fixed;
+3817-  z-index:2147482000;
+3818-  right:12px;
+3819-  top:calc(var(--sq-real-header-height,78px) + var(--sq-nav-bar-height,54px) + 10px);
+3820-  width:min(370px,calc(100vw - 24px));
+3821:  max-height:calc(100vh - 155px);
+3822-  display:flex;
+3823-  flex-direction:column;
+3824-  border:1px solid #4c3b72;
+--
+3826-  background:rgba(10,10,14,.98);
+3827-  color:#fff;
+3828-  box-shadow:0 22px 70px rgba(0,0,0,.55),0 0 32px rgba(91,33,182,.22);
+3829:  overflow:hidden;
+3830-}
+3831-.god-editor-head{
+3832-  display:flex;
+--
+3846-  font-size:11px;color:#b6b0c4
+3847-}
+3848-.god-live-dot{color:#6ee7a2;font-weight:900}
+3849:.god-editor-scroll{overflow:auto;padding:10px}
+3850-.god-editor-group{
+3851-  padding:11px;margin-bottom:9px;border-radius:12px;
+3852-  border:1px solid #302a3d;background:#121117
+--
+3892-  line-height:1.5!important;
+3893-  tab-size:2;
+3894-  white-space:pre;
+3895:  overflow:auto;
+3896-  background:#08090c!important;
+3897-  color:#d7e3ff!important;
+3898-  border-color:#3b465a!important;
+--
+3912-  margin-top:10px;
+3913-  border:1px solid #34384a;
+3914-  border-radius:12px;
+3915:  overflow:hidden;
+3916-  background:#fff;
+3917-}
+3918-.god-preview-frame-head{
+--
+3946-   v23.8 — MODE GOD par page
+3947-   ========================================================= */
+3948-.god-global-launcher{
+3949:  position:fixed;
+3950-  z-index:2147481900;
+3951-  right:14px;
+3952-  bottom:14px;
+--
+4003-  padding:8px;border:1px solid #302f3b;border-radius:9px;background:#0d0d12
+4004-}
+4005-.god-section-row input{width:auto!important;min-height:auto!important}
+4006:.god-section-row strong{font-size:11px;color:#e9e5f3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+4007:.god-snapshot-list{display:grid;gap:6px;margin-top:8px;max-height:160px;overflow:auto}
+4008-.god-snapshot-item{
+4009-  display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;
+4010-  padding:7px 8px;border-radius:9px;border:1px solid #2e2e38;background:#0d0d12;font-size:11px
+--
+4032-.assets-stat{padding:13px}.assets-stat span{display:block;color:#9aa4b2;font-size:12px}.assets-stat strong{display:block;font-size:24px;margin-top:4px}
+4033-.assets-panel{padding:14px;margin:12px 0}.assets-editor{margin-top:12px;padding:12px;border:1px solid #344054;border-radius:12px;background:#0b0d11}
+4034-.assets-location-actions{margin-top:9px;align-items:center}.assets-map-wrap{margin-top:12px;padding:10px;border:1px solid #2d3440;border-radius:12px;background:#0b0d11}
+4035:.assets-map{height:300px;border-radius:10px;overflow:hidden;margin-top:8px;background:#151922}.assets-table-wrap{overflow:auto;margin-top:12px}
+4036-.assets-filters{display:grid;grid-template-columns:2fr 1fr 1fr;gap:10px;margin-top:12px;align-items:end}
+4037-.assets-status{display:inline-flex;align-items:center;gap:5px;padding:4px 8px;border-radius:999px;font-size:11px;font-weight:900;white-space:nowrap}
+4038-.assets-status.available{background:rgba(52,168,83,.16);color:#75e095;border:1px solid rgba(52,168,83,.38)}
+--
+4115-}
+4116-#globalSearchWrap.has-value #globalSearchClear{display:block!important}
+4117-#globalSearchOverlay{
+4118:  position:fixed;inset:0;z-index:2147481200;background:rgba(0,0,0,.72);
+4119-  backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);padding:72px 12px 18px;
+4120-  display:none;align-items:flex-start;justify-content:center
+4121-}
+4122-#globalSearchOverlay.show{display:flex}
+4123-.global-search-dialog{
+4124:  width:min(100%,760px);max-height:calc(100dvh - 90px);display:flex;flex-direction:column;
+4125-  background:#18191a;color:#e4e6eb;border:1px solid #3a3b3c;border-radius:18px;
+4126:  box-shadow:0 24px 70px rgba(0,0,0,.55);overflow:hidden
+4127-}
+4128-.global-search-dialog-head{
+4129-  display:flex;gap:8px;align-items:center;padding:12px;border-bottom:1px solid #3a3b3c;background:#202122
+--
+4139-  display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 13px;
+4140-  border-bottom:1px solid #303136;color:#aeb4bd;font-size:11px
+4141-}
+4142:#globalSearchResults{overflow:auto;padding:8px}
+4143-.global-search-result{
+4144-  display:grid;grid-template-columns:42px 1fr auto;gap:10px;align-items:center;
+4145-  width:100%;padding:11px;border:1px solid transparent;border-radius:12px;background:transparent;
+--
+4165-  #globalSearchWrap{margin:0 4px;max-width:none}
+4166-  #globalSearchInput{height:42px!important;padding-left:38px!important;font-size:13px!important}
+4167-  #globalSearchOverlay{padding:10px 7px 10px;align-items:stretch}
+4168:  .global-search-dialog{max-height:calc(100dvh - 20px);border-radius:15px}
+4169-  .global-search-result{grid-template-columns:38px 1fr}
+4170-  .global-search-result-type{display:none}
+4171-  .global-search-result-icon{width:36px;height:36px}
+--
+4174-
+4175-/* v25.0 — Migration Supabase */
+4176-.cloud-migration-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:10px}
+4177:.cloud-sync-progress{height:8px;background:#20242b;border-radius:999px;overflow:hidden;margin-top:12px;border:1px solid #343a45}
+4178-.cloud-sync-progress-bar{width:0%;height:100%;background:linear-gradient(90deg,#001F97,#6d5dfc);transition:width .2s ease}
+4179-.cloud-sync-online{color:#75e095!important}
+4180-.cloud-sync-warn{color:#f7c35d!important}
+4181-.cloud-sync-error{color:#ff8f86!important}
+4182-#cloudSyncFloatingState{
+4183:  position:fixed;left:10px;bottom:10px;z-index:2147481000;display:none;align-items:center;gap:7px;
+4184-  padding:7px 10px;border-radius:999px;background:#101317;border:1px solid #313844;color:#cbd5e1;
+4185-  font-size:10px;font-weight:850;box-shadow:0 8px 24px rgba(0,0,0,.35)
+4186-}
+--
+4250-@media (max-width:700px){
+4251-  #authModal .modal-card, #authOverlay .modal-card, .auth-modal .modal-card,
+4252-  .auth-overlay .modal-card, .login-modal .modal-card {
+4253:    max-height:calc(100dvh - 235px) !important;
+4254:    overflow-y:auto !important;
+4255:    overscroll-behavior:contain;
+4256-    margin-top:220px !important;
+4257-  }
+4258-}
+--
+4262-  #authGate.hidden{display:none!important}
+4263-  @media (max-width:700px){
+4264-    #authGate{
+4265:      position:fixed!important;
+4266-      inset:0!important;
+4267-      z-index:99999!important;
+4268:      overflow-y:auto!important;
+4269:      padding:calc(env(safe-area-inset-top,0px) + 14px) 14px 28px!important;
+4270-      background:rgba(0,0,0,.72)!important;
+4271-    }
+4272-    #authGate .auth-card{
+4273-      margin:0 auto!important;
+4274-      max-height:none!important;
+4275:      overflow:visible!important;
+4276-    }
+4277-  }
+4278-</style>
+--
+4298-    max-width:640px;
+4299-    margin:12px auto;
+4300-    border-radius:14px;
+4301:    overflow:hidden;
+4302-    background:#050505;
+4303-  }
+4304-  #barcodeCameraReader video{
+--
+4331-</style>
+4332-
+4333-<style id="pme27-inventory-parasite-css">
+4334:  #inventorySection{overflow:visible!important}
+4335-  #inventorySection::before,#inventorySection::after{content:none!important}
+4336-</style>
+4337-
+--
+4424-    margin:5px 0 10px;
+4425-    color:#d1d5db;
+4426-  }
+4427:  .inventory-confirm-scroll{overflow:auto}
+4428-  .inventory-confirm-table{
+4429-    width:100%;
+4430-    min-width:680px;
+--
+4489-    margin:5px 0 10px;
+4490-    color:#d1d5db;
+4491-  }
+4492:  .supplier-confirm-scroll{overflow:auto}
+4493-  .supplier-confirm-table{
+4494-    width:100%;
+4495-    min-width:680px;
+--
+4528-    background:#ffffff;
+4529-    padding:7px 8px 6px;
+4530-    border-radius:8px;
+4531:    overflow:hidden;
+4532-  }
+4533-  .inventory-code128-svg{
+4534-    display:block;
+--
+4593-  .rss-source-tabs{
+4594-    display:flex;
+4595-    gap:8px;
+4596:    overflow-x:auto;
+4597-    padding:4px 0 12px;
+4598-    scrollbar-width:thin;
+4599-  }
+--
+4658-    background:#18191a;
+4659-    border:1px solid #3a3b3c;
+4660-    border-radius:14px;
+4661:    overflow:hidden;
+4662-  }
+4663-  .rss-manager summary{padding:14px 16px;cursor:pointer;font-weight:800;color:#ffffff}
+4664:  .rss-manager-body{padding:0 16px 16px}
+4665-  .rss-add-grid{
+4666-    display:grid;
+4667-    grid-template-columns:1fr 2fr auto;
+--
+4692-
+4693-<style id="pme29-1-rss-expanded-css">
+4694-  .rss-card{
+4695:    overflow:hidden;
+4696-    padding:0!important;
+4697-    display:flex;
+4698-    flex-direction:column;
+--
+4708-    object-fit:cover;
+4709-    background:#101010;
+4710-  }
+4711:  .rss-card-body{
+4712-    padding:16px;
+4713-  }
+4714-  .rss-card p{
+4715-    display:-webkit-box;
+4716-    -webkit-line-clamp:6;
+4717-    -webkit-box-orient:vertical;
+4718:    overflow:hidden;
+4719-  }
+4720-  .rss-no-summary{color:#9ca3af!important;font-style:italic}
+4721-  .rss-permanent-badge{
+--
+4793-  #rssSourceTabs{position:relative!important;z-index:5!important;pointer-events:auto!important}
+4794-  #rssSourceTabs .rss-source-tab{
+4795-    pointer-events:auto!important;
+4796:    touch-action:manipulation!important;
+4797-    cursor:pointer!important;
+4798-    position:relative!important;
+4799-    z-index:6!important;
+--
+4802-</style>
+4803-
+4804-<style id="pme-mobile-zoom-lock-v187">
+4805:html,body{max-width:100vw!important;overflow-x:hidden!important;touch-action:pan-x pan-y!important}
+4806-*{box-sizing:border-box}
+4807-input,textarea,select,button{max-width:100%}
+4808-@media (max-width:700px){
+4809:  body{width:100%!important;min-width:0!important}
+4810-  .container,.card,.grid,.row,.app-module-page{min-width:0!important;max-width:100%!important}
+4811-}
+4812-</style>
+4813-
+4814-<style id="pme-email-bridge-v190-style">
+4815-/* PME Québec 1.91 — courriel simplifié, inspiré des clients de messagerie modernes */
+4816:#messagingSection .mail-app{margin:14px 0 20px;border:1px solid #313142;border-radius:18px;background:#0b0b0f;overflow:hidden;box-shadow:0 12px 30px rgba(0,0,0,.45)}
+4817:#messagingSection .mail-topbar{display:flex;align-items:center;gap:10px;padding:12px;border-bottom:1px solid #2c2c39;background:#111118;position:sticky;top:0;z-index:2}
+4818-#messagingSection .mail-title{font:900 20px Arial Black,Arial,sans-serif;color:#fff;margin-right:auto}
+4819-#messagingSection .mail-topbar button{min-height:42px;border-radius:12px;border:1px solid #5252a8;background:#171724;color:#fff;padding:0 14px;font:900 13px Arial Black,Arial,sans-serif}
+4820-#messagingSection .mail-topbar .mail-compose-btn{background:#001F97;border-color:#8b87ff;box-shadow:0 4px 0 #28216f}
+4821:#messagingSection .mail-tabs{display:flex;gap:6px;padding:10px 12px;border-bottom:1px solid #272733;background:#0f0f15;overflow:auto}
+4822-#messagingSection .mail-tab{border:0!important;background:transparent!important;color:#aaa!important;padding:8px 12px!important;box-shadow:none!important;border-radius:10px!important;white-space:nowrap}
+4823-#messagingSection .mail-tab.active{background:#22223a!important;color:#fff!important}
+4824:#messagingSection .mail-list{min-height:120px;max-height:310px;overflow:auto;background:#0b0b0f}
+4825-#messagingSection .mail-row{display:grid;grid-template-columns:44px 1fr auto;gap:10px;align-items:center;padding:12px 14px;border-bottom:1px solid #20202a;cursor:pointer}
+4826-#messagingSection .mail-row:active{background:#171725}
+4827-#messagingSection .mail-avatar{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:#252548;color:#fff;font:900 15px Arial Black,Arial,sans-serif}
+4828-#messagingSection .mail-row-main{min-width:0}
+4829:#messagingSection .mail-from{font:900 13px Arial Black,Arial,sans-serif;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+4830:#messagingSection .mail-subject{font:700 12px Arial,sans-serif;color:#d7d7df;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+4831:#messagingSection .mail-preview{font:400 12px Arial,sans-serif;color:#8e8e9a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+4832-#messagingSection .mail-time{font:700 11px Arial,sans-serif;color:#8e8e9a;white-space:nowrap}
+4833-#messagingSection .mail-empty{padding:28px 16px;text-align:center;color:#8f8f9b;font:700 13px Arial,sans-serif}
+4834-#messagingSection .mail-compose{display:none;padding:14px;background:#111118;border-top:1px solid #30303f}
+--
+4847-</style>
+4848-
+4849-<style id="pme-ops-v305-style">
+4850:#pmeOperationsSection{overflow:hidden}
+4851:.pme-ops-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:12px 0}.pme-kpi{background:#11121a;border:1px solid #34364a;border-radius:16px;padding:14px;min-width:0}.pme-kpi b{display:block;font:900 20px Arial Black,Arial,sans-serif;color:#fff;overflow:hidden;text-overflow:ellipsis}.pme-kpi span{font:700 11px Arial,sans-serif;color:#a9aabb}
+4852:.pme-ops-tabs{display:flex;gap:7px;overflow:auto;padding:8px 0 12px;scrollbar-width:none}.pme-ops-tabs::-webkit-scrollbar{display:none}.pme-ops-tab{white-space:nowrap;border:1px solid #3c4160!important;background:#151722!important;color:#dfe5ff!important;border-radius:999px!important;padding:9px 13px!important}.pme-ops-tab.active{background:#001F97!important;color:white!important;border-color:#8d88ff!important}
+4853:.pme-ops-panel{display:none}.pme-ops-panel.active{display:block}.pme-ops-card{border:1px solid #303344;border-radius:18px;background:#0f1016;padding:14px;margin:12px 0;min-width:0}.pme-ops-card h3{margin:0 0 10px}.pme-ops-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.pme-ops-grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.pme-ops-card input,.pme-ops-card select,.pme-ops-card textarea{width:100%;min-width:0}.pme-ops-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}.pme-ops-table-wrap{width:100%;overflow:auto;border:1px solid #292c3b;border-radius:14px}.pme-ops-table{width:100%;min-width:720px;border-collapse:collapse}.pme-ops-table th,.pme-ops-table td{padding:10px;border-bottom:1px solid #292c3b;text-align:left;vertical-align:top}.pme-ops-table th{font:900 11px Arial Black,Arial,sans-serif;color:#c9cdf1}.pme-ops-table td{font:600 12px Arial,sans-serif}.pme-alert{padding:11px;border:1px solid #484d67;border-radius:12px;background:#151722;margin:7px 0}.pme-alert strong{color:white}.pme-badge{display:inline-block;padding:4px 8px;border-radius:999px;background:#232641;border:1px solid #474d78;font-size:11px;font-weight:800}.pme-chart{height:120px;display:flex;align-items:end;gap:8px;padding:10px;border-radius:14px;background:#0b0c11;border:1px solid #2b2e3e}.pme-chart-bar{flex:1;min-width:16px;border-radius:7px 7px 2px 2px;background:linear-gradient(180deg,#001F97,#001F97);position:relative}.pme-chart-bar small{position:absolute;bottom:-20px;left:50%;transform:translateX(-50%);font-size:9px;color:#999}.pme-signature{min-height:70px;border:1px dashed #5b6080;border-radius:12px;padding:10px;background:#0a0b10}.pme-file-preview{max-width:180px;max-height:120px;border-radius:10px;margin-top:8px}.pme-assistant-result{white-space:pre-wrap;border:1px solid #353a54;background:#0a0b10;border-radius:14px;padding:12px;min-height:70px}
+4854-@media(max-width:760px){.pme-ops-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.pme-ops-grid,.pme-ops-grid3{grid-template-columns:1fr}.pme-ops-card{padding:12px}.pme-ops-table{min-width:650px}}
+4855-</style>
+4856-
+4857-
+4858-<style id="pme307-centre-fix">
+4859-body:not(.workspace-active) #workspaceTabs{display:none!important}
+4860:#pmeOperationsSection{width:100%!important;max-width:100%!important;box-sizing:border-box!important;margin:0!important;overflow-x:hidden!important}
+4861-#pmeOperationsSection>.app-page-header{display:flex!important;position:relative!important;width:100%!important;margin:0 0 14px!important;padding:0!important;min-height:52px!important;background:transparent!important}
+4862-#pmeOperationsSection>.row{display:flex!important;flex-wrap:wrap!important;align-items:center!important;gap:10px!important;width:100%!important}
+4863-#pmeOperationsSection>.row>div{min-width:0!important;flex:1 1 220px!important}
+--
+4865-#pmeOperationsSection .pme-ops-kpis{width:100%!important;max-width:100%!important}
+
+=== MANIFEST ===
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.CAMERA"/>
+    <uses-feature android:name="android.hardware.camera.any" android:required="false"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+    <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE"/>
+    <application android:theme="@android:style/Theme.Material.NoActionBar" android:usesCleartextTraffic="true" android:extractNativeLibs="true" android:label="PME Québec">
+        <activity android:name=".MainActivity" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>
+
+=== MAINACTIVITY WINDOW/WEBVIEW ===
+11-import android.security.keystore.KeyGenParameterSpec;
+12-import android.security.keystore.KeyProperties;
+13-import android.util.Base64;
+14-import android.webkit.JavascriptInterface;
+15:import android.webkit.PermissionRequest;
+16-import android.webkit.WebChromeClient;
+17-import android.webkit.WebSettings;
+18:import android.webkit.WebView;
+19:import android.webkit.WebViewClient;
+20-
+21-import org.json.JSONArray;
+22-import org.json.JSONObject;
+23-
+--
+41-public class MainActivity extends Activity {
+42-    private static final String API = "http://127.0.0.1:1984";
+43-    private static final String KS_ALIAS = "pme_wyze_credentials_v1";
+44-    private static final String PREF = "pme_wyze_secure";
+45:    private WebView webView;
+46-    private final ExecutorService io = Executors.newCachedThreadPool();
+47-    private final Map<String,String> playerById = new ConcurrentHashMap<>();
+48-    private Process go2rtc;
+49-    private volatile String engineState = "initialisation";
+50-    private volatile String engineLastLog = "";
+51:    private static final int REQ_CAMERA = 4104;
+52:    private PermissionRequest pendingCameraRequest;
+53-
+54-    @Override public void onCreate(Bundle b) {
+55-        super.onCreate(b);
+56-
+57:        // Keep the WebView inside Android system bars. This avoids Android 15+
+58:        // edge-to-edge overlap on the login screen and floating controls.
+59-        Window window = getWindow();
+60:        window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+61:        window.setStatusBarColor(Color.rgb(10, 12, 18));
+62:        window.setNavigationBarColor(Color.rgb(10, 12, 18));
+63-        if (android.os.Build.VERSION.SDK_INT >= 23) {
+64:            window.getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
+65-        }
+66-
+67:        webView = new WebView(this);
+68:        webView.setFitsSystemWindows(true);
+69:        WebSettings s = webView.getSettings();
+70-        s.setJavaScriptEnabled(true);
+71-        s.setDomStorageEnabled(true);
+72-        s.setMediaPlaybackRequiresUserGesture(false);
+73-        s.setAllowFileAccess(true);
+74-        s.setAllowContentAccess(true);
+75-        s.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
+76:        webView.setWebViewClient(new WebViewClient());
+77:        webView.setWebChromeClient(new WebChromeClient() {
+78:            @Override public void onPermissionRequest(final PermissionRequest request) {
+79:                runOnUiThread(() -> handleWebPermissionRequest(request));
+80-            }
+81-        });
+82:        webView.addJavascriptInterface(new WyzeBridge(), "WyzeNative");
+83:        setContentView(webView);
+84-        startGo2RtcIfBundled();
+85:        webView.loadUrl("file:///android_asset/index.html");
+86-    }
+87-
+88:    private void handleWebPermissionRequest(PermissionRequest request) {
+89:        boolean wantsCamera = false;
+90-        for (String resource : request.getResources()) {
+91:            if (PermissionRequest.RESOURCE_VIDEO_CAPTURE.equals(resource)) {
+92:                wantsCamera = true;
+93-                break;
+94-            }
+95-        }
+96:        if (!wantsCamera) {
+97-            request.deny();
+98-            return;
+99-        }
+100-
+101:        if (android.os.Build.VERSION.SDK_INT < 23 || checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+102:            request.grant(new String[]{PermissionRequest.RESOURCE_VIDEO_CAPTURE});
+103-            return;
+104-        }
+105-
+106:        pendingCameraRequest = request;
+107:        requestPermissions(new String[]{Manifest.permission.CAMERA}, REQ_CAMERA);
+108-    }
+109-
+110-    @Override public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+111-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+112:        if (requestCode != REQ_CAMERA) return;
+113-
+114:        PermissionRequest request = pendingCameraRequest;
+115:        pendingCameraRequest = null;
+116-        if (request == null) return;
+117-
+118-        if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+119:            request.grant(new String[]{PermissionRequest.RESOURCE_VIDEO_CAPTURE});
+120-        } else {
+121-            request.deny();
+122-        }
+123-    }
+--
+293-            } catch(Exception e){ return jsonError(e); }
+294-        }
+295-
+296-        @JavascriptInterface public String listDevices(){ return getDevices(); }
+297:        @JavascriptInterface public String cameras(String ignoredEmail){ return getDevices(); }
+298-        @JavascriptInterface public String getStreamUrl(String id){ return playerById.getOrDefault(id,""); }
+299-        @JavascriptInterface public String streamUrl(String id){ return getStreamUrl(id); }
+300-        @JavascriptInterface public String playerUrl(String streamName){ return API+"/stream.html?src="+enc(streamName); }
+301-    }
+302-
+303-    @Override protected void onDestroy() {
+304-        if (go2rtc != null) go2rtc.destroy();
+305-        io.shutdownNow();
+306:        if(webView!=null)webView.destroy();
+307-        super.onDestroy();
+308-    }
+309-}

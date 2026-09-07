@@ -40,9 +40,11 @@ jobs:
           test -s "$VENDOR/html5-qrcode.min.js" && test -s "$VENDOR/supabase-js.min.js"
       - name: Réparer la connexion Android
         run: python3 .github/scripts/patch_android_login.py
+      - name: Corriger entête et lanceur Administration
+        run: python3 .github/scripts/patch_admin_fleur_header.py
       - name: Diagnostic complet APK
         run: python3 .github/scripts/full_apk_diagnostic.py
-      - name: Vérifier scanner et fermeture connexion
+      - name: Vérifier scanner, connexion et interface mobile
         run: |
           HTML="$GRADLE_DIR/app/src/main/assets/index.html"
           grep -q 'src="vendor/html5-qrcode.min.js"' "$HTML"
@@ -52,6 +54,10 @@ jobs:
           grep -q 'pme-auth-closed' "$HTML"
           grep -q 'function closeGate' "$HTML"
           grep -q 'setTimeout(closeGate,250)' "$HTML"
+          grep -q 'pme-admin-fleur-header-5120' "$HTML"
+          grep -q 'pme-admin-fleur-runtime-5120' "$HTML"
+          grep -q 'pmeAdminFleurLauncher' "$HTML"
+          grep -q '.god-global-launcher { display: none !important; }' "$HTML"
       - name: Préparer Gradle
         run: |
           cd "$GRADLE_DIR"; if [ -f "./gradlew" ]; then chmod +x ./gradlew; fi

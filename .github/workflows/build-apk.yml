@@ -26,17 +26,18 @@ jobs:
       - name: Décompresser le projet
         run: |
           mkdir -p projet
-          ZIP=$(find . -maxdepth 1 -type f -name "*.zip" | head -1)
+          ZIP="./PME-Quebec-5.10.2-Step1-Engine-Diagnostic.zip"
           echo "ZIP trouvé : $ZIP"
-          test -n "$ZIP"
+          test -f "$ZIP"
           unzip -o "$ZIP" -d projet
           echo "Contenu extrait :"
           find projet -maxdepth 3 -type f | head -100
 
       - name: Trouver le projet Gradle
         run: |
-          GRADLE_DIR=$(find projet -name "settings.gradle" -o -name "settings.gradle.kts" | head -1 | xargs dirname)
-          test -n "$GRADLE_DIR"
+          GRADLE_FILE=$(find projet \( -name "settings.gradle" -o -name "settings.gradle.kts" \) | head -1)
+          test -n "$GRADLE_FILE"
+          GRADLE_DIR=$(dirname "$GRADLE_FILE")
           echo "GRADLE_DIR=$GRADLE_DIR" >> "$GITHUB_ENV"
           echo "Projet Android trouvé dans : $GRADLE_DIR"
 

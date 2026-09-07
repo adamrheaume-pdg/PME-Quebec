@@ -1,0 +1,48 @@
+name: Appliquer reparation mobile PME Quebec
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/apply-mobile-repair.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Corriger interface Android et WebView
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          root=Path('source-5.10.4/PME-Quebec-5.10-Native-Wyze-Source')
+          html=root/'app/src/main/assets/index.html'
+          java=root/'app/src/main/java/com/pmequebec/app/MainActivity.java'
+          s=html.read_text(encoding='utf-8')
+          css='''\n<style id="pme-mobile-repair-5105">\nhtml,body{width:100%!important;max-width:100%!important;min-height:100%!important;height:auto!important;overflow-x:hidden!important;overflow-y:auto!important;-webkit-overflow-scrolling:touch!important;overscroll-behavior-y:auto!important;touch-action:pan-y!important}\nbody{padding-bottom:max(18px,env(safe-area-inset-bottom))!important}\nheader{top:0!important}\n#authGate,.auth-gate{overflow-y:auto!important;-webkit-overflow-scrolling:touch!important;align-items:flex-start!important;padding:max(14px,env(safe-area-inset-top)) 14px max(24px,env(safe-area-inset-bottom))!important;max-height:100dvh!important}\n.auth-card{margin:auto!important;max-height:none!important}\n#mainNav,.main-nav,.mobile-nav,.main-navigation{overflow-y:auto!important;-webkit-overflow-scrolling:touch!important;max-height:100dvh!important;padding-top:max(12px,env(safe-area-inset-top))!important;padding-bottom:max(18px,env(safe-area-inset-bottom))!important;touch-action:pan-y!important}\n#appRoot,#appPageHost,main,.app-module-page{min-height:0!important;height:auto!important;overflow:visible!important}\n.god-editor-scroll{overflow-y:auto!important;-webkit-overflow-scrolling:touch!important;max-height:calc(100dvh - 150px)!important;padding-bottom:max(24px,env(safe-area-inset-bottom))!important}\n#godVisualEditor.god-visual-editor{max-height:100dvh!important;top:0!important;bottom:0!important;overflow:hidden!important}\n#godGlobalLauncher,.god-global-launcher{bottom:max(18px,env(safe-area-inset-bottom))!important}\n.app-page-header,.mail-topbar{top:0!important}\n@media(max-width:760px){\n  main{padding-left:10px!important;padding-right:10px!important}\n  .card,.app-module-page{max-width:100%!important;min-width:0!important}\n  .row{min-width:0!important}\n  button{min-height:44px}\n}\n</style>\n'''
+          js='''\n<script id="pme-mobile-repair-5105-js">\n(function(){\n  function unlockScroll(){\n    document.documentElement.style.setProperty('overflow-y','auto','important');\n    document.body.style.setProperty('overflow-y','auto','important');\n    document.body.style.removeProperty('position');\n    document.body.style.removeProperty('height');\n  }\n  function repairScrollablePanels(){\n    ['authGate','mainNav','godVisualEditor','appPageHost','appRoot'].forEach(function(id){\n      var n=document.getElementById(id); if(!n)return;\n      n.style.webkitOverflowScrolling='touch';\n    });\n  }\n  window.addEventListener('load',function(){unlockScroll();repairScrollablePanels();setTimeout(unlockScroll,300);setTimeout(unlockScroll,1200)});\n  document.addEventListener('click',function(e){\n    var b=e.target&&e.target.closest?e.target.closest('button,[data-back-to-menu],[data-nav-target],[data-workspace]'):null;\n    if(b)setTimeout(unlockScroll,50);\n  },true);\n  new MutationObserver(function(){repairScrollablePanels()}).observe(document.documentElement,{subtree:true,attributes:true,attributeFilter:['class','style']});\n})();\n</script>\n'''
+          if 'pme-mobile-repair-5105' not in s:
+              s=s.replace('</head>',css+'\n</head>',1)
+          if 'pme-mobile-repair-5105-js' not in s:
+              s=s.replace('</body>',js+'\n</body>',1)
+          html.write_text(s,encoding='utf-8')
+
+          j=java.read_text(encoding='utf-8')
+          old='''        webView = new WebView(this);\n        webView.setFitsSystemWindows(true);\n        WebSettings s = webView.getSettings();'''
+          new='''        webView = new WebView(this);\n        webView.setFitsSystemWindows(true);\n        webView.setVerticalScrollBarEnabled(true);\n        webView.setHorizontalScrollBarEnabled(false);\n        webView.setOverScrollMode(View.OVER_SCROLL_IF_CONTENT_SCROLLS);\n        webView.setScrollbarFadingEnabled(false);\n        WebSettings s = webView.getSettings();'''
+          if old in j:j=j.replace(old,new,1)
+          old2='''        s.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);'''
+          new2='''        s.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);\n        s.setUseWideViewPort(false);\n        s.setLoadWithOverviewMode(false);\n        s.setBuiltInZoomControls(false);\n        s.setDisplayZoomControls(false);'''
+          if old2 in j and 'setUseWideViewPort(false)' not in j:j=j.replace(old2,new2,1)
+          java.write_text(j,encoding='utf-8')
+          PY
+      - name: Publier les reparations
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add source-5.10.4/PME-Quebec-5.10-Native-Wyze-Source/app/src/main/assets/index.html source-5.10.4/PME-Quebec-5.10-Native-Wyze-Source/app/src/main/java/com/pmequebec/app/MainActivity.java
+          git commit -m 'Repair Android mobile scrolling and safe areas' || exit 0
+          git push

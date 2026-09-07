@@ -30,15 +30,20 @@ jobs:
       - name: Ensure Android SDK 35
         run: yes | sdkmanager "platforms;android-35" "build-tools;35.0.0" || true
 
+      - name: Materialize supplied Nexus logo
+        run: |
+          mkdir -p NexusDuo/app/src/main/res/drawable
+          base64 -d NexusDuo/app/src/main/assets/nexus_logo.b64 > NexusDuo/app/src/main/res/drawable/nexus_logo.jpg
+
       - name: Build debug APK
         run: gradle -p NexusDuo :app:assembleDebug --stacktrace
 
       - name: Rename APK
-        run: cp NexusDuo/app/build/outputs/apk/debug/app-debug.apk NexusDuo/Nexus-Duo-v4.apk
+        run: cp NexusDuo/app/build/outputs/apk/debug/app-debug.apk NexusDuo/Nexus-Duo-v5.apk
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: Nexus-Duo-v4
-          path: NexusDuo/Nexus-Duo-v4.apk
+          name: Nexus-Duo-v5
+          path: NexusDuo/Nexus-Duo-v5.apk
           if-no-files-found: error

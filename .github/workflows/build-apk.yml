@@ -40,6 +40,8 @@ jobs:
           test -s "$VENDOR/html5-qrcode.min.js" && test -s "$VENDOR/supabase-js.min.js"
       - name: Réparer la connexion Android
         run: python3 .github/scripts/patch_android_login.py
+      - name: Diagnostic complet APK
+        run: python3 .github/scripts/full_apk_diagnostic.py
       - name: Vérifier scanner et fermeture connexion
         run: |
           HTML="$GRADLE_DIR/app/src/main/assets/index.html"
@@ -53,6 +55,12 @@ jobs:
       - name: Préparer Gradle
         run: |
           cd "$GRADLE_DIR"; if [ -f "./gradlew" ]; then chmod +x ./gradlew; fi
+      - name: Android Lint
+        run: |
+          cd "$GRADLE_DIR"; if [ -f "./gradlew" ]; then ./gradlew lintDebug; else gradle lintDebug; fi
+      - name: Tests Gradle
+        run: |
+          cd "$GRADLE_DIR"; if [ -f "./gradlew" ]; then ./gradlew testDebugUnitTest; else gradle testDebugUnitTest; fi
       - name: Compiler APK
         run: |
           cd "$GRADLE_DIR"; if [ -f "./gradlew" ]; then ./gradlew assembleDebug; else gradle assembleDebug; fi

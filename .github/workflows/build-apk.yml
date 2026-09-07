@@ -34,6 +34,13 @@ jobs:
           echo "GRADLE_DIR=$GRADLE_DIR" >> "$GITHUB_ENV"
           echo "Compilation depuis : $GRADLE_DIR"
 
+      - name: Vérifier Supabase
+        run: |
+          curl --fail --silent --show-error --max-time 15 \
+            -H 'apikey: sb_publishable_21Hj2UvI7rPkG3d_GUkEQQ_EByUbC-V' \
+            'https://tziawkkcwkzhfylmldih.supabase.co/auth/v1/health' >/dev/null
+          echo "Supabase Auth répond correctement"
+
       - name: Embarquer les moteurs Web dans l'APK
         run: |
           VENDOR="$GRADLE_DIR/app/src/main/assets/vendor"
@@ -42,7 +49,6 @@ jobs:
           curl --fail --location --silent --show-error "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" -o "$VENDOR/supabase-js.min.js"
           test -s "$VENDOR/html5-qrcode.min.js"
           test -s "$VENDOR/supabase-js.min.js"
-          echo "Scanner et Supabase embarqués"
 
       - name: Réparer la connexion Android
         run: python3 .github/scripts/patch_android_login.py
@@ -52,8 +58,10 @@ jobs:
           HTML="$GRADLE_DIR/app/src/main/assets/index.html"
           grep -q 'src="vendor/html5-qrcode.min.js"' "$HTML"
           grep -q 'src="vendor/supabase-js.min.js"' "$HTML"
-          grep -q 'pme-login-android-5108' "$HTML"
-          grep -q 'pme-login-runtime-5108' "$HTML"
+          grep -q 'pme-login-android-5109' "$HTML"
+          grep -q 'pme-login-runtime-5109' "$HTML"
+          grep -q 'Étape 1/3' "$HTML"
+          grep -q 'stopImmediatePropagation();robustLogin' "$HTML"
           if grep -q 'src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"' "$HTML"; then exit 1; fi
           if grep -q 'src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"' "$HTML"; then exit 1; fi
 

@@ -52,8 +52,8 @@ jobs:
           HTML="$GRADLE_DIR/app/src/main/assets/index.html"
           grep -q 'src="vendor/html5-qrcode.min.js"' "$HTML"
           grep -q 'src="vendor/supabase-js.min.js"' "$HTML"
-          grep -q 'pme-login-android-5107' "$HTML"
-          grep -q 'pme-login-runtime-5107' "$HTML"
+          grep -q 'pme-login-android-5108' "$HTML"
+          grep -q 'pme-login-runtime-5108' "$HTML"
           if grep -q 'src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"' "$HTML"; then exit 1; fi
           if grep -q 'src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"' "$HTML"; then exit 1; fi
 

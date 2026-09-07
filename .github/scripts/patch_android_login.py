@@ -18,7 +18,7 @@ s = s.replace(
 )
 
 css = r'''
-<style id="pme-login-android-5107">
+<style id="pme-login-android-5108">
 #authGate.auth-gate{
   position:fixed!important;
   inset:0!important;
@@ -106,11 +106,13 @@ css = r'''
 </style>
 '''
 
-if 'pme-login-android-5107' not in s:
+if 'pme-login-android-5108' not in s:
     s = s.replace('</head>', css + '\n</head>', 1)
 
+# Important : ne jamais désactiver le bouton pendant la phase de capture.
+# Cela empêchait le gestionnaire loginWithEmailPassword attaché au bouton de s'exécuter.
 js = r'''
-<script id="pme-login-runtime-5107">
+<script id="pme-login-runtime-5108">
 (function(){
   function authStatus(text){var n=document.getElementById('authStatus');if(n)n.textContent=text}
   function verifyRuntime(){
@@ -123,21 +125,22 @@ js = r'''
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',verifyRuntime,{once:true});
   else verifyRuntime();
   window.addEventListener('load',verifyRuntime,{once:true});
+
+  // Vérifie seulement le runtime avant le clic, sans modifier l'état du bouton.
   document.addEventListener('click',function(e){
     var b=e.target&&e.target.closest?e.target.closest('#emailPasswordLoginBtn'):null;
     if(!b)return;
-    if(!verifyRuntime()){e.preventDefault();e.stopImmediatePropagation();return;}
-    b.disabled=true;
-    var old=b.textContent;
-    b.textContent='Connexion…';
-    setTimeout(function(){b.disabled=false;b.textContent=old},12000);
+    if(!verifyRuntime()){
+      e.preventDefault();
+      e.stopImmediatePropagation();
+    }
   },true);
 })();
 </script>
 '''
 
-if 'pme-login-runtime-5107' not in s:
+if 'pme-login-runtime-5108' not in s:
     s = s.replace('</body>', js + '\n</body>', 1)
 
 html.write_text(s, encoding='utf-8')
-print('Correctif connexion Android appliqué')
+print('Correctif connexion Android 5.10.8 appliqué')

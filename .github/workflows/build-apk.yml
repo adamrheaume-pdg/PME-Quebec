@@ -23,7 +23,15 @@ jobs:
       - name: Installer Android SDK
         uses: android-actions/setup-android@v3
 
-            - name: Décompresser le projet
+      - name: Décompresser le projet
+        run: |
+          mkdir -p projet
+          ZIP=$(find . -maxdepth 1 -type f -name "*.zip" | head -1)
+          echo "ZIP trouvé : $ZIP"
+          test -n "$ZIP"
+          unzip -o "$ZIP" -d projet
+          echo "Contenu extrait :"
+          find projet -maxdepth 3 -type f | head -100            - name: Décompresser le projet
         run: |
           mkdir -p projet
           ZIP=$(find . -maxdepth 1 -type f -name "*.zip" | head -n 1)

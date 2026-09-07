@@ -66,6 +66,10 @@ public class MainActivity extends Activity {
 
         webView = new WebView(this);
         webView.setFitsSystemWindows(true);
+        webView.setVerticalScrollBarEnabled(true);
+        webView.setHorizontalScrollBarEnabled(false);
+        webView.setOverScrollMode(View.OVER_SCROLL_IF_CONTENT_SCROLLS);
+        webView.setScrollbarFadingEnabled(false);
         WebSettings s = webView.getSettings();
         s.setJavaScriptEnabled(true);
         s.setDomStorageEnabled(true);
@@ -73,6 +77,10 @@ public class MainActivity extends Activity {
         s.setAllowFileAccess(true);
         s.setAllowContentAccess(true);
         s.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
+        s.setUseWideViewPort(false);
+        s.setLoadWithOverviewMode(false);
+        s.setBuiltInZoomControls(false);
+        s.setDisplayZoomControls(false);
         webView.setWebViewClient(new WebViewClient());
         webView.setWebChromeClient(new WebChromeClient() {
             @Override public void onPermissionRequest(final PermissionRequest request) {

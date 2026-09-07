@@ -4980,6 +4980,31 @@ a{color:#9fb0ff}
 }
 </style>
 
+
+<style id="pme-mobile-repair-5105">
+html,body{width:100%!important;max-width:100%!important;min-height:100%!important;height:auto!important;overflow-x:hidden!important;overflow-y:auto!important;-webkit-overflow-scrolling:touch!important;overscroll-behavior-y:auto!important;touch-action:pan-y!important}
+body{padding-bottom:max(18px,env(safe-area-inset-bottom))!important}
+header{top:0!important}
+#authGate,.auth-gate{overflow-y:auto!important;-webkit-overflow-scrolling:touch!important;align-items:flex-start!important;padding:max(14px,env(safe-area-inset-top)) 14px max(24px,env(safe-area-inset-bottom))!important;max-height:100dvh!important}
+.auth-card{margin:auto!important;max-height:none!important}
+#mainNav,.main-nav,.mobile-nav,.main-navigation,.mobile-nav-drawer{overflow-y:auto!important;-webkit-overflow-scrolling:touch!important;max-height:100dvh!important;padding-bottom:max(18px,env(safe-area-inset-bottom))!important;touch-action:pan-y!important}
+.mobile-nav-trigger{top:max(12px,env(safe-area-inset-top))!important}
+#appRoot,#appPageHost,main,.app-module-page{min-height:0!important;height:auto!important;overflow:visible!important}
+.god-editor-scroll{overflow-y:auto!important;-webkit-overflow-scrolling:touch!important;max-height:calc(100dvh - 150px)!important;padding-bottom:max(24px,env(safe-area-inset-bottom))!important}
+#godVisualEditor.god-visual-editor{max-height:100dvh!important;top:0!important;bottom:0!important;overflow:hidden!important}
+#godGlobalLauncher,.god-global-launcher{bottom:max(18px,env(safe-area-inset-bottom))!important}
+.app-page-header,.mail-topbar{top:0!important}
+.scanner-video{max-height:min(52dvh,420px)!important;object-fit:cover!important}
+@media(max-width:760px){
+  main{padding-left:10px!important;padding-right:10px!important}
+  .card,.app-module-page{max-width:100%!important;min-width:0!important}
+  .row{min-width:0!important}
+  button{min-height:44px}
+  .inventory-table{display:block!important;width:100%!important;overflow-x:auto!important;-webkit-overflow-scrolling:touch!important}
+  .scanner-panel{max-width:100%!important;overflow:hidden!important}
+}
+</style>
+
 </head>
 <body><div id="employeeMessageToast" class="employee-message-toast hidden" role="status" aria-live="polite">
   <div class="employee-message-toast-icon">💬</div>
@@ -9120,6 +9145,30 @@ ${safeCss}
 </style>
 </head>
 <body>${safeHtml||'<div style="padding:24px;text-align:center;color:#777">Commence à écrire du HTML…</div>'}
+
+<script id="pme-mobile-repair-5105-js">
+(function(){
+  function unlockScroll(){
+    document.documentElement.style.setProperty('overflow-y','auto','important');
+    document.body.style.setProperty('overflow-y','auto','important');
+    document.body.style.removeProperty('position');
+    document.body.style.removeProperty('height');
+  }
+  function repairScrollablePanels(){
+    ['authGate','mainNav','godVisualEditor','appPageHost','appRoot'].forEach(function(id){
+      var n=document.getElementById(id); if(!n)return;
+      n.style.webkitOverflowScrolling='touch';
+    });
+  }
+  window.addEventListener('load',function(){unlockScroll();repairScrollablePanels();setTimeout(unlockScroll,300);setTimeout(unlockScroll,1200)});
+  document.addEventListener('click',function(e){
+    var b=e.target&&e.target.closest?e.target.closest('button,[data-back-to-menu],[data-nav-target],[data-workspace]'):null;
+    if(b)setTimeout(unlockScroll,50);
+  },true);
+  new MutationObserver(function(){repairScrollablePanels()}).observe(document.documentElement,{subtree:true,attributes:true,attributeFilter:['class','style']});
+})();
+</script>
+
 </body>
 </html>`
 }

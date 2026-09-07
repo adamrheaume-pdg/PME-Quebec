@@ -26,7 +26,7 @@ jobs:
       - name: Décompresser le projet
         run: |
           mkdir -p projet
-          ZIP="./PME-Quebec-5.10.3-Android-Inset-Login-Fix.zip"
+          ZIP="./PME-Quebec-5.10.4-Barcode-Camera-Fix.zip"
           echo "ZIP trouvé : $ZIP"
           test -f "$ZIP"
           unzip -o "$ZIP" -d projet

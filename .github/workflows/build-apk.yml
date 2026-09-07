@@ -31,19 +31,12 @@ jobs:
           test -n "$ZIP"
           unzip -o "$ZIP" -d projet
           echo "Contenu extrait :"
-          find projet -maxdepth 3 -type f | head -100            - name: Décompresser le projet
-        run: |
-          mkdir -p projet
-          ZIP=$(find . -maxdepth 1 -type f -name "*.zip" | head -n 1)
-          echo "ZIP trouvé : $ZIP"
-          test -n "$ZIP"
-          unzip -o "$ZIP" -d projet
-          echo "Contenu extrait :"
           find projet -maxdepth 3 -type f | head -100
 
       - name: Trouver le projet Gradle
         run: |
           GRADLE_DIR=$(find projet -name "settings.gradle" -o -name "settings.gradle.kts" | head -1 | xargs dirname)
+          test -n "$GRADLE_DIR"
           echo "GRADLE_DIR=$GRADLE_DIR" >> "$GITHUB_ENV"
           echo "Projet Android trouvé dans : $GRADLE_DIR"
 
@@ -52,9 +45,6 @@ jobs:
           cd "$GRADLE_DIR"
           if [ -f "./gradlew" ]; then
             chmod +x ./gradlew
-          else
-            echo "Gradle Wrapper absent — installation de Gradle"
-            gradle --version
           fi
 
       - name: Compiler APK
@@ -68,13 +58,14 @@ jobs:
 
       - name: Trouver APK
         run: |
-          mkdir -p "$GITHUB_WORKSPACE/apk-sortie"
-          find "$GRADLE_DIR" -type f -name "*.apk" -exec cp {} "$GITHUB_WORKSPACE/apk-sortie/" \;
-          ls -lh "$GITHUB_WORKSPACE/apk-sortie"
+          APK=$(find "$GRADLE_DIR" -type f -name "*.apk" | head -1)
+          echo "APK trouvé : $APK"
+          test -n "$APK"
+          cp "$APK" "$GITHUB_WORKSPACE/PME-Quebec.apk"
 
       - name: Publier APK
         uses: actions/upload-artifact@v4
         with:
           name: PME-Quebec-APK
-          path: apk-sortie/*.apk
+          path: PME-Quebec.apk
           if-no-files-found: error

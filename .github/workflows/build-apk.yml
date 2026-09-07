@@ -1,5 +1,6 @@
 name: Compiler APK PME Québec
 
+# Build final depuis le code source réparé (navigation, inventaire, scanner, safe areas).
 on:
   workflow_dispatch:
   push:

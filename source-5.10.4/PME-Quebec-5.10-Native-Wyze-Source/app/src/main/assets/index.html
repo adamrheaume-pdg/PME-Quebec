@@ -9169,6 +9169,18 @@ ${safeCss}
 })();
 </script>
 
+
+<style id="pme-mobile-repair-5106-final">
+html,body{max-width:100%!important;overflow-x:hidden!important;-webkit-overflow-scrolling:touch!important}
+.mobile-nav-drawer{max-height:calc(100dvh - env(safe-area-inset-top))!important;overflow-y:auto!important;padding-bottom:max(24px,env(safe-area-inset-bottom))!important}
+#godVisualEditor .god-editor-scroll{overflow-y:auto!important;-webkit-overflow-scrolling:touch!important;overscroll-behavior:contain!important;max-height:calc(100dvh - 140px)!important}
+#inventoryProductsPage,#v5InventoryProductsHost{min-width:0!important;max-width:100%!important}
+#v5InventoryProductsHost>div,#inventoryProductsPage .table-wrap,#inventoryProductsPage .inventory-table-wrap{max-width:100%!important;overflow-x:auto!important;-webkit-overflow-scrolling:touch!important}
+#inventoryProductsPage .inventory-table{min-width:760px!important}
+#barcodeScannerPanel,#barcodeCameraReader,.scanner-panel{max-width:100%!important;overflow:hidden!important}
+#barcodeCameraReader video,#barcodeCameraReader canvas{max-width:100%!important;height:auto!important}
+</style>
+
 </body>
 </html>`
 }
@@ -17758,7 +17770,7 @@ window.addEventListener('load',()=>{
 
 
 
-<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script src="vendor/html5-qrcode.min.js"></script>
 <script id="pme-barcode-android-fix-v184">
 (function(){
   let pmeHtml5Scanner=null;

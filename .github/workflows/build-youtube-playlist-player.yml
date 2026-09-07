@@ -8,6 +8,11 @@ on:
       - 'youtube-playlist-player/**'
       - '.github/workflows/build-youtube-playlist-player.yml'
       - '.github/scripts/resolve_youtube_defaults.py'
+      - '.github/scripts/resolve_youtube_defaults_fast.py'
+
+concurrency:
+  group: playlist-quebec-apk-main
+  cancel-in-progress: true
 
 jobs:
   build:
@@ -29,7 +34,7 @@ jobs:
       - name: Résoudre les deux playlists par défaut
         run: |
           python3 -m pip install --disable-pip-version-check yt-dlp
-          python3 .github/scripts/resolve_youtube_defaults.py
+          python3 .github/scripts/resolve_youtube_defaults_fast.py
       - name: Vérifier les playlists intégrées
         run: |
           HTML='youtube-playlist-player/app/src/main/assets/index.html'

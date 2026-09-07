@@ -9,6 +9,7 @@ on:
       - '.github/workflows/build-youtube-playlist-player.yml'
       - '.github/scripts/resolve_youtube_defaults.py'
       - '.github/scripts/resolve_youtube_defaults_fast.py'
+      - '.github/scripts/add_wedding_playlists.py'
 
 concurrency:
   group: playlist-quebec-apk-main
@@ -31,26 +32,30 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
-      - name: Résoudre les deux playlists par défaut
+      - name: Résoudre les playlists par défaut
         run: |
           python3 -m pip install --disable-pip-version-check yt-dlp
           python3 .github/scripts/resolve_youtube_defaults_fast.py
-      - name: Vérifier les playlists intégrées
+          python3 .github/scripts/add_wedding_playlists.py
+      - name: Vérifier les quatre playlists intégrées
         run: |
           HTML='youtube-playlist-player/app/src/main/assets/index.html'
           grep -q 'pme-default-playlists-v2' "$HTML"
+          grep -q 'pme-wedding-playlists-v1' "$HTML"
           grep -q 'Sélection originale' "$HTML"
           grep -q 'Québec 2000–2026' "$HTML"
+          grep -q 'Mariage — Top 100' "$HTML"
+          grep -q 'Mariage québécois — 20 titres' "$HTML"
       - name: Compiler le lecteur
         run: |
           cd youtube-playlist-player
           gradle :app:assembleDebug --stacktrace
       - name: Préparer APK
         run: |
-          cp youtube-playlist-player/app/build/outputs/apk/debug/app-debug.apk Playlist-Quebec.apk
+          cp youtube-playlist-player/app/build/outputs/apk/debug/app-debug.apk Playlist-Quebec-Mariage.apk
       - name: Publier APK
         uses: actions/upload-artifact@v4
         with:
-          name: Playlist-Quebec-APK
-          path: Playlist-Quebec.apk
+          name: Playlist-Quebec-Mariage-APK
+          path: Playlist-Quebec-Mariage.apk
           if-no-files-found: error

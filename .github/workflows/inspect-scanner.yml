@@ -1,0 +1,20 @@
+name: Inspecter scanner PME Quebec
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/inspect-scanner.yml'
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Scanner diagnostics
+        run: |
+          HTML='source-5.10.4/PME-Quebec-5.10-Native-Wyze-Source/app/src/main/assets/index.html'
+          echo '=== SCANNER / CAMERA OCCURRENCES ==='
+          grep -nEi -C 8 'scanner|barcode|code.?bar|qr.?code|getUserMedia|mediaDevices|video\.srcObject|BarcodeDetector|camera' "$HTML" || true
+          echo '=== INVENTORY OCCURRENCES ==='
+          grep -nEi -C 5 'inventory|inventaire|stock|opsInv|productScanner|scanProduct' "$HTML" | head -n 1200 || true

@@ -54,10 +54,18 @@ jobs:
           grep -q 'pme-auth-closed' "$HTML"
           grep -q 'function closeGate' "$HTML"
           grep -q 'setTimeout(closeGate,250)' "$HTML"
-          grep -q 'pme-admin-fleur-header-5120' "$HTML"
-          grep -q 'pme-admin-fleur-runtime-5120' "$HTML"
+          grep -q 'pme-admin-fleur-header-5130' "$HTML"
+          grep -q 'pme-admin-fleur-runtime-5130' "$HTML"
           grep -q 'pmeAdminFleurLauncher' "$HTML"
           grep -q '.god-global-launcher { display: none !important; }' "$HTML"
+          python3 - <<'PY'
+          from pathlib import Path
+          import os
+          p=Path(os.environ['GRADLE_DIR'])/'app/src/main/assets/index.html'
+          s=p.read_text(encoding='utf-8')
+          assert s.rfind('pme-admin-fleur-runtime-5130') < s.lower().rfind('</body>')
+          assert s.rfind('pme-admin-fleur-header-5130') < s.lower().rfind('</head>')
+          PY
       - name: Préparer Gradle
         run: |
           cd "$GRADLE_DIR"; if [ -f "./gradlew" ]; then chmod +x ./gradlew; fi

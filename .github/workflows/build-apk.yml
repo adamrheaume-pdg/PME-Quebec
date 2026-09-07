@@ -23,23 +23,12 @@ jobs:
       - name: Installer Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Décompresser le projet
+      - name: Utiliser le code source réparé
         run: |
-          mkdir -p projet
-          ZIP="./PME-Quebec-5.10.4-Barcode-Camera-Fix.zip"
-          echo "ZIP trouvé : $ZIP"
-          test -f "$ZIP"
-          unzip -o "$ZIP" -d projet
-          echo "Contenu extrait :"
-          find projet -maxdepth 3 -type f | head -100
-
-      - name: Trouver le projet Gradle
-        run: |
-          GRADLE_FILE=$(find projet \( -name "settings.gradle" -o -name "settings.gradle.kts" \) | head -1)
-          test -n "$GRADLE_FILE"
-          GRADLE_DIR=$(dirname "$GRADLE_FILE")
+          GRADLE_DIR="$GITHUB_WORKSPACE/source-5.10.4/PME-Quebec-5.10-Native-Wyze-Source"
+          test -f "$GRADLE_DIR/settings.gradle"
           echo "GRADLE_DIR=$GRADLE_DIR" >> "$GITHUB_ENV"
-          echo "Projet Android trouvé dans : $GRADLE_DIR"
+          echo "Compilation depuis : $GRADLE_DIR"
 
       - name: Préparer Gradle
         run: |

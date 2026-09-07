@@ -1,0 +1,51 @@
+name: Build PME Quebec APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main, master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Accept licenses and install SDK packages
+        run: |
+          yes | sdkmanager --licenses >/dev/null || true
+          sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+
+      - name: Make Gradle wrapper executable
+        run: chmod +x gradlew
+
+      - name: Build debug APK
+        run: ./gradlew --no-daemon clean assembleDebug
+
+      - name: Collect APK
+        run: |
+          mkdir -p out
+          APK=$(find app/build/outputs/apk/debug -name "*.apk" | head -n 1)
+          test -n "$APK"
+          cp "$APK" out/PME-Quebec-5.10.1-Wyze-ARM64-debug.apk
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: PME-Quebec-5.10.1-Wyze-ARM64-debug
+          path: out/PME-Quebec-5.10.1-Wyze-ARM64-debug.apk
+          if-no-files-found: error

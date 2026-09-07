@@ -1,0 +1,63 @@
+plugins { id 'com.android.application' }
+
+import java.security.MessageDigest
+
+android {
+    namespace 'com.pmequebec.app'
+    compileSdk 35
+    defaultConfig {
+        applicationId 'com.pmequebec.app'
+        minSdk 28
+        targetSdk 34
+        versionCode 513
+        versionName '5.10.3'
+        ndk { abiFilters 'arm64-v8a' }
+    }
+    packaging {
+        jniLibs { useLegacyPackaging = true }
+    }
+}
+
+// go2rtc v1.9.14 ARM64. The official static ARM64 executable is packaged as
+// libgo2rtc.so so Android extracts it to nativeLibraryDir with execute permission.
+def go2rtcUrl = 'https://github.com/AlexxIT/go2rtc/releases/download/v1.9.14/go2rtc_linux_arm64'
+def go2rtcSha256 = '359fabade8a7a51e81a55fe6df6b0ef81764a5e1d63179577534eaaa71904b50'
+def go2rtcOut = file('src/main/jniLibs/arm64-v8a/libgo2rtc.so')
+
+tasks.register('fetchGo2rtcArm64') {
+    outputs.file(go2rtcOut)
+    doLast {
+        go2rtcOut.parentFile.mkdirs()
+        boolean valid = false
+        if (go2rtcOut.exists()) {
+            def md = MessageDigest.getInstance('SHA-256')
+            go2rtcOut.withInputStream { is ->
+                byte[] buf = new byte[1024 * 1024]
+                int n
+                while ((n = is.read(buf)) > 0) md.update(buf, 0, n)
+            }
+            valid = md.digest().encodeHex().toString() == go2rtcSha256
+        }
+        if (!valid) {
+            logger.lifecycle('Downloading official go2rtc v1.9.14 ARM64 engine…')
+            new URL(go2rtcUrl).withInputStream { input ->
+                go2rtcOut.withOutputStream { output -> output << input }
+            }
+            def md = MessageDigest.getInstance('SHA-256')
+            go2rtcOut.withInputStream { is ->
+                byte[] buf = new byte[1024 * 1024]
+                int n
+                while ((n = is.read(buf)) > 0) md.update(buf, 0, n)
+            }
+            def actual = md.digest().encodeHex().toString()
+            if (actual != go2rtcSha256) {
+                go2rtcOut.delete()
+                throw new GradleException("go2rtc SHA-256 mismatch: ${actual}")
+            }
+        }
+        go2rtcOut.setExecutable(true, false)
+        logger.lifecycle('go2rtc ARM64 ready: ' + go2rtcOut)
+    }
+}
+
+preBuild.dependsOn(tasks.named('fetchGo2rtcArm64'))

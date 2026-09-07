@@ -14,6 +14,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Corriger interface Android et WebView
         run: |
           python3 - <<'PY'
@@ -22,7 +24,7 @@ jobs:
           html=root/'app/src/main/assets/index.html'
           java=root/'app/src/main/java/com/pmequebec/app/MainActivity.java'
           s=html.read_text(encoding='utf-8')
-          css='''\n<style id="pme-mobile-repair-5105">\nhtml,body{width:100%!important;max-width:100%!important;min-height:100%!important;height:auto!important;overflow-x:hidden!important;overflow-y:auto!important;-webkit-overflow-scrolling:touch!important;overscroll-behavior-y:auto!important;touch-action:pan-y!important}\nbody{padding-bottom:max(18px,env(safe-area-inset-bottom))!important}\nheader{top:0!important}\n#authGate,.auth-gate{overflow-y:auto!important;-webkit-overflow-scrolling:touch!important;align-items:flex-start!important;padding:max(14px,env(safe-area-inset-top)) 14px max(24px,env(safe-area-inset-bottom))!important;max-height:100dvh!important}\n.auth-card{margin:auto!important;max-height:none!important}\n#mainNav,.main-nav,.mobile-nav,.main-navigation{overflow-y:auto!important;-webkit-overflow-scrolling:touch!important;max-height:100dvh!important;padding-top:max(12px,env(safe-area-inset-top))!important;padding-bottom:max(18px,env(safe-area-inset-bottom))!important;touch-action:pan-y!important}\n#appRoot,#appPageHost,main,.app-module-page{min-height:0!important;height:auto!important;overflow:visible!important}\n.god-editor-scroll{overflow-y:auto!important;-webkit-overflow-scrolling:touch!important;max-height:calc(100dvh - 150px)!important;padding-bottom:max(24px,env(safe-area-inset-bottom))!important}\n#godVisualEditor.god-visual-editor{max-height:100dvh!important;top:0!important;bottom:0!important;overflow:hidden!important}\n#godGlobalLauncher,.god-global-launcher{bottom:max(18px,env(safe-area-inset-bottom))!important}\n.app-page-header,.mail-topbar{top:0!important}\n@media(max-width:760px){\n  main{padding-left:10px!important;padding-right:10px!important}\n  .card,.app-module-page{max-width:100%!important;min-width:0!important}\n  .row{min-width:0!important}\n  button{min-height:44px}\n}\n</style>\n'''
+          css='''\n<style id="pme-mobile-repair-5105">\nhtml,body{width:100%!important;max-width:100%!important;min-height:100%!important;height:auto!important;overflow-x:hidden!important;overflow-y:auto!important;-webkit-overflow-scrolling:touch!important;overscroll-behavior-y:auto!important;touch-action:pan-y!important}\nbody{padding-bottom:max(18px,env(safe-area-inset-bottom))!important}\nheader{top:0!important}\n#authGate,.auth-gate{overflow-y:auto!important;-webkit-overflow-scrolling:touch!important;align-items:flex-start!important;padding:max(14px,env(safe-area-inset-top)) 14px max(24px,env(safe-area-inset-bottom))!important;max-height:100dvh!important}\n.auth-card{margin:auto!important;max-height:none!important}\n#mainNav,.main-nav,.mobile-nav,.main-navigation,.mobile-nav-drawer{overflow-y:auto!important;-webkit-overflow-scrolling:touch!important;max-height:100dvh!important;padding-bottom:max(18px,env(safe-area-inset-bottom))!important;touch-action:pan-y!important}\n.mobile-nav-trigger{top:max(12px,env(safe-area-inset-top))!important}\n#appRoot,#appPageHost,main,.app-module-page{min-height:0!important;height:auto!important;overflow:visible!important}\n.god-editor-scroll{overflow-y:auto!important;-webkit-overflow-scrolling:touch!important;max-height:calc(100dvh - 150px)!important;padding-bottom:max(24px,env(safe-area-inset-bottom))!important}\n#godVisualEditor.god-visual-editor{max-height:100dvh!important;top:0!important;bottom:0!important;overflow:hidden!important}\n#godGlobalLauncher,.god-global-launcher{bottom:max(18px,env(safe-area-inset-bottom))!important}\n.app-page-header,.mail-topbar{top:0!important}\n.scanner-video{max-height:min(52dvh,420px)!important;object-fit:cover!important}\n@media(max-width:760px){\n  main{padding-left:10px!important;padding-right:10px!important}\n  .card,.app-module-page{max-width:100%!important;min-width:0!important}\n  .row{min-width:0!important}\n  button{min-height:44px}\n  .inventory-table{display:block!important;width:100%!important;overflow-x:auto!important;-webkit-overflow-scrolling:touch!important}\n  .scanner-panel{max-width:100%!important;overflow:hidden!important}\n}\n</style>\n'''
           js='''\n<script id="pme-mobile-repair-5105-js">\n(function(){\n  function unlockScroll(){\n    document.documentElement.style.setProperty('overflow-y','auto','important');\n    document.body.style.setProperty('overflow-y','auto','important');\n    document.body.style.removeProperty('position');\n    document.body.style.removeProperty('height');\n  }\n  function repairScrollablePanels(){\n    ['authGate','mainNav','godVisualEditor','appPageHost','appRoot'].forEach(function(id){\n      var n=document.getElementById(id); if(!n)return;\n      n.style.webkitOverflowScrolling='touch';\n    });\n  }\n  window.addEventListener('load',function(){unlockScroll();repairScrollablePanels();setTimeout(unlockScroll,300);setTimeout(unlockScroll,1200)});\n  document.addEventListener('click',function(e){\n    var b=e.target&&e.target.closest?e.target.closest('button,[data-back-to-menu],[data-nav-target],[data-workspace]'):null;\n    if(b)setTimeout(unlockScroll,50);\n  },true);\n  new MutationObserver(function(){repairScrollablePanels()}).observe(document.documentElement,{subtree:true,attributes:true,attributeFilter:['class','style']});\n})();\n</script>\n'''
           if 'pme-mobile-repair-5105' not in s:
               s=s.replace('</head>',css+'\n</head>',1)
@@ -44,5 +46,18 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add source-5.10.4/PME-Quebec-5.10-Native-Wyze-Source/app/src/main/assets/index.html source-5.10.4/PME-Quebec-5.10-Native-Wyze-Source/app/src/main/java/com/pmequebec/app/MainActivity.java
-          git commit -m 'Repair Android mobile scrolling and safe areas' || exit 0
-          git push
+          if git diff --cached --quiet; then
+            echo 'Aucune modification à publier.'
+            exit 0
+          fi
+          git commit -m 'Repair Android mobile scrolling and safe areas'
+          for attempt in 1 2 3 4; do
+            git fetch origin main
+            git rebase origin/main
+            if git push origin HEAD:main; then
+              exit 0
+            fi
+            sleep 2
+          done
+          echo 'Échec de publication après plusieurs tentatives.' >&2
+          exit 1

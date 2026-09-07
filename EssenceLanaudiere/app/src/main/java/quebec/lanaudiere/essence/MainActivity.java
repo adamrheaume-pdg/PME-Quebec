@@ -32,12 +32,13 @@ public class MainActivity extends Activity {
     private final int pale = Color.rgb(247, 251, 255);
 
     private final Set<String> lanaudiereCities = new HashSet<>(Arrays.asList(
-        "berthierville","charlemagne","chertsey","crabtree","entrelacs","joliette","lanoraie","l'assomption","l'épiphanie","lavaltrie","mande­ville","mande ville","mascouche","notre-dame-de-la-merci","notre-dame-de-lourdes","notre-dame-des-prairies","rawdon","repentigny","saint-alexis","saint-alphonse-rodriguez","saint-ambroise-de-kildare","saint-barthélemy","saint-calixte","saint-charles-borromée","saint-côme","saint-cuthbert","saint-damien","saint-didace","saint-donat","saint-esprit","saint-félix-de-valois","saint-gabriel","saint-gabriel-de-brandon","saint-ignace-de-loyola","saint-jacques","saint-jean-de-matha","saint-liguori","saint-lin-laurentides","saint-michel-des-saints","saint-norbert","saint-paul","saint-pierre","saint-roch-de-l'achigan","saint-roch-ouest","saint-sulpice","saint-thomas","sainte-béatrix","sainte-élisabeth","sainte-émélie-de-l'énergie","sainte-geneviève-de-berthier","sainte-julienne","sainte-marcelline-de-kildare","sainte-marie-salomé","sainte-mélanie","terrebonne","la visitation-de-l'île-dupas"
+        "berthierville","charlemagne","chertsey","crabtree","entrelacs","joliette","lanoraie","l'assomption","l'épiphanie","lavaltrie","mandeville","mande ville","mascouche","notre-dame-de-la-merci","notre-dame-de-lourdes","notre-dame-des-prairies","rawdon","repentigny","saint-alexis","saint-alphonse-rodriguez","saint-ambroise-de-kildare","saint-barthélemy","saint-calixte","saint-charles-borromée","saint-côme","saint-cuthbert","saint-damien","saint-didace","saint-donat","saint-esprit","saint-félix-de-valois","saint-gabriel","saint-gabriel-de-brandon","saint-ignace-de-loyola","saint-jacques","saint-jean-de-matha","saint-liguori","saint-lin-laurentides","saint-michel-des-saints","saint-norbert","saint-paul","saint-pierre","saint-roch-de-l'achigan","saint-roch-ouest","saint-sulpice","saint-thomas","sainte-béatrix","sainte-élisabeth","sainte-émélie-de-l'énergie","sainte-geneviève-de-berthier","sainte-julienne","sainte-marcelline-de-kildare","sainte-marie-salomé","sainte-mélanie","terrebonne","la visitation-de-l'île-dupas"
     ));
 
     @Override public void onCreate(Bundle b) {
         super.onCreate(b);
         getWindow().setStatusBarColor(pale);
+        getWindow().setNavigationBarColor(pale);
         getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
         createNotificationChannel();
         buildUi();
@@ -47,6 +48,20 @@ public class MainActivity extends Activity {
     private void buildUi() {
         ScrollView scroll = new ScrollView(this);
         scroll.setFillViewport(true);
+        scroll.setOnApplyWindowInsetsListener((v, insets) -> {
+            int top;
+            int bottom;
+            if (Build.VERSION.SDK_INT >= 30) {
+                top = insets.getInsets(WindowInsets.Type.statusBars()).top;
+                bottom = insets.getInsets(WindowInsets.Type.navigationBars()).bottom;
+            } else {
+                top = insets.getSystemWindowInsetTop();
+                bottom = insets.getSystemWindowInsetBottom();
+            }
+            v.setPadding(0, top, 0, bottom);
+            return insets;
+        });
+
         root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
         root.setPadding(dp(18), dp(18), dp(18), dp(28));
@@ -102,32 +117,62 @@ public class MainActivity extends Activity {
         refs.addView(note);
         root.addView(refs, matchWrap(dp(12)));
         setContentView(scroll);
+        scroll.requestApplyInsets();
+    }
+
+    private boolean hasLocationPermission() {
+        return checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ||
+               checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED;
     }
 
     private void requestPermissionsAndLocate() {
+        if (!hasLocationPermission()) {
+            bestBanner.setText("📍 Autorisation GPS requise");
+            status.setText("Autorise la localisation pour afficher les stations autour de toi.");
+            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, REQ_LOCATION);
+        } else {
+            locateAndLoad();
+            requestNotificationPermissionIfNeeded();
+        }
+    }
+
+    private void requestNotificationPermissionIfNeeded() {
         if (Build.VERSION.SDK_INT >= 33 && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS}, REQ_NOTIFICATIONS);
         }
-        if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, REQ_LOCATION);
-        } else locateAndLoad();
     }
 
     @Override public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == REQ_LOCATION) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) locateAndLoad();
-            else {
+            if (hasLocationPermission()) {
+                locateAndLoad();
+                requestNotificationPermissionIfNeeded();
+            } else {
                 bestBanner.setText("GPS requis pour trouver les stations proches");
-                status.setText("Active la permission de localisation dans les paramètres Android.");
+                status.setText("Appuie sur ACTUALISER LES PRIX pour redemander la localisation. Si Android ne l'affiche plus, ouvre les paramètres de l'application et autorise Localisation.");
             }
         }
     }
 
     private void locateAndLoad() {
-        if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) return;
+        if (!hasLocationPermission()) {
+            bestBanner.setText("📍 Autorisation GPS requise");
+            status.setText("Autorise la localisation pour afficher les stations autour de toi.");
+            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, REQ_LOCATION);
+            return;
+        }
+
         bestBanner.setText("📍 Recherche de ta position…");
+        status.setText("Recherche GPS en cours…");
         LocationManager lm = (LocationManager)getSystemService(LOCATION_SERVICE);
+        if (!lm.isProviderEnabled(LocationManager.GPS_PROVIDER) && !lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
+            bestBanner.setText("⚠️ Localisation du téléphone désactivée");
+            status.setText("Active la localisation du téléphone, puis appuie sur ACTUALISER LES PRIX.");
+            try { startActivity(new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)); } catch (Exception ignored) {}
+            return;
+        }
+
         Location best = null;
         for (String p : Arrays.asList(LocationManager.GPS_PROVIDER, LocationManager.NETWORK_PROVIDER)) {
             try {
@@ -162,7 +207,10 @@ public class MainActivity extends Activity {
         new Thread(() -> {
             try {
                 HttpURLConnection c = (HttpURLConnection)new URL(url).openConnection();
-                c.setConnectTimeout(10000); c.setReadTimeout(10000); c.setRequestProperty("Accept","application/json");
+                c.setConnectTimeout(10000);
+                c.setReadTimeout(10000);
+                c.setRequestProperty("Accept","application/json");
+                c.setRequestProperty("User-Agent", "EssenceLanaudiere/1.0 Android");
                 int code = c.getResponseCode();
                 if (code == 429) throw new IOException("Trop de demandes. Réessaie dans quelques instants.");
                 if (code != 200) throw new IOException("Erreur de données (" + code + ")");
@@ -190,8 +238,7 @@ public class MainActivity extends Activity {
 
     private boolean isLanaudiere(String city) {
         String n = city.trim().toLowerCase(Locale.CANADA_FRENCH).replace('’','\'');
-        if (n.equals("mande­ville")) n = "mandeville";
-        return lanaudiereCities.contains(n) || n.equals("mandeville");
+        return lanaudiereCities.contains(n);
     }
 
     private void showStations(List<Station> stations, String source, String fuel, String sort) {
@@ -209,7 +256,9 @@ public class MainActivity extends Activity {
         int rank = 1;
         for (Station s : stations) {
             LinearLayout c = card();
-            LinearLayout top = new LinearLayout(this); top.setOrientation(LinearLayout.HORIZONTAL); top.setGravity(Gravity.CENTER_VERTICAL);
+            LinearLayout top = new LinearLayout(this);
+            top.setOrientation(LinearLayout.HORIZONTAL);
+            top.setGravity(Gravity.CENTER_VERTICAL);
             TextView r = text("#" + rank, 16, true, s == cheapest ? blue : Color.DKGRAY);
             top.addView(r, new LinearLayout.LayoutParams(dp(38), ViewGroup.LayoutParams.WRAP_CONTENT));
             TextView name = text(s.name, 17, true, Color.rgb(25,25,25));
@@ -254,13 +303,20 @@ public class MainActivity extends Activity {
     }
 
     private String readAll(InputStream in) throws IOException {
-        ByteArrayOutputStream out = new ByteArrayOutputStream(); byte[] buf = new byte[4096]; int n;
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        byte[] buf = new byte[4096];
+        int n;
         while ((n=in.read(buf))!=-1) out.write(buf,0,n);
         return out.toString(StandardCharsets.UTF_8.name());
     }
 
     private LinearLayout card() {
-        LinearLayout l = new LinearLayout(this); l.setOrientation(LinearLayout.VERTICAL); l.setPadding(dp(14),dp(14),dp(14),dp(14)); l.setBackground(round(Color.WHITE,18)); l.setElevation(dp(2)); return l;
+        LinearLayout l = new LinearLayout(this);
+        l.setOrientation(LinearLayout.VERTICAL);
+        l.setPadding(dp(14),dp(14),dp(14),dp(14));
+        l.setBackground(round(Color.WHITE,18));
+        l.setElevation(dp(2));
+        return l;
     }
     private TextView label(String s) { TextView t=text(s,12,true,Color.GRAY); t.setPadding(0,dp(8),0,dp(3)); return t; }
     private Spinner spinner(String[] items) { Spinner s=new Spinner(this); s.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, items)); return s; }
@@ -272,7 +328,8 @@ public class MainActivity extends Activity {
     private int dp(int v) { return (int)(v*getResources().getDisplayMetrics().density+0.5f); }
 
     static class Station {
-        final String name,address,city; final double lat,lng,price,distance;
+        final String name,address,city;
+        final double lat,lng,price,distance;
         Station(String n,String a,String c,double la,double ln,double p,double d){name=n;address=a;city=c;lat=la;lng=ln;price=p;distance=d;}
     }
 }

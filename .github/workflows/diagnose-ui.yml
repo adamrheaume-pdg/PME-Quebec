@@ -1,0 +1,45 @@
+name: Diagnostiquer UI PME Quebec
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/diagnose-ui.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Analyser index et Android
+        run: |
+          SRC='source-5.10.4/PME-Quebec-5.10-Native-Wyze-Source'
+          HTML="$SRC/app/src/main/assets/index.html"
+          JAVA="$SRC/app/src/main/java/com/pmequebec/app/MainActivity.java"
+          MAN="$SRC/app/src/main/AndroidManifest.xml"
+          {
+            echo '=== FILE INFO ==='
+            wc -l "$HTML" "$JAVA" "$MAN"
+            echo
+            echo '=== HTML KEYWORDS ==='
+            grep -nEi -C 4 'GOD|inventaire|inventory|barcode|code.?bar|qr|scanner|scan|safe-area|overflow|position:[[:space:]]*fixed|100vh|height:[[:space:]]*100|navigation|menu|sidebar|header|topbar|getUserMedia|mediaDevices|camera' "$HTML" | head -n 1200 || true
+            echo
+            echo '=== STYLE/VIEWPORT ==='
+            grep -nEi -C 3 '<meta[^>]+viewport|html[[:space:]]*\{|body[[:space:]]*\{|overflow|overscroll|touch-action|position:[[:space:]]*(fixed|sticky)|100vh|100dvh|env\(safe-area' "$HTML" | head -n 800 || true
+            echo
+            echo '=== MANIFEST ==='
+            cat "$MAN"
+            echo
+            echo '=== MAINACTIVITY WINDOW/WEBVIEW ==='
+            grep -nEi -C 4 'systemUi|fitsSystem|setContentView|WebView|PermissionRequest|CAMERA|setSoftInput|statusBar|navigationBar|edge' "$JAVA" || true
+          } > diagnostic-ui.txt
+      - name: Publier diagnostic
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add diagnostic-ui.txt
+          git commit -m 'Generate UI diagnostic report' || exit 0
+          git push

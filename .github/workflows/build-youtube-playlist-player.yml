@@ -7,6 +7,7 @@ on:
     paths:
       - 'youtube-playlist-player/**'
       - '.github/workflows/build-youtube-playlist-player.yml'
+      - '.github/scripts/resolve_youtube_defaults.py'
 
 jobs:
   build:
@@ -25,6 +26,16 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
+      - name: Résoudre les deux playlists par défaut
+        run: |
+          python3 -m pip install --disable-pip-version-check yt-dlp
+          python3 .github/scripts/resolve_youtube_defaults.py
+      - name: Vérifier les playlists intégrées
+        run: |
+          HTML='youtube-playlist-player/app/src/main/assets/index.html'
+          grep -q 'pme-default-playlists-v2' "$HTML"
+          grep -q 'Sélection originale' "$HTML"
+          grep -q 'Québec 2000–2026' "$HTML"
       - name: Compiler le lecteur
         run: |
           cd youtube-playlist-player

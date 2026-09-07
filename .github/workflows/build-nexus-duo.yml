@@ -34,11 +34,11 @@ jobs:
         run: gradle -p NexusDuo :app:assembleDebug --stacktrace
 
       - name: Rename APK
-        run: cp NexusDuo/app/build/outputs/apk/debug/app-debug.apk NexusDuo/Nexus-Duo-v3.apk
+        run: cp NexusDuo/app/build/outputs/apk/debug/app-debug.apk NexusDuo/Nexus-Duo-v4.apk
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: Nexus-Duo-v3
-          path: NexusDuo/Nexus-Duo-v3.apk
+          name: Nexus-Duo-v4
+          path: NexusDuo/Nexus-Duo-v4.apk
           if-no-files-found: error

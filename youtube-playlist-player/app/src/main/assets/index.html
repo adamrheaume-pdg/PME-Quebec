@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Playlist Québec</title>
+<style>
+:root{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color-scheme:dark;background:#0b0d10;color:#f7f8fa}
+*{box-sizing:border-box}body{margin:0;background:#0b0d10;color:#f7f8fa}.app{max-width:720px;margin:auto;padding:18px 14px 40px}
+h1{font-size:24px;margin:2px 0 4px}.muted{color:#aab1bd;font-size:13px}.card{background:#151922;border:1px solid #262d39;border-radius:18px;padding:14px;margin-top:14px;box-shadow:0 10px 30px rgba(0,0,0,.2)}
+input,textarea,select,button{font:inherit}input,textarea,select{width:100%;background:#0f131a;color:#fff;border:1px solid #303847;border-radius:12px;padding:11px}textarea{min-height:135px;resize:vertical}
+.row{display:flex;gap:8px;flex-wrap:wrap}.row>*{flex:1 1 130px}button{border:0;border-radius:12px;padding:11px 13px;background:#e8edf5;color:#111820;font-weight:800}button.primary{background:#5da9ff;color:#061523}button.danger{background:#3b2025;color:#ffb8c0}button.active{outline:2px solid #5da9ff}
+#playerWrap{width:100%;min-height:220px;aspect-ratio:16/9;background:#000;border-radius:14px;overflow:hidden;margin-top:12px}#player{width:100%;height:100%;min-height:220px}.controls{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:10px}.controls button{padding:12px 4px;font-size:18px}
+.now{margin-top:10px;font-weight:800}.status{margin-top:8px;font-size:13px;color:#9ad0ff;min-height:18px}.tracklist{margin-top:10px;max-height:280px;overflow:auto;border-top:1px solid #2b3240}.track{display:flex;gap:10px;align-items:center;padding:10px 2px;border-bottom:1px solid #242a35;cursor:pointer}.track.current{color:#70b7ff}.track .n{width:28px;color:#8490a1}.track .t{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pill{display:inline-block;border:1px solid #3a4352;border-radius:999px;padding:5px 9px;font-size:12px;color:#cbd3df}
+@media(max-width:480px){.controls{grid-template-columns:repeat(5,1fr)}.controls button{font-size:17px;padding:10px 2px}}
+</style>
+</head>
+<body><main class="app">
+<h1>🎵 Playlist Québec</h1>
+<div class="muted">Colle des liens YouTube directs, sauvegarde tes playlists et joue-les dans l’ordre ou en aléatoire.</div>
+
+<section class="card">
+<div class="row"><input id="playlistName" placeholder="Nom de la playlist"><select id="savedSelect"><option value="">Playlists sauvegardées…</option></select></div>
+<div class="row" style="margin-top:8px"><button class="primary" onclick="savePlaylist()">💾 Sauvegarder</button><button onclick="loadSelected()">📂 Charger</button><button class="danger" onclick="deleteSelected()">🗑 Supprimer</button></div>
+<textarea id="input" style="margin-top:10px" placeholder="Un lien par ligne, par exemple :\nhttps://youtu.be/dQw4w9WgXcQ\nhttps://www.youtube.com/watch?v=xxxxxxxxxxx"></textarea>
+<div class="row" style="margin-top:8px"><button class="primary" onclick="importLinks()">➕ Importer la liste</button><button onclick="clearCurrent()">Vider</button></div>
+<div id="importStatus" class="status"></div>
+</section>
+
+<section class="card">
+<div class="row"><span id="modeLabel" class="pill">Ordre</span><span id="repeatLabel" class="pill">Répétition : non</span><span id="countLabel" class="pill">0 titre</span></div>
+<div id="playerWrap"><div id="player"></div></div>
+<div class="controls">
+<button onclick="previousTrack()">⏮</button><button id="playBtn" onclick="togglePlay()">▶️</button><button onclick="nextTrack(true)">⏭</button><button id="shuffleBtn" onclick="toggleShuffle()">🔀</button><button id="repeatBtn" onclick="cycleRepeat()">🔁</button>
+</div>
+<div id="now" class="now">Aucun titre chargé</div><div id="playerStatus" class="status"></div>
+<div id="trackList" class="tracklist"></div>
+</section>
+
+<section class="card"><div class="muted">Le lecteur YouTube reste visible pour respecter les règles de lecture intégrée. Les playlists sont enregistrées uniquement sur cet appareil. Les URL de recherche YouTube (<b>results?search_query=</b>) ne peuvent pas être jouées directement : utilise des liens <b>watch?v=</b>, <b>youtu.be</b>, <b>shorts</b> ou <b>embed</b>.</div></section>
+</main>
+<script src="https://www.youtube.com/iframe_api"></script>
+<script>
+let player=null, ready=false, tracks=[], index=0, shuffle=false, repeatMode=0, playing=false;
+const STORAGE='yt_playlist_quebec_v1';
+function $(id){return document.getElementById(id)}
+function saved(){try{return JSON.parse(localStorage.getItem(STORAGE)||'{}')}catch(e){return {}}}
+function writeSaved(v){localStorage.setItem(STORAGE,JSON.stringify(v));refreshSaved()}
+function refreshSaved(){const s=$('savedSelect'), data=saved(), current=s.value;s.innerHTML='<option value="">Playlists sauvegardées…</option>';Object.keys(data).sort().forEach(k=>{const o=document.createElement('option');o.value=k;o.textContent=k+' ('+data[k].length+')';s.appendChild(o)});if(data[current])s.value=current}
+function extractId(text){const patterns=[/youtu\.be\/([A-Za-z0-9_-]{11})/,/[?&]v=([A-Za-z0-9_-]{11})/,/youtube\.com\/shorts\/([A-Za-z0-9_-]{11})/,/youtube\.com\/embed\/([A-Za-z0-9_-]{11})/,/^([A-Za-z0-9_-]{11})$/];for(const p of patterns){const m=text.match(p);if(m)return m[1]}return null}
+function importLinks(){const lines=$('input').value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);const added=[];let rejected=0;for(const line of lines){const id=extractId(line);if(!id){rejected++;continue}const url='https://www.youtube.com/watch?v='+id;if(!tracks.some(t=>t.id===id))added.push({id:id,url:url,label:'Vidéo '+(tracks.length+added.length+1)})}tracks=tracks.concat(added);$('importStatus').textContent=added.length+' ajoutée(s)'+(rejected?' • '+rejected+' ligne(s) ignorée(s)':'');if(tracks.length===added.length&&tracks.length>0)index=0;render();if(ready&&tracks.length&&!player.getVideoData().video_id)loadCurrent(false)}
+function clearCurrent(){tracks=[];index=0;if(player&&ready)player.stopVideo();render();$('input').value=''}
+function savePlaylist(){const name=$('playlistName').value.trim();if(!name){$('importStatus').textContent='Entre un nom de playlist.';return}if(!tracks.length){$('importStatus').textContent='La playlist est vide.';return}const data=saved();data[name]=tracks;writeSaved(data);$('savedSelect').value=name;$('importStatus').textContent='Playlist « '+name+' » sauvegardée.'}
+function loadSelected(){const name=$('savedSelect').value, data=saved();if(!name||!data[name])return;tracks=data[name];index=0;$('playlistName').value=name;render();if(ready&&tracks.length)loadCurrent(false)}
+function deleteSelected(){const name=$('savedSelect').value;if(!name)return;const data=saved();delete data[name];writeSaved(data);$('importStatus').textContent='Playlist supprimée.'}
+function onYouTubeIframeAPIReady(){player=new YT.Player('player',{width:'100%',height:'100%',videoId:'',playerVars:{playsinline:1,rel:0,modestbranding:1},events:{onReady:()=>{ready=true;if(tracks.length)loadCurrent(false)},onStateChange:onState,onError:onPlayerError}})}
+function onState(e){playing=e.data===YT.PlayerState.PLAYING;$('playBtn').textContent=playing?'⏸':'▶️';if(e.data===YT.PlayerState.ENDED){if(repeatMode===2){player.seekTo(0);player.playVideo()}else nextTrack(false)}if(e.data===YT.PlayerState.PLAYING){const d=player.getVideoData();if(d&&d.title){tracks[index].label=d.title;render()}}}
+function onPlayerError(e){$('playerStatus').textContent='Cette vidéo ne peut pas être lue ici (erreur '+e.data+'). Passage à la suivante.';setTimeout(()=>nextTrack(false),600)}
+function loadCurrent(autoplay=true){if(!ready||!tracks.length)return;index=Math.max(0,Math.min(index,tracks.length-1));$('playerStatus').textContent='';if(autoplay)player.loadVideoById(tracks[index].id);else player.cueVideoById(tracks[index].id);render()}
+function togglePlay(){if(!ready||!tracks.length)return;if(playing)player.pauseVideo();else{const d=player.getVideoData();if(!d||!d.video_id)loadCurrent(true);else player.playVideo()}}
+function nextTrack(manual){if(!tracks.length)return;if(shuffle&&tracks.length>1){let n=index;while(n===index)n=Math.floor(Math.random()*tracks.length);index=n}else if(index<tracks.length-1){index++}else if(repeatMode===1||shuffle){index=0}else{if(!manual){$('playerStatus').textContent='Fin de la playlist.';playing=false;$('playBtn').textContent='▶️';return}index=0}loadCurrent(true)}
+function previousTrack(){if(!tracks.length)return;if(shuffle&&tracks.length>1){let n=index;while(n===index)n=Math.floor(Math.random()*tracks.length);index=n}else index=(index-1+tracks.length)%tracks.length;loadCurrent(true)}
+function playAt(i){index=i;loadCurrent(true)}
+function toggleShuffle(){shuffle=!shuffle;$('shuffleBtn').classList.toggle('active',shuffle);$('modeLabel').textContent=shuffle?'Aléatoire':'Ordre'}
+function cycleRepeat(){repeatMode=(repeatMode+1)%3;const txt=['Répétition : non','Répéter tout','Répéter 1'];$('repeatLabel').textContent=txt[repeatMode];$('repeatBtn').classList.toggle('active',repeatMode>0)}
+function render(){const list=$('trackList');list.innerHTML='';tracks.forEach((t,i)=>{const r=document.createElement('div');r.className='track'+(i===index?' current':'');r.onclick=()=>playAt(i);r.innerHTML='<span class="n">'+(i+1)+'</span><span class="t">'+escapeHtml(t.label||('Vidéo '+(i+1)))+'</span>';list.appendChild(r)});$('countLabel').textContent=tracks.length+' titre'+(tracks.length>1?'s':'');$('now').textContent=tracks.length?((index+1)+' / '+tracks.length+' — '+(tracks[index].label||('Vidéo '+(index+1)))):'Aucun titre chargé'}
+function escapeHtml(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+refreshSaved();render();
+</script>
+</body></html>

@@ -1,0 +1,40 @@
+name: Compiler APK Playlist Québec
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'youtube-playlist-player/**'
+      - '.github/workflows/build-youtube-playlist-player.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Récupérer le dépôt
+        uses: actions/checkout@v4
+      - name: Installer Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Installer Android SDK
+        uses: android-actions/setup-android@v3
+      - name: Installer Gradle 8.9
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Compiler le lecteur
+        run: |
+          cd youtube-playlist-player
+          gradle :app:assembleDebug --stacktrace
+      - name: Préparer APK
+        run: |
+          cp youtube-playlist-player/app/build/outputs/apk/debug/app-debug.apk Playlist-Quebec.apk
+      - name: Publier APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Playlist-Quebec-APK
+          path: Playlist-Quebec.apk
+          if-no-files-found: error

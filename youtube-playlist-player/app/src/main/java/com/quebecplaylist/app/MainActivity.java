@@ -9,12 +9,12 @@ import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import java.util.HashMap;
-import java.util.Map;
+
+import androidx.webkit.WebViewAssetLoader;
 
 public class MainActivity extends Activity {
     private WebView webView;
-    private static final String APP_ORIGIN = "https://playlist-quebec.app/";
+    private WebViewAssetLoader assetLoader;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,25 +29,28 @@ public class MainActivity extends Activity {
         settings.setJavaScriptEnabled(true);
         settings.setDomStorageEnabled(true);
         settings.setMediaPlaybackRequiresUserGesture(false);
-        settings.setAllowFileAccess(true);
-        settings.setAllowContentAccess(true);
+        settings.setAllowFileAccess(false);
+        settings.setAllowContentAccess(false);
         settings.setBuiltInZoomControls(false);
         settings.setDisplayZoomControls(false);
+
+        // Sert les fichiers de l'APK sous une vraie origine HTTPS. Le document
+        // n'est donc plus un file:// sans origine, ce qui évite l'erreur 153
+        // du lecteur YouTube liée à l'identification du client / Referer.
+        assetLoader = new WebViewAssetLoader.Builder()
+                .addPathHandler("/assets/", new WebViewAssetLoader.AssetsPathHandler(this))
+                .build();
 
         webView.setWebChromeClient(new WebChromeClient());
         webView.setWebViewClient(new WebViewClient() {
             @Override
             public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
-                // YouTube exige maintenant un HTTP Referer (ou une identification
-                // cliente equivalente) pour le lecteur integre. Une page chargee
-                // directement depuis file:// n'en fournit normalement pas.
-                return super.shouldInterceptRequest(view, request);
+                WebResourceResponse response = assetLoader.shouldInterceptRequest(request.getUrl());
+                return response != null ? response : super.shouldInterceptRequest(view, request);
             }
         });
 
-        Map<String, String> headers = new HashMap<>();
-        headers.put("Referer", APP_ORIGIN);
-        webView.loadUrl("file:///android_asset/index.html", headers);
+        webView.loadUrl("https://appassets.androidplatform.net/assets/index.html");
         setContentView(webView);
     }
 

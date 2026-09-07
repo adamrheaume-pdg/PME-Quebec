@@ -6,6 +6,10 @@ on:
     branches:
       - main
 
+concurrency:
+  group: pme-quebec-apk-main
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -29,6 +33,25 @@ jobs:
           test -f "$GRADLE_DIR/settings.gradle"
           echo "GRADLE_DIR=$GRADLE_DIR" >> "$GITHUB_ENV"
           echo "Compilation depuis : $GRADLE_DIR"
+
+      - name: Embarquer le moteur code-barres dans l'APK
+        run: |
+          VENDOR="$GRADLE_DIR/app/src/main/assets/vendor"
+          mkdir -p "$VENDOR"
+          curl --fail --location --silent --show-error \
+            "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js" \
+            -o "$VENDOR/html5-qrcode.min.js"
+          test -s "$VENDOR/html5-qrcode.min.js"
+          echo "Moteur scanner local prêt : $(wc -c < "$VENDOR/html5-qrcode.min.js") octets"
+
+      - name: Vérifier que le scanner utilise le moteur local
+        run: |
+          HTML="$GRADLE_DIR/app/src/main/assets/index.html"
+          grep -q 'src="vendor/html5-qrcode.min.js"' "$HTML"
+          if grep -q 'src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"' "$HTML"; then
+            echo "ERREUR : le scanner dépend encore du CDN." >&2
+            exit 1
+          fi
 
       - name: Préparer Gradle
         run: |

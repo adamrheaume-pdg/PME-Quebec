@@ -7,9 +7,9 @@
     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
         android:orientation="vertical" android:padding="18dp" android:background="#FFFFFF">
         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:text="⚜ Maison Québec" android:textSize="28sp" android:textStyle="bold" android:textColor="@color/mq_blue"/>
+            android:text="⚜ WiFi Québec" android:textSize="28sp" android:textStyle="bold" android:textColor="@color/mq_blue"/>
         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:text="Contrôle universel du réseau local" android:textSize="14sp" android:textColor="@color/mq_text"/>
+            android:text="Contrôle du réseau local et des appareils connectés" android:textSize="14sp" android:textColor="@color/mq_text"/>
     </LinearLayout>
 
     <HorizontalScrollView android:layout_width="match_parent" android:layout_height="wrap_content" android:scrollbars="none">

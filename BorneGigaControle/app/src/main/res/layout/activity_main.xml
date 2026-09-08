@@ -33,4 +33,15 @@
     <ScrollView android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1">
         <LinearLayout android:id="@+id/deviceList" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingBottom="20dp"/>
     </ScrollView>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Créé par 🚨🚨adamrheaume@gmail.com 🚨🚨"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        android:textColor="#003DA5"
+        android:gravity="center"
+        android:padding="10dp"
+        android:background="#FFFFFF" />
 </LinearLayout>

@@ -28,6 +28,16 @@ jobs:
           GRADLE_DIR="$GITHUB_WORKSPACE/source-5.10.4/PME-Quebec-5.10-Native-Wyze-Source"
           test -f "$GRADLE_DIR/settings.gradle"
           echo "GRADLE_DIR=$GRADLE_DIR" >> "$GITHUB_ENV"
+      - name: Intégrer l'icône Inc Québec
+        run: |
+          ICON_B64="$GRADLE_DIR/app/pme_inc_quebec_icon.b64"
+          ICON_DIR="$GRADLE_DIR/app/src/main/res/drawable"
+          mkdir -p "$ICON_DIR"
+          test -s "$ICON_B64"
+          base64 --decode "$ICON_B64" > "$ICON_DIR/pme_inc_quebec_icon.jpg"
+          test -s "$ICON_DIR/pme_inc_quebec_icon.jpg"
+          grep -q 'android:icon="@drawable/pme_inc_quebec_icon"' "$GRADLE_DIR/app/src/main/AndroidManifest.xml"
+          grep -q 'android:roundIcon="@drawable/pme_inc_quebec_icon"' "$GRADLE_DIR/app/src/main/AndroidManifest.xml"
       - name: Vérifier Supabase
         run: |
           curl --fail --silent --show-error --max-time 15 -H 'apikey: sb_publishable_21Hj2UvI7rPkG3d_GUkEQQ_EByUbC-V' 'https://tziawkkcwkzhfylmldih.supabase.co/auth/v1/health' >/dev/null

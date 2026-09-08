@@ -6,22 +6,28 @@ import android.content.*;
 import android.graphics.Color;
 import android.net.*;
 import android.net.nsd.*;
+import android.net.wifi.WifiManager;
 import android.view.*;
 import android.widget.*;
-import android.graphics.drawable.ColorDrawable;
 import org.json.*;
 import java.io.*;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.regex.*;
 
 public class MainActivity extends Activity {
     private LinearLayout list;
     private TextView status;
-    private final Set<String> seen = Collections.synchronizedSet(new HashSet<>());
     private ExecutorService pool;
     private SharedPreferences prefs;
+    private final Set<String> seenIps = Collections.synchronizedSet(new HashSet<>());
+    private final Map<String, TextView> titles = Collections.synchronizedMap(new HashMap<>());
+    private final Map<String, TextView> detailsViews = Collections.synchronizedMap(new HashMap<>());
+    private final Set<String> foundServices = Collections.synchronizedSet(new HashSet<>());
+    private WifiManager.MulticastLock multicastLock;
+    private volatile int scanFound = 0;
 
     @Override public void onCreate(Bundle b) {
         super.onCreate(b);
@@ -36,62 +42,127 @@ public class MainActivity extends Activity {
     }
 
     private void scanNetwork() {
-        list.removeAllViews(); seen.clear(); loadSavedManualDevices();
-        String ip = localIpv4();
-        if (ip == null) { status.setText("Impossible de déterminer l'adresse IP locale."); return; }
-        String subnet = ip.substring(0, ip.lastIndexOf('.') + 1);
-        status.setText("Recherche sur " + subnet + "0/24…");
-        discoverNsd();
-        pool = Executors.newFixedThreadPool(32);
+        list.removeAllViews();
+        seenIps.clear(); titles.clear(); detailsViews.clear(); foundServices.clear(); scanFound = 0;
+        loadSavedManualDevices();
+
+        Set<String> subnets = localSubnets24();
+        if (subnets.isEmpty()) {
+            status.setText("Impossible de déterminer le réseau local.");
+            return;
+        }
+
+        acquireMulticast();
+        status.setText("Recherche avancée : Wi-Fi 2,4/5/6 GHz, mDNS et SSDP…");
+        discoverNsdType("_http._tcp.");
+        discoverNsdType("_https._tcp.");
+        discoverNsdType("_hap._tcp.");
+        discoverNsdType("_matter._tcp.");
+        discoverSsdp();
+
+        int total = subnets.size() * 254;
         final int[] done = {0};
-        for (int i=1; i<255; i++) {
-            final String host = subnet + i;
-            pool.execute(() -> {
-                int port = probe(host);
-                if (port > 0) runOnUiThread(() -> addDeviceCard("Appareil réseau", host, "Port " + port, null, null));
-                synchronized(done) { done[0]++; if (done[0] == 254) runOnUiThread(() -> status.setText("Analyse terminée — " + seen.size() + " appareil(s) détecté(s).")); }
-            });
+        pool = Executors.newFixedThreadPool(48);
+        for (String subnet : subnets) {
+            for (int i = 1; i < 255; i++) {
+                final String host = subnet + i;
+                pool.execute(() -> {
+                    ProbeResult r = probe(host);
+                    if (r.alive) runOnUiThread(() -> addOrMergeDevice("Appareil réseau", host, r.details(), null, null));
+                    synchronized (done) {
+                        done[0]++;
+                        if (done[0] == total) runOnUiThread(() -> {
+                            status.setText("Analyse terminée — " + seenIps.size() + " appareil(s) uniques détecté(s). Les appareils isolés par le routeur peuvent rester invisibles.");
+                            releaseMulticastLater();
+                        });
+                    }
+                });
+            }
         }
         pool.shutdown();
     }
 
-    private int probe(String host) {
-        int[] ports = {80, 443, 554, 8000, 8080, 8123, 1883};
-        for (int p : ports) try (Socket s = new Socket()) {
-            s.connect(new InetSocketAddress(host, p), 180);
-            return p;
-        } catch(Exception ignored) {}
-        return -1;
-    }
-
-    private String localIpv4() {
+    private Set<String> localSubnets24() {
+        Set<String> result = new LinkedHashSet<>();
         try {
-            Enumeration<java.net.NetworkInterface> en = java.net.NetworkInterface.getNetworkInterfaces();
-            while(en.hasMoreElements()) {
-                java.net.NetworkInterface n = en.nextElement();
+            Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces();
+            while (en.hasMoreElements()) {
+                NetworkInterface n = en.nextElement();
                 if (!n.isUp() || n.isLoopback()) continue;
                 Enumeration<InetAddress> as = n.getInetAddresses();
-                while(as.hasMoreElements()) {
+                while (as.hasMoreElements()) {
                     InetAddress a = as.nextElement();
-                    if (a instanceof Inet4Address && a.isSiteLocalAddress()) return a.getHostAddress();
+                    if (a instanceof Inet4Address && a.isSiteLocalAddress()) {
+                        String ip = a.getHostAddress();
+                        result.add(ip.substring(0, ip.lastIndexOf('.') + 1));
+                    }
                 }
             }
-        } catch(Exception ignored) {}
-        return null;
+        } catch (Exception ignored) {}
+        return result;
     }
 
-    private void discoverNsd() {
+    private ProbeResult probe(String host) {
+        int[] ports = {80,443,53,554,8000,8008,8009,8080,8123,8443,1883,8883,9100,9999,10001,1400,32400,5000,5001};
+        boolean alive = false;
+        List<Integer> open = new ArrayList<>();
+        try { alive = InetAddress.getByName(host).isReachable(180); } catch (Exception ignored) {}
+        for (int p : ports) {
+            try (Socket s = new Socket()) {
+                s.connect(new InetSocketAddress(host, p), 110);
+                open.add(p); alive = true;
+                if (open.size() >= 3) break;
+            } catch (Exception ignored) {}
+        }
+        return new ProbeResult(alive, open);
+    }
+
+    private static class ProbeResult {
+        final boolean alive; final List<Integer> ports;
+        ProbeResult(boolean a, List<Integer> p) { alive=a; ports=p; }
+        String details() {
+            if (ports.isEmpty()) return "Actif sur le réseau local";
+            StringBuilder b = new StringBuilder("Ports ouverts : ");
+            for (int i=0;i<ports.size();i++) { if(i>0)b.append(", "); b.append(ports.get(i)); }
+            return b.toString();
+        }
+    }
+
+    private void acquireMulticast() {
+        try {
+            WifiManager wm = (WifiManager)getApplicationContext().getSystemService(WIFI_SERVICE);
+            if (wm != null) {
+                multicastLock = wm.createMulticastLock("MaisonQuebecDiscovery");
+                multicastLock.setReferenceCounted(false);
+                multicastLock.acquire();
+            }
+        } catch (Exception ignored) {}
+    }
+
+    private void releaseMulticastLater() {
+        new android.os.Handler(getMainLooper()).postDelayed(() -> {
+            try { if (multicastLock != null && multicastLock.isHeld()) multicastLock.release(); } catch(Exception ignored) {}
+        }, 5000);
+    }
+
+    private void discoverNsdType(String type) {
         try {
             NsdManager nsd = (NsdManager)getSystemService(NSD_SERVICE);
-            nsd.discoverServices("_http._tcp.", NsdManager.PROTOCOL_DNS_SD, new NsdManager.DiscoveryListener() {
+            nsd.discoverServices(type, NsdManager.PROTOCOL_DNS_SD, new NsdManager.DiscoveryListener() {
                 public void onDiscoveryStarted(String s) {}
                 public void onServiceFound(NsdServiceInfo info) {
-                    nsd.resolveService(info, new NsdManager.ResolveListener() {
-                        public void onResolveFailed(NsdServiceInfo x, int e) {}
-                        public void onServiceResolved(NsdServiceInfo x) {
-                            if (x.getHost()!=null) runOnUiThread(() -> addDeviceCard(x.getServiceName(), x.getHost().getHostAddress(), "mDNS • port " + x.getPort(), null, null));
-                        }
-                    });
+                    try {
+                        nsd.resolveService(info, new NsdManager.ResolveListener() {
+                            public void onResolveFailed(NsdServiceInfo x, int e) {}
+                            public void onServiceResolved(NsdServiceInfo x) {
+                                if (x.getHost()!=null) {
+                                    String ip=x.getHost().getHostAddress();
+                                    String detail="mDNS " + type + " • port " + x.getPort();
+                                    runOnUiThread(() -> addOrMergeDevice(x.getServiceName(), ip, detail, null, null));
+                                }
+                            }
+                        });
+                    } catch(Exception ignored) {}
                 }
                 public void onServiceLost(NsdServiceInfo i) {}
                 public void onDiscoveryStopped(String s) {}
@@ -101,17 +172,60 @@ public class MainActivity extends Activity {
         } catch(Exception ignored) {}
     }
 
-    private void addDeviceCard(String name, String ip, String details, String onUrl, String offUrl) {
-        String key = name + "|" + ip + "|" + details;
-        if (!seen.add(key)) return;
-        LinearLayout card = new LinearLayout(this); card.setOrientation(LinearLayout.VERTICAL); card.setPadding(18,18,18,18);
-        card.setBackgroundResource(R.drawable.card);
+    private void discoverSsdp() {
+        Executors.newSingleThreadExecutor().execute(() -> {
+            DatagramSocket socket = null;
+            try {
+                socket = new DatagramSocket();
+                socket.setSoTimeout(700);
+                String msg = "M-SEARCH * HTTP/1.1\r\nHOST: 239.255.255.250:1900\r\nMAN: \"ssdp:discover\"\r\nMX: 2\r\nST: ssdp:all\r\n\r\n";
+                byte[] data = msg.getBytes(StandardCharsets.UTF_8);
+                DatagramPacket p = new DatagramPacket(data, data.length, InetAddress.getByName("239.255.255.250"), 1900);
+                socket.send(p); socket.send(p);
+                long until = System.currentTimeMillis() + 3500;
+                byte[] buf = new byte[8192];
+                while (System.currentTimeMillis() < until) {
+                    try {
+                        DatagramPacket r = new DatagramPacket(buf, buf.length);
+                        socket.receive(r);
+                        String text = new String(r.getData(),0,r.getLength(),StandardCharsets.UTF_8);
+                        String ip = r.getAddress().getHostAddress();
+                        String server = header(text,"SERVER");
+                        String location = header(text,"LOCATION");
+                        String name = server.isEmpty() ? "Appareil UPnP/SSDP" : server;
+                        String detail = "SSDP/UPnP" + (location.isEmpty()?"":" • "+location);
+                        runOnUiThread(() -> addOrMergeDevice(name, ip, detail, null, null));
+                    } catch(SocketTimeoutException ignored) {}
+                }
+            } catch(Exception ignored) {}
+            finally { if(socket!=null) socket.close(); }
+        });
+    }
+
+    private String header(String text, String key) {
+        Matcher m=Pattern.compile("(?im)^"+Pattern.quote(key)+"\\s*:\\s*(.+)$").matcher(text);
+        return m.find()?m.group(1).trim():"";
+    }
+
+    private void addOrMergeDevice(String name, String ip, String details, String onUrl, String offUrl) {
+        if (ip == null || ip.trim().isEmpty()) return;
+        ip = ip.trim();
+        if (seenIps.contains(ip)) {
+            TextView title = titles.get(ip);
+            TextView dv = detailsViews.get(ip);
+            if (title != null && name != null && !name.startsWith("Appareil réseau") && title.getText().toString().startsWith("Appareil réseau")) title.setText(name);
+            if (dv != null && details != null && !details.isEmpty() && !dv.getText().toString().contains(details)) dv.setText(dv.getText() + "\n" + details);
+            return;
+        }
+        seenIps.add(ip); scanFound++;
+        LinearLayout card = new LinearLayout(this); card.setOrientation(LinearLayout.VERTICAL); card.setPadding(18,18,18,18); card.setBackgroundResource(R.drawable.card);
         LinearLayout.LayoutParams cp = new LinearLayout.LayoutParams(-1,-2); cp.setMargins(0,0,0,12); card.setLayoutParams(cp);
-        TextView title = tv(name, 18, true); card.addView(title);
-        card.addView(tv("IP : " + ip, 14, false));
-        card.addView(tv(details == null ? "Réseau local" : details, 13, false));
+        TextView title = tv(name==null||name.isEmpty()?"Appareil réseau":name,18,true); card.addView(title);
+        TextView ipView = tv("IP : " + ip,14,false); card.addView(ipView);
+        TextView dv = tv(details==null?"Réseau local":details,13,false); card.addView(dv);
+        titles.put(ip,title); detailsViews.put(ip,dv);
         LinearLayout row = new LinearLayout(this); row.setOrientation(LinearLayout.HORIZONTAL); row.setPadding(0,12,0,0);
-        Button open = new Button(this); open.setText("Ouvrir"); open.setOnClickListener(v -> openBrowser(ip)); row.addView(open);
+        Button open = new Button(this); open.setText("Ouvrir"); final String finalIp=ip; open.setOnClickListener(v -> openBrowser(finalIp)); row.addView(open);
         if (onUrl != null && !onUrl.isEmpty()) { Button on = new Button(this); on.setText("ON"); on.setOnClickListener(v -> httpAction(onUrl)); row.addView(on); }
         if (offUrl != null && !offUrl.isEmpty()) { Button off = new Button(this); off.setText("OFF"); off.setOnClickListener(v -> httpAction(offUrl)); row.addView(off); }
         card.addView(row); list.addView(card);
@@ -155,7 +269,7 @@ public class MainActivity extends Activity {
     private void loadSavedManualDevices() {
         try {
             JSONArray a = new JSONArray(prefs.getString("manual", "[]"));
-            for(int i=0;i<a.length();i++) { JSONObject o=a.getJSONObject(i); addDeviceCard(o.optString("name"),o.optString("ip"),"Ajout manuel",o.optString("on"),o.optString("off")); }
+            for(int i=0;i<a.length();i++) { JSONObject o=a.getJSONObject(i); addOrMergeDevice(o.optString("name"),o.optString("ip"),"Ajout manuel",o.optString("on"),o.optString("off")); }
         } catch(Exception ignored) {}
     }
 
@@ -191,7 +305,7 @@ public class MainActivity extends Activity {
     }
 
     private void addHaCard(String name,String entity,String state,String base,String token) {
-        String key="ha|"+entity; if(!seen.add(key))return;
+        String key="ha|"+entity; if(!foundServices.add(key))return;
         LinearLayout card=new LinearLayout(this); card.setOrientation(LinearLayout.VERTICAL); card.setPadding(18,18,18,18); card.setBackgroundResource(R.drawable.card);
         LinearLayout.LayoutParams cp=new LinearLayout.LayoutParams(-1,-2); cp.setMargins(0,0,0,12); card.setLayoutParams(cp);
         card.addView(tv(name,18,true)); card.addView(tv(entity+" • état : "+state,13,false));

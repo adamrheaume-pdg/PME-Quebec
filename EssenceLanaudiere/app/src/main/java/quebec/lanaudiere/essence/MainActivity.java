@@ -170,9 +170,11 @@ public class MainActivity extends Activity {
         }
 
         bestBanner.setText("📍 Recherche de ta position…");
-        status.setText("Recherche GPS en cours…");
+        status.setText("Recherche GPS + réseau en cours…");
         LocationManager lm = (LocationManager)getSystemService(LOCATION_SERVICE);
-        if (!lm.isProviderEnabled(LocationManager.GPS_PROVIDER) && !lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
+        boolean gpsEnabled = lm.isProviderEnabled(LocationManager.GPS_PROVIDER);
+        boolean networkEnabled = lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+        if (!gpsEnabled && !networkEnabled) {
             bestBanner.setText("⚠️ Localisation du téléphone désactivée");
             status.setText("Active la localisation du téléphone, puis appuie sur ACTUALISER LES PRIX.");
             try { startActivity(new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)); } catch (Exception ignored) {}
@@ -180,26 +182,64 @@ public class MainActivity extends Activity {
         }
 
         Location best = null;
-        for (String p : Arrays.asList(LocationManager.GPS_PROVIDER, LocationManager.NETWORK_PROVIDER)) {
+        for (String p : Arrays.asList(LocationManager.NETWORK_PROVIDER, LocationManager.GPS_PROVIDER)) {
             try {
+                if (!lm.isProviderEnabled(p)) continue;
                 Location l = lm.getLastKnownLocation(p);
                 if (l != null && (best == null || l.getTime() > best.getTime())) best = l;
             } catch (Exception ignored) {}
         }
-        if (best != null && System.currentTimeMillis() - best.getTime() < 10 * 60 * 1000L) {
+
+        if (best != null && System.currentTimeMillis() - best.getTime() < 15 * 60 * 1000L) {
             lastLocation = best;
             loadStations(best);
             return;
         }
-        try {
-            String provider = lm.isProviderEnabled(LocationManager.GPS_PROVIDER) ? LocationManager.GPS_PROVIDER : LocationManager.NETWORK_PROVIDER;
-            lm.requestSingleUpdate(provider, location -> {
+
+        final Location fallback = best;
+        final Handler handler = new Handler(Looper.getMainLooper());
+        final boolean[] finished = {false};
+
+        LocationListener listener = new LocationListener() {
+            @Override public void onLocationChanged(Location location) {
+                if (finished[0] || location == null) return;
+                finished[0] = true;
+                handler.removeCallbacksAndMessages(null);
+                try { lm.removeUpdates(this); } catch (Exception ignored) {}
                 lastLocation = location;
                 loadStations(location);
-            }, Looper.getMainLooper());
+            }
+            @Override public void onProviderEnabled(String provider) {}
+            @Override public void onProviderDisabled(String provider) {}
+            @Override public void onStatusChanged(String provider, int status, Bundle extras) {}
+        };
+
+        try {
+            if (networkEnabled) lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0L, 0f, listener, Looper.getMainLooper());
+            if (gpsEnabled) lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0L, 0f, listener, Looper.getMainLooper());
+
+            handler.postDelayed(() -> {
+                if (finished[0]) return;
+                finished[0] = true;
+                try { lm.removeUpdates(listener); } catch (Exception ignored) {}
+                if (fallback != null) {
+                    bestBanner.setText("📍 Position approximative utilisée");
+                    status.setText("Le GPS précis tarde à répondre; utilisation de la dernière position connue.");
+                    lastLocation = fallback;
+                    loadStations(fallback);
+                } else {
+                    bestBanner.setText("⚠️ Position introuvable");
+                    status.setText("Aucune position n'a été obtenue après 8 secondes. Active la localisation précise, puis appuie sur ACTUALISER LES PRIX.");
+                }
+            }, 8000L);
         } catch (Exception e) {
-            bestBanner.setText("Impossible d’obtenir la position");
-            status.setText("Vérifie que la localisation du téléphone est activée.");
+            if (fallback != null) {
+                lastLocation = fallback;
+                loadStations(fallback);
+            } else {
+                bestBanner.setText("Impossible d’obtenir la position");
+                status.setText("Vérifie la permission de localisation et active la localisation précise.");
+            }
         }
     }
 

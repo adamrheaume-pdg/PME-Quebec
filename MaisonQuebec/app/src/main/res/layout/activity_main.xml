@@ -16,7 +16,7 @@
         <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal" android:padding="12dp">
             <Button android:id="@+id/btnScan" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Scanner le réseau" android:textColor="#FFFFFF" android:background="@drawable/button_primary"/>
             <Button android:id="@+id/btnAdd" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="8dp" android:text="Ajouter IP"/>
-            <Button android:id="@+id/btnHA" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="8dp" android:text="Home Assistant"/>
+            <Button android:id="@+id/btnBell" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="8dp" android:text="Bell Wi-Fi"/>
         </LinearLayout>
     </HorizontalScrollView>
 

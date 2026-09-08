@@ -30,9 +30,11 @@ jobs:
         working-directory: musique-quebec
         run: |
           mkdir -p app/src/main/res/drawable app/src/main/assets
-          base64 -d app/icon.b64 > app/src/main/res/drawable/musique_quebec.webp
-          cp app/icon.b64 app/src/main/assets/logo.b64
+          base64 -d app/icon2.b64 > app/src/main/res/drawable/musique_quebec.webp
+          cp app/icon2.b64 app/src/main/assets/logo.b64
           base64 -d app/keystore.b64 > app/musiquequebec.jks
+          file app/src/main/res/drawable/musique_quebec.webp
+          keytool -list -keystore app/musiquequebec.jks -storepass android -alias musiquequebec >/dev/null
 
       - name: Compiler APK release
         working-directory: musique-quebec

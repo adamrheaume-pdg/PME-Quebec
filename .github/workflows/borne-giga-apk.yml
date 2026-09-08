@@ -19,6 +19,11 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
+      - name: Préparer icône Bell223
+        run: |
+          mkdir -p BorneGigaControle/app/src/main/res/mipmap-xxxhdpi
+          base64 -d BorneGigaControle/app_icon.b64 > BorneGigaControle/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
+          cp BorneGigaControle/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png BorneGigaControle/app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png
       - name: Compiler APK
         run: gradle -p BorneGigaControle assembleDebug
       - name: Préparer APK

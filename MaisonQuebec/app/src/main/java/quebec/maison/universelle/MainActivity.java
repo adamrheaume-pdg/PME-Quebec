@@ -3,7 +3,6 @@ package quebec.maison.universelle;
 import android.app.*;
 import android.os.*;
 import android.content.*;
-import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.net.*;
 import android.net.nsd.*;
@@ -30,7 +29,6 @@ public class MainActivity extends Activity {
     private final Map<String,TextView> detailsViews = Collections.synchronizedMap(new HashMap<>());
     private final Map<String,TextView> iconViews = Collections.synchronizedMap(new HashMap<>());
 
-    private static final String BELL_WIFI_PACKAGE="com.plumewifi.plume.iguana";
     private static final String[] TYPES={"Automatique","Télévision","Cellulaire","Xbox","Caméra","Imprimante","Alexa / Echo","Ordinateur","Tablette","Routeur","Prise Wi-Fi","Lumière","Console","Haut-parleur","NAS / Serveur","Autre"};
     private static final String[] ICONS={"🌐","📺","📱","🎮","📹","🖨️","🔊","💻","📱","📡","🔌","💡","🕹️","🔈","🗄️","⚙️"};
 
@@ -42,7 +40,7 @@ public class MainActivity extends Activity {
         prefs=getSharedPreferences("wifi_quebec",MODE_PRIVATE);
         findViewById(R.id.btnScan).setOnClickListener(v->scanNetwork());
         findViewById(R.id.btnAdd).setOnClickListener(v->showAddDialog());
-        findViewById(R.id.btnBell).setOnClickListener(v->openBellWifi(null,false));
+        findViewById(R.id.btnBell).setOnClickListener(v->openBellDirect(null,false));
         loadSavedManualDevices();
     }
 
@@ -124,14 +122,19 @@ public class MainActivity extends Activity {
         titles.put(ip,title);macViews.put(ip,mv);detailsViews.put(ip,dv);iconViews.put(ip,icon);
         final String fip=ip;
         LinearLayout r1=row();Button edit=button("Modifier");edit.setOnClickListener(v->showEditDevice(fip));r1.addView(edit);Button open=button("Ouvrir");open.setOnClickListener(v->openBrowser(fip));r1.addView(open);card.addView(r1);
-        LinearLayout r2=row();Button block=button("Bloquer dans Bell");block.setOnClickListener(v->openBellWifi(fip,true));r2.addView(block);Button unblock=button("Débloquer dans Bell");unblock.setOnClickListener(v->openBellWifi(fip,false));r2.addView(unblock);card.addView(r2);
+        LinearLayout r2=row();Button block=button("Bloquer");block.setOnClickListener(v->openBellDirect(fip,true));r2.addView(block);Button unblock=button("Débloquer");unblock.setOnClickListener(v->openBellDirect(fip,false));r2.addView(unblock);card.addView(r2);
         list.addView(card);
     }
 
-    private void openBellWifi(String ip,boolean block){
-        if(ip!=null){String mac=getPrefs(ip).mac;if(mac.isEmpty())mac=lookupMac(ip);String target=ip+(mac.isEmpty()?"":" / "+mac);try{ClipboardManager cb=(ClipboardManager)getSystemService(CLIPBOARD_SERVICE);cb.setPrimaryClip(ClipData.newPlainText("WiFi Québec",target));}catch(Exception ignored){}status.setText((block?"Blocage":"Déblocage")+" : "+target+" — cible copiée. Termine l’action dans Bell Wi-Fi.");}
-        try{PackageManager pm=getPackageManager();Intent launch=pm.getLaunchIntentForPackage(BELL_WIFI_PACKAGE);if(launch!=null){startActivity(launch);return;}}catch(Exception ignored){}
-        try{startActivity(new Intent(Intent.ACTION_VIEW,Uri.parse("market://details?id="+BELL_WIFI_PACKAGE)));}catch(Exception e){startActivity(new Intent(Intent.ACTION_VIEW,Uri.parse("https://play.google.com/store/apps/details?id="+BELL_WIFI_PACKAGE)));}
+    private void openBellDirect(String ip,boolean block){
+        String mac="";
+        if(ip!=null){mac=getPrefs(ip).mac;if(mac.isEmpty())mac=lookupMac(ip);}
+        Intent i=new Intent(this,BellRouterActivity.class);
+        i.putExtra("target_ip",ip==null?"":ip);
+        i.putExtra("target_mac",mac);
+        i.putExtra("block",block);
+        i.putExtra("gateway",gatewayIp());
+        startActivity(i);
     }
 
     private void startBlink(TextView v){Handler h=new Handler(getMainLooper());Runnable[] rr=new Runnable[1];rr[0]=new Runnable(){boolean red=true;public void run(){if(v.getWindowToken()==null)return;v.setTextColor(red?Color.rgb(220,0,0):Color.rgb(0,75,210));red=!red;h.postDelayed(this,550);}};h.post(rr[0]);}

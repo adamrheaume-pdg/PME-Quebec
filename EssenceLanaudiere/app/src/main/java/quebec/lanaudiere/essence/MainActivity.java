@@ -263,7 +263,7 @@ public class MainActivity extends Activity {
                 String body = readAll(c.getInputStream());
                 JSONObject obj = new JSONObject(body);
                 JSONArray arr = obj.optJSONArray("stations");
-                String source = obj.optString("source", "Régie Essence Québec / Gas Québec");
+                String source = parseSourceName(obj.opt("source"));
                 List<Station> stations = new ArrayList<>();
                 if (arr != null) for (int i=0; i<arr.length(); i++) {
                     JSONObject s = arr.getJSONObject(i);
@@ -281,6 +281,22 @@ public class MainActivity extends Activity {
                 });
             }
         }).start();
+    }
+
+    private String parseSourceName(Object sourceValue) {
+        if (sourceValue instanceof JSONObject) {
+            String name = ((JSONObject) sourceValue).optString("name", "").trim();
+            return name.isEmpty() ? "Régie essence Québec" : name;
+        }
+        String raw = sourceValue == null ? "" : String.valueOf(sourceValue).trim();
+        if (raw.startsWith("{") && raw.endsWith("}")) {
+            try {
+                String name = new JSONObject(raw).optString("name", "").trim();
+                if (!name.isEmpty()) return name;
+            } catch (JSONException ignored) {}
+        }
+        if (raw.isEmpty() || "null".equalsIgnoreCase(raw)) return "Régie essence Québec";
+        return raw;
     }
 
     private void sortStations(List<Station> stations, String sort) {

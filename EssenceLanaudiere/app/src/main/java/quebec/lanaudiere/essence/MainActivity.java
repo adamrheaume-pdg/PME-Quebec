@@ -39,7 +39,9 @@ public class MainActivity extends Activity {
         super.onCreate(b);
         getWindow().setStatusBarColor(pale);
         getWindow().setNavigationBarColor(pale);
-        getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+        int ui = View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
+        if (Build.VERSION.SDK_INT >= 26) ui |= View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR;
+        getWindow().getDecorView().setSystemUiVisibility(ui);
         createNotificationChannel();
         buildUi();
         requestPermissionsAndLocate();
@@ -48,25 +50,28 @@ public class MainActivity extends Activity {
     private void buildUi() {
         ScrollView scroll = new ScrollView(this);
         scroll.setFillViewport(true);
-        scroll.setOnApplyWindowInsetsListener((v, insets) -> {
-            int top;
-            int bottom;
-            if (Build.VERSION.SDK_INT >= 30) {
-                top = insets.getInsets(WindowInsets.Type.statusBars()).top;
-                bottom = insets.getInsets(WindowInsets.Type.navigationBars()).bottom;
-            } else {
-                top = insets.getSystemWindowInsetTop();
-                bottom = insets.getSystemWindowInsetBottom();
-            }
-            v.setPadding(0, top, 0, bottom);
-            return insets;
-        });
+        scroll.setClipToPadding(false);
 
         root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
         root.setPadding(dp(18), dp(18), dp(18), dp(28));
         root.setBackgroundColor(pale);
         scroll.addView(root);
+
+        root.setOnApplyWindowInsetsListener((v, insets) -> {
+            int top;
+            int bottom;
+            if (Build.VERSION.SDK_INT >= 30) {
+                android.graphics.Insets bars = insets.getInsets(WindowInsets.Type.systemBars());
+                top = bars.top;
+                bottom = bars.bottom;
+            } else {
+                top = insets.getSystemWindowInsetTop();
+                bottom = insets.getSystemWindowInsetBottom();
+            }
+            v.setPadding(dp(18), dp(18) + top, dp(18), dp(28) + bottom);
+            return insets;
+        });
 
         TextView title = text("ESSENCE LANAUDIÈRE", 28, true, blue);
         root.addView(title);
@@ -85,6 +90,7 @@ public class MainActivity extends Activity {
         controls.addView(fuelSpinner);
         controls.addView(label("Classement"));
         sortSpinner = spinner(new String[]{"Moins cher", "Plus proche", "Meilleur compromis"});
+        sortSpinner.setSelection(1);
         controls.addView(sortSpinner);
         controls.addView(label("Rayon"));
         radiusSpinner = spinner(new String[]{"5 km", "10 km", "20 km", "30 km"});
@@ -117,7 +123,7 @@ public class MainActivity extends Activity {
         refs.addView(note);
         root.addView(refs, matchWrap(dp(12)));
         setContentView(scroll);
-        scroll.requestApplyInsets();
+        root.requestApplyInsets();
     }
 
     private boolean hasLocationPermission() {
@@ -226,6 +232,7 @@ public class MainActivity extends Activity {
                     if (s.isNull("price")) continue;
                     stations.add(new Station(s.optString("name","Station"), s.optString("address",""), city, s.optDouble("lat"), s.optDouble("lng"), s.optDouble("price"), s.optDouble("distanceKm")));
                 }
+                sortStations(stations, sort);
                 runOnUiThread(() -> showStations(stations, source, fuel, sort));
             } catch (Exception e) {
                 runOnUiThread(() -> {
@@ -236,6 +243,16 @@ public class MainActivity extends Activity {
         }).start();
     }
 
+    private void sortStations(List<Station> stations, String sort) {
+        if ("distance".equals(sort)) {
+            stations.sort(Comparator.comparingDouble(s -> s.distance));
+        } else if ("price".equals(sort)) {
+            stations.sort(Comparator.comparingDouble((Station s) -> s.price).thenComparingDouble(s -> s.distance));
+        } else {
+            stations.sort(Comparator.comparingDouble((Station s) -> s.price + s.distance).thenComparingDouble(s -> s.distance));
+        }
+    }
+
     private boolean isLanaudiere(String city) {
         String n = city.trim().toLowerCase(Locale.CANADA_FRENCH).replace('’','\'');
         return lanaudiereCities.contains(n);
@@ -243,7 +260,8 @@ public class MainActivity extends Activity {
 
     private void showStations(List<Station> stations, String source, String fuel, String sort) {
         results.removeAllViews();
-        status.setText("Source : " + source + " • prix récents, non garantis en temps réel à la pompe.");
+        String orderText = "distance".equals(sort) ? " • du plus près au plus loin" : ("price".equals(sort) ? " • du moins cher au plus cher" : " • meilleur compromis prix/distance");
+        status.setText("Source : " + source + orderText + " • prix récents, non garantis en temps réel à la pompe.");
         if (stations.isEmpty()) {
             bestBanner.setText("Aucune station de Lanaudière trouvée dans ce rayon");
             results.addView(text("Essaie un rayon plus grand ou actualise ta position.", 15, false, Color.DKGRAY));

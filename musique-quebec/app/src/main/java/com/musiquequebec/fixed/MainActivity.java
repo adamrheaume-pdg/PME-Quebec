@@ -2,11 +2,9 @@ package com.musiquequebec.fixed;
 
 import android.app.Activity;
 import android.graphics.Color;
-import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.view.Window;
-import android.view.WindowInsetsController;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -22,93 +20,63 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        Window window = getWindow();
-        window.setStatusBarColor(Color.rgb(11, 13, 16));
-        window.setNavigationBarColor(Color.rgb(11, 13, 16));
-        if (Build.VERSION.SDK_INT >= 30) {
-            window.setDecorFitsSystemWindows(true);
-            WindowInsetsController c = window.getInsetsController();
-            if (c != null) {
-                c.setSystemBarsAppearance(0,
-                    WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS |
-                    WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS);
-            }
-        }
-
-        // IMPORTANT: une WebView doit utiliser le contexte de l'Activity.
-        // L'ancien getApplicationContext() pouvait provoquer un plantage au lancement.
-        webView = new WebView(this);
-        webView.setBackgroundColor(Color.rgb(11, 13, 16));
-        webView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
-
-        WebSettings s = webView.getSettings();
-        s.setJavaScriptEnabled(true);
-        s.setDomStorageEnabled(true);
-        s.setMediaPlaybackRequiresUserGesture(false);
-        s.setAllowFileAccess(true);
-        s.setAllowContentAccess(false);
-        s.setBuiltInZoomControls(false);
-        s.setDisplayZoomControls(false);
-        s.setSupportZoom(false);
-        s.setLoadWithOverviewMode(false);
-        s.setUseWideViewPort(false);
-        if (Build.VERSION.SDK_INT >= 21) {
-            s.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
-        }
-
-        webView.setWebChromeClient(new WebChromeClient());
-        webView.setWebViewClient(new WebViewClient());
-        setContentView(webView);
-
         try {
+            Window window = getWindow();
+            window.setStatusBarColor(Color.rgb(11, 13, 16));
+            window.setNavigationBarColor(Color.rgb(11, 13, 16));
+
+            webView = new WebView(this);
+            webView.setBackgroundColor(Color.rgb(11, 13, 16));
+            webView.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
+
+            WebSettings s = webView.getSettings();
+            s.setJavaScriptEnabled(true);
+            s.setDomStorageEnabled(true);
+            s.setMediaPlaybackRequiresUserGesture(false);
+            s.setAllowFileAccess(true);
+            s.setAllowContentAccess(true);
+            s.setBuiltInZoomControls(false);
+            s.setDisplayZoomControls(false);
+            s.setSupportZoom(false);
+
+            webView.setWebChromeClient(new WebChromeClient());
+            webView.setWebViewClient(new WebViewClient());
+            setContentView(webView);
+
             String html = readAsset("index.html");
             html = html.replace("<div class=\"logo\">⚜️</div>",
-                "<img class=\"logo\" src=\"file:///android_res/drawable/musique_quebec.webp\" alt=\"Musique Québec\">");
-            webView.loadDataWithBaseURL(APP_ORIGIN, html, "text/html", "UTF-8", APP_ORIGIN);
+                    "<img class=\"logo\" src=\"file:///android_res/drawable/musique_quebec.webp\" alt=\"Musique Québec\">");
+            webView.loadDataWithBaseURL(APP_ORIGIN, html, "text/html", "UTF-8", null);
         } catch (Throwable e) {
-            String msg = String.valueOf(e).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
-            webView.loadData(
-                "<html><body style='background:#0b0d10;color:white;font-family:sans-serif;padding:24px'>" +
-                "<h2>Musique Québec</h2><p>Erreur de chargement.</p><pre>" + msg + "</pre></body></html>",
-                "text/html", "UTF-8");
+            showFallback(e);
         }
     }
 
+    private void showFallback(Throwable error) {
+        try {
+            if (webView == null) webView = new WebView(this);
+            setContentView(webView);
+            String msg = String.valueOf(error).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
+            webView.loadData("<html><body style='background:#0b0d10;color:white;font-family:sans-serif;padding:24px'><h2>Musique Québec</h2><p>Erreur de démarrage :</p><pre style='white-space:pre-wrap'>" + msg + "</pre></body></html>", "text/html", "UTF-8");
+        } catch (Throwable ignored) { }
+    }
+
     private String readAsset(String name) throws Exception {
-        try (InputStream in = getAssets().open(name);
-             ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+        try (InputStream in = getAssets().open(name); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
             byte[] buffer = new byte[8192];
             int count;
-            while ((count = in.read(buffer)) != -1) {
-                out.write(buffer, 0, count);
-            }
+            while ((count = in.read(buffer)) != -1) out.write(buffer, 0, count);
             return out.toString(StandardCharsets.UTF_8.name());
         }
     }
 
-    @Override
-    public void onBackPressed() {
-        if (webView != null && webView.canGoBack()) {
-            webView.goBack();
-        } else {
-            super.onBackPressed();
-        }
+    @Override public void onBackPressed() {
+        if (webView != null && webView.canGoBack()) webView.goBack(); else super.onBackPressed();
     }
 
-    @Override
-    protected void onDestroy() {
+    @Override protected void onDestroy() {
         if (webView != null) {
-            try {
-                webView.stopLoading();
-                webView.loadUrl("about:blank");
-                webView.clearHistory();
-                webView.setWebChromeClient(null);
-                webView.setWebViewClient(null);
-                webView.removeAllViews();
-                webView.destroy();
-            } catch (Throwable ignored) {
-            }
+            try { webView.stopLoading(); webView.setWebChromeClient(null); webView.setWebViewClient(null); webView.destroy(); } catch (Throwable ignored) { }
             webView = null;
         }
         super.onDestroy();

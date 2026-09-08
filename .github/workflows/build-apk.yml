@@ -34,7 +34,18 @@ jobs:
           ICON_DIR="$GRADLE_DIR/app/src/main/res/drawable"
           mkdir -p "$ICON_DIR"
           test -s "$ICON_B64"
-          base64 --decode "$ICON_B64" > "$ICON_DIR/pme_inc_quebec_icon.jpg"
+          python3 - <<'PY'
+          import base64, os, pathlib, re
+          src = pathlib.Path(os.environ['GRADLE_DIR']) / 'app/pme_inc_quebec_icon.b64'
+          dst = pathlib.Path(os.environ['GRADLE_DIR']) / 'app/src/main/res/drawable/pme_inc_quebec_icon.jpg'
+          raw = src.read_text(encoding='utf-8', errors='ignore')
+          clean = re.sub(r'[^A-Za-z0-9+/=]', '', raw)
+          clean += '=' * ((4 - len(clean) % 4) % 4)
+          data = base64.b64decode(clean, validate=False)
+          assert len(data) > 1000, 'Icône décodée trop petite'
+          assert data[:2] == b'\xff\xd8', 'Icône décodée invalide: JPEG attendu'
+          dst.write_bytes(data)
+          PY
           test -s "$ICON_DIR/pme_inc_quebec_icon.jpg"
           grep -q 'android:icon="@drawable/pme_inc_quebec_icon"' "$GRADLE_DIR/app/src/main/AndroidManifest.xml"
           grep -q 'android:roundIcon="@drawable/pme_inc_quebec_icon"' "$GRADLE_DIR/app/src/main/AndroidManifest.xml"
@@ -80,14 +91,11 @@ jobs:
           assert s.rfind('pme-admin-fleur-runtime-5140') < lower.rfind('</body>')
           assert s.rfind('pme-admin-fleur-header-5140') < lower.rfind('</head>')
 
-          # Le template GOD ne doit plus pouvoir fermer la balise <script> inline.
           a=s.find('function godPreviewDocument(htmlCode,cssCode)')
           b=s.find('function renderGodHtmlPreview()',a+1)
           assert a>=0 and b>a
           assert '</script>' not in s[a:b]
 
-          # Simule le parseur HTML du WebView: aucun code JS GOD ne doit devenir
-          # un noeud texte visible dans le document.
           class LeakParser(HTMLParser):
               def __init__(self):
                   super().__init__(convert_charrefs=True)
@@ -109,7 +117,6 @@ jobs:
           for token in forbidden:
               assert token not in visible, f'Code GOD visible dans le DOM: {token}'
 
-          # Le correctif mobile doit forcer la barre d édition hors sticky/fixed.
           assert '#mainEditToolbar,' in s
           assert 'position: relative !important;' in s
           assert 'top: auto !important;' in s

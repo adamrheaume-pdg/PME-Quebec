@@ -1,0 +1,30 @@
+plugins { id 'com.android.application' }
+
+android {
+    namespace 'com.musiquequebec.fixed'
+    compileSdk 35
+
+    signingConfigs {
+        release {
+            storeFile file('musiquequebec.jks')
+            storePassword 'android'
+            keyAlias 'musiquequebec'
+            keyPassword 'android'
+        }
+    }
+
+    defaultConfig {
+        applicationId 'com.musiquequebec.app'
+        minSdk 24
+        targetSdk 35
+        versionCode 10
+        versionName '2.0.0'
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            signingConfig signingConfigs.release
+        }
+    }
+}

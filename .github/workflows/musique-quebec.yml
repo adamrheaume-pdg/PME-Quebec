@@ -1,0 +1,49 @@
+name: Compiler Musique Québec
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+    paths:
+      - 'musique-quebec/**'
+      - '.github/workflows/musique-quebec.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Récupérer le dépôt
+        uses: actions/checkout@v4
+
+      - name: Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.10.2'
+
+      - name: Préparer logo et signature
+        working-directory: musique-quebec
+        run: |
+          mkdir -p app/src/main/res/drawable app/src/main/assets
+          base64 -d app/icon.b64 > app/src/main/res/drawable/musique_quebec.webp
+          cp app/icon.b64 app/src/main/assets/logo.b64
+          base64 -d app/keystore.b64 > app/musiquequebec.jks
+
+      - name: Compiler APK release
+        working-directory: musique-quebec
+        run: gradle --no-daemon assembleRelease
+
+      - name: Préparer le fichier final
+        run: cp musique-quebec/app/build/outputs/apk/release/app-release.apk Musique-Quebec-FIX.apk
+
+      - name: Publier l'APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Musique-Quebec-FIX
+          path: Musique-Quebec-FIX.apk
+          if-no-files-found: error

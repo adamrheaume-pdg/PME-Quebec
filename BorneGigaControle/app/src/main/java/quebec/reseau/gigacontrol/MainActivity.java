@@ -30,6 +30,7 @@ public class MainActivity extends Activity {
         boolean online;
         boolean manualBlocked;
         boolean scheduleEnabled;
+        long lastSeen;
         int startMinutes = 7 * 60;
         int endMinutes = 22 * 60;
         Device(String ip, String mac) { this.ip=ip; this.mac=mac; }
@@ -47,6 +48,7 @@ public class MainActivity extends Activity {
         super.onCreate(b);
         setContentView(R.layout.activity_main);
         prefs = getSharedPreferences("devices", MODE_PRIVATE);
+        removeRouterFromKnownDevices();
         list=findViewById(R.id.deviceList); status=findViewById(R.id.status); search=findViewById(R.id.search);
         findViewById(R.id.scanBtn).setOnClickListener(v -> scanNetwork());
         findViewById(R.id.modemBtn).setOnClickListener(v -> openModem(null));
@@ -63,6 +65,7 @@ public class MainActivity extends Activity {
 
     private void findOrOpen(String q) {
         if(q.isEmpty()) return;
+        if("192.168.2.1".equals(q)) { openModem(null); return; }
         for(Device d: devices.values()) {
             if(d.ip.equalsIgnoreCase(q) || (d.mac!=null && d.mac.equalsIgnoreCase(q))) { showEdit(d); return; }
         }
@@ -75,13 +78,14 @@ public class MainActivity extends Activity {
 
     private void scanNetwork() {
         final int generation = scanGeneration.incrementAndGet();
+        devices.remove("192.168.2.1");
         for(Device d: devices.values()) d.online = false;
         status.setText("Analyse du réseau 192.168.2.0/24…");
         renderDevices();
         new Thread(() -> {
-            CountDownLatch latch = new CountDownLatch(254);
+            CountDownLatch latch = new CountDownLatch(253);
             final Map<String, Device> found = new ConcurrentHashMap<>();
-            for(int i=1;i<=254;i++) {
+            for(int i=2;i<=254;i++) {
                 final int n=i;
                 pool.submit(() -> { try {
                     if (generation != scanGeneration.get()) return;
@@ -90,6 +94,7 @@ public class MainActivity extends Activity {
                         String mac = lookupMac(ip);
                         Device d = new Device(ip, mac);
                         d.online = true;
+                        d.lastSeen = System.currentTimeMillis();
                         loadPrefs(d);
                         found.put(ip, d);
                     }
@@ -117,12 +122,15 @@ public class MainActivity extends Activity {
     private boolean isAlive(String ip) {
         try {
             InetAddress a=InetAddress.getByName(ip);
-            if(a.isReachable(280)) return true;
+            if(a.isReachable(320)) return true;
         } catch(Exception ignored) {}
         int[] ports = {80, 443, 53, 8000, 8080};
         for(int port: ports) {
             try {
-                Socket s=new Socket(); s.connect(new InetSocketAddress(ip,port),140); s.close(); return true;
+                Socket s=new Socket();
+                s.connect(new InetSocketAddress(ip,port),170);
+                s.close();
+                return true;
             } catch(Exception ignored) {}
         }
         return false;
@@ -156,13 +164,14 @@ public class MainActivity extends Activity {
     private void renderDevices() {
         list.removeAllViews();
         blinkingOnlineDots.clear();
+        devices.remove("192.168.2.1");
         List<Device> sorted = new ArrayList<>(devices.values());
         sorted.sort((a,b) -> ipNumber(a.ip) - ipNumber(b.ip));
         int onlineCount = 0;
         for(Device d: sorted) if(d.online) onlineCount++;
-        status.setText(onlineCount+" connecté(s) • "+sorted.size()+" appareil(s) connus");
+        status.setText(onlineCount+" actif(s) • "+sorted.size()+" appareil(s) connus");
         if(sorted.isEmpty()) {
-            TextView t=new TextView(this); t.setText("Aucun appareil détecté. Vérifie que le téléphone est connecté au Wi‑Fi de la Borne Bell."); t.setPadding(20,20,20,20); list.addView(t); return;
+            TextView t=new TextView(this); t.setText("Aucun appareil détecté. Vérifie que le téléphone est connecté au réseau de la Borne Bell."); t.setPadding(20,20,20,20); list.addView(t); return;
         }
         for(Device d: sorted) {
             LinearLayout card=new LinearLayout(this); card.setOrientation(LinearLayout.VERTICAL); card.setPadding(18,14,18,14);
@@ -182,7 +191,7 @@ public class MainActivity extends Activity {
             top.addView(title,new LinearLayout.LayoutParams(0,-2,1));
 
             TextView sub=new TextView(this);
-            String state = blocked ? "BLOQUÉ" : (d.online ? "CONNECTÉ" : "AUTORISÉ • HORS LIGNE");
+            String state = blocked ? "BLOQUÉ" : (d.online ? "ACTIF SUR LE RÉSEAU" : "AUTORISÉ • HORS LIGNE");
             String sched = d.scheduleEnabled ? " • Horaire "+fmt(d.startMinutes)+"–"+fmt(d.endMinutes) : "";
             sub.setText("MAC : "+d.mac+"\nÉtat : "+state+sched);
             sub.setTextSize(13); sub.setTextColor(Color.DKGRAY);
@@ -203,11 +212,22 @@ public class MainActivity extends Activity {
 
     private void showEdit(Device d) {
         LinearLayout box=new LinearLayout(this); box.setOrientation(LinearLayout.VERTICAL); int p=36; box.setPadding(p,10,p,0);
-        EditText alias=new EditText(this); alias.setHint("Nom personnalisé"); alias.setText(d.alias==null?"":d.alias);
+        EditText alias=new EditText(this); alias.setHint("Nom personnalisé"); alias.setSingleLine(true); alias.setText(d.alias==null?"":d.alias);
+
+        Button saveName=new Button(this);
+        saveName.setText("ENREGISTRER LE NOM");
+        saveName.setOnClickListener(v -> {
+            saveAlias(d, alias.getText().toString());
+            renderDevices();
+            Toast.makeText(this, d.alias==null || d.alias.isEmpty() ? "Nom effacé" : "Nom enregistré : "+d.alias, Toast.LENGTH_SHORT).show();
+        });
+
         TextView info=new TextView(this);
-        info.setText("IP : "+d.ip+"\nMAC : "+d.mac+"\n\n● Vert clignotant : connecté\n● Bleu : autorisé mais hors ligne\n● Rouge : bloqué selon l’application/horaire\n\nLe blocage réel doit être appliqué par la Borne Bell.");
+        info.setText("IP : "+d.ip+"\nMAC : "+d.mac+"\n\n● Vert clignotant : détecté actif au dernier scan\n● Bleu : non détecté au dernier scan\n● Rouge : bloqué selon l’application/horaire\n\nLe vert confirme une présence active sur le réseau local. Sans API Bell, l’APK ne peut pas distinguer avec certitude Wi‑Fi et Ethernet.");
         info.setPadding(0,18,0,8);
-        box.addView(alias); box.addView(info);
+        box.addView(alias);
+        box.addView(saveName);
+        box.addView(info);
         String action = d.manualBlocked ? "Marquer autorisé" : "Marquer bloqué";
         new AlertDialog.Builder(this).setTitle("Gérer l’appareil").setView(box)
             .setNeutralButton("Horaire", (x,w) -> showSchedule(d))
@@ -280,19 +300,26 @@ public class MainActivity extends Activity {
     }
 
     private void saveAlias(Device d, String alias) {
-        d.alias=alias==null?"":alias.trim(); savePrefs(d);
+        d.alias=alias==null?"":alias.trim();
+        savePrefs(d);
     }
 
     private void rememberIp(String ip) {
-        if(ip==null || !ip.startsWith("192.168.2.")) return;
+        if(ip==null || !ip.startsWith("192.168.2.") || "192.168.2.1".equals(ip)) return;
         Set<String> known=new HashSet<>(prefs.getStringSet("known_ips", Collections.emptySet()));
         known.add(ip);
         prefs.edit().putStringSet("known_ips", known).apply();
     }
 
+    private void removeRouterFromKnownDevices() {
+        Set<String> known=new HashSet<>(prefs.getStringSet("known_ips", Collections.emptySet()));
+        if(known.remove("192.168.2.1")) prefs.edit().putStringSet("known_ips", known).apply();
+    }
+
     private void loadKnownDevices() {
         Set<String> known=prefs.getStringSet("known_ips", Collections.emptySet());
         for(String ip: known) {
+            if("192.168.2.1".equals(ip)) continue;
             Device d=new Device(ip,"Non disponible");
             loadPrefs(d); d.online=false;
             devices.put(ip,d);

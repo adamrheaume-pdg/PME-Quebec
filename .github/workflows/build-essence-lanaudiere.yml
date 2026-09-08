@@ -27,6 +27,19 @@ jobs:
       - name: Installer Android 35
         run: sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
 
+      - name: Integrer le logo PNG transparent
+        shell: bash
+        run: |
+          set -euo pipefail
+          LOGO_B64="EssenceLanaudiere/logo/essence_quebec_logo.b64"
+          RES="EssenceLanaudiere/app/src/main/res"
+          base64 --decode "$LOGO_B64" > "$RES/drawable/essence_quebec_logo.png"
+          for d in mipmap-mdpi mipmap-hdpi mipmap-xhdpi mipmap-xxhdpi mipmap-xxxhdpi; do
+            mkdir -p "$RES/$d"
+            cp "$RES/drawable/essence_quebec_logo.png" "$RES/$d/ic_launcher.png"
+          done
+          file "$RES/drawable/essence_quebec_logo.png"
+
       - name: Installer Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
@@ -36,11 +49,11 @@ jobs:
         run: gradle -p EssenceLanaudiere :app:assembleDebug --stacktrace
 
       - name: Renommer APK
-        run: cp EssenceLanaudiere/app/build/outputs/apk/debug/app-debug.apk Essence-Lanaudiere.apk
+        run: cp EssenceLanaudiere/app/build/outputs/apk/debug/app-debug.apk Essence-Quebec.apk
 
       - name: Publier APK
         uses: actions/upload-artifact@v4
         with:
           name: Essence-Lanaudiere-APK
-          path: Essence-Lanaudiere.apk
+          path: Essence-Quebec.apk
           retention-days: 30

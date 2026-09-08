@@ -26,13 +26,16 @@ public class MainActivity extends Activity {
         s.setAllowFileAccess(false);
         s.setAllowContentAccess(false);
         s.setBuiltInZoomControls(false);
+        s.setSupportZoom(false);
         webView.setWebChromeClient(new WebChromeClient());
         webView.setWebViewClient(new WebViewClient());
         setContentView(webView);
         try {
             String html = readAsset("index.html");
             String logo64 = readAsset("logo.b64").replace("\n", "").replace("\r", "");
-            html = html.replace("__LOGO_DATA__", "data:image/png;base64," + logo64);
+            String logoData = "data:image/webp;base64," + logo64;
+            html = html.replace("__LOGO_DATA__", logoData);
+            html = html.replace("<div class=\"logo\">⚜️</div>", "<img class=\"logo\" src=\"" + logoData + "\" alt=\"Musique Québec\">");
             webView.loadDataWithBaseURL(APP_ORIGIN, html, "text/html", "UTF-8", APP_ORIGIN);
         } catch (Exception e) {
             webView.loadData("<h2>Erreur de chargement</h2><pre>" + e + "</pre>", "text/html", "UTF-8");

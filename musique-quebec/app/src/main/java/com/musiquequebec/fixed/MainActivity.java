@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
+import android.view.View;
 import android.view.Window;
 import android.view.WindowInsetsController;
 import android.webkit.WebChromeClient;
@@ -35,8 +36,11 @@ public class MainActivity extends Activity {
             }
         }
 
-        webView = new WebView(getApplicationContext());
+        // IMPORTANT: une WebView doit utiliser le contexte de l'Activity.
+        // L'ancien getApplicationContext() pouvait provoquer un plantage au lancement.
+        webView = new WebView(this);
         webView.setBackgroundColor(Color.rgb(11, 13, 16));
+        webView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
 
         WebSettings s = webView.getSettings();
         s.setJavaScriptEnabled(true);
@@ -97,8 +101,11 @@ public class MainActivity extends Activity {
         if (webView != null) {
             try {
                 webView.stopLoading();
+                webView.loadUrl("about:blank");
+                webView.clearHistory();
                 webView.setWebChromeClient(null);
                 webView.setWebViewClient(null);
+                webView.removeAllViews();
                 webView.destroy();
             } catch (Throwable ignored) {
             }

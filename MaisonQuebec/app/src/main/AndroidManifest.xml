@@ -13,6 +13,7 @@
         android:roundIcon="@drawable/ic_launcher"
         android:theme="@style/Theme.MaisonQuebec"
         android:usesCleartextTraffic="true">
+        <activity android:name=".BellRouterActivity" android:screenOrientation="portrait" android:exported="false" />
         <activity android:name=".MainActivity" android:screenOrientation="portrait" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

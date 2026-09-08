@@ -7,6 +7,7 @@ html = html_path.read_text(encoding="utf-8")
 
 STYLE_MARKER = "pme-admin-fleur-header-5140"
 SCRIPT_MARKER = "pme-admin-fleur-runtime-5140"
+CAMERA_MARKER = "pme-html-camera-stream-5150"
 
 # 1) Répare une ancienne balise Leaflet mal formée: un <script src> ne doit pas
 # contenir le code applicatif qui suit, sinon ce code est ignoré par WebView.
@@ -28,6 +29,55 @@ if start < 0 or end < 0:
 segment = html[start:end]
 segment = segment.replace('</script>', '<\\/script>')
 html = html[:start] + segment + html[end:]
+
+# 3) Restaure le chemin caméra HTML qui existait avant le passage au moteur
+# Wyze natif. Le moteur Android reste disponible, mais un flux Web compatible
+# (HTTPS/MJPEG/HLS/page Web) peut de nouveau être enregistré et affiché sans
+# connexion Wyze Cloud. On retire aussi le faux profil de caméra codé en dur:
+# une IP/MAC détectée n'est pas une authentification Wyze.
+if CAMERA_MARKER not in html:
+    old_defaults = "function defaults(){return Array.from({length:8},(_,i)=>({name:i===0?'Caméra de l’avant de la maison':'Caméra '+(i+1),ip:i===0?'192.168.2.96':'',port:i===0?'53812':'',mac:i===0?'80482C472C54':'',uid:i===0?'80482C472C54':'',fw:i===0?'4.9.9.3006':'',protocol:'Cloud',streamUrl:''}))}"
+    new_defaults = "function defaults(){return Array.from({length:8},(_,i)=>({name:'Caméra '+(i+1),ip:'',port:'',mac:'',uid:'',fw:'',protocol:'Cloud',streamUrl:''}))}"
+    if old_defaults not in html:
+        raise SystemExit('Defaults Wyze attendus introuvables')
+    html = html.replace(old_defaults, new_defaults, 1)
+
+    old_help = '<p class="muted wyze-help">Enregistre le nom, le protocole Cloud/P2P-LAN, le Camera UID, l’adresse IP locale, le port P2P, le MAC et le micrologiciel. Le bouton <strong>Détecter / associer</strong> tente ensuite de récupérer automatiquement les appareils et le flux lorsqu’un module Wyze natif compatible est présent. Aucun URL Web/pont n’est demandé ici.</p>'
+    new_help = '<p class="muted wyze-help">Tu peux utiliser le moteur Wyze natif lorsqu’il est disponible, ou entrer directement un flux Web compatible HTTPS/MJPEG/HLS/page Web. Le flux Web fonctionne sans identifiants Wyze Cloud. Une IP, un UID ou une MAC détectés seuls ne signifient pas que le compte Wyze est connecté.</p>'
+    if old_help not in html:
+        raise SystemExit('Texte aide Wyze attendu introuvable')
+    html = html.replace(old_help, new_help, 1)
+
+    old_media_text = '<br><small>Profil associé. Le module vidéo Wyze natif doit être disponible pour afficher le direct.</small>'
+    new_media_text = '<br><small>Appareil détecté. Pour le direct, utilise le moteur Wyze natif ou ajoute un flux Web direct dans Configurer.</small>'
+    if old_media_text not in html:
+        raise SystemExit('Message caméra attendu introuvable')
+    html = html.replace(old_media_text, new_media_text, 1)
+
+    old_status = "function status(c,i){if(c.streamUrl||nativeStream(c,i))return 'Direct disponible';if(c.ip||c.mac)return 'Profil Wyze associé';return 'À associer'}"
+    new_status = "function status(c,i){if(c.streamUrl||nativeStream(c,i))return 'Direct disponible';if(c.ip||c.mac||c.uid)return 'Appareil détecté';return 'À configurer'}"
+    if old_status not in html:
+        raise SystemExit('Statut Wyze attendu introuvable')
+    html = html.replace(old_status, new_status, 1)
+
+    old_cfg_tail = '<div><label>Micrologiciel</label><input class="wyze-fw" value="${esc(c.fw||\'\')}" placeholder="4.x.x.x"></div></div>`).join(\'\')}'
+    new_cfg_tail = '<div><label>Micrologiciel</label><input class="wyze-fw" value="${esc(c.fw||\'\')}" placeholder="4.x.x.x"></div><div class="wyze-url"><label>Flux Web direct (optionnel)</label><input class="wyze-stream-url" value="${esc(c.streamUrl||\'\')}" placeholder="https://… / MJPEG / HLS / page Web"></div></div>`).join(\'\')}'
+    if old_cfg_tail not in html:
+        raise SystemExit('Fin renderConfig Wyze attendue introuvable')
+    html = html.replace(old_cfg_tail, new_cfg_tail, 1)
+
+    old_save_tail = "cams[i].fw=q('.wyze-fw',r)?.value.trim()||''});save(cams);render();setAssoc('Configuration enregistrée. Appuie sur « Détecter / associer » pour actualiser.');"
+    new_save_tail = "cams[i].fw=q('.wyze-fw',r)?.value.trim()||'';cams[i].streamUrl=q('.wyze-stream-url',r)?.value.trim()||''});save(cams);render();setAssoc('Configuration enregistrée. Un flux Web direct est affiché immédiatement lorsqu’il est compatible.');"
+    if old_save_tail not in html:
+        raise SystemExit('Sauvegarde Wyze attendue introuvable')
+    html = html.replace(old_save_tail, new_save_tail, 1)
+
+    # Marqueur vérifiable par CI sans modifier la logique JavaScript.
+    camera_marker = f'\n<!-- {CAMERA_MARKER}: direct HTML HTTPS/MJPEG/HLS restauré -->\n'
+    pos = html.find('<script id="pme-v5-wyze-js">')
+    if pos < 0:
+        raise SystemExit('Script Wyze principal introuvable')
+    html = html[:pos] + camera_marker + html[pos:]
 
 style = r'''
 <style id="pme-admin-fleur-header-5140">
@@ -179,4 +229,4 @@ if SCRIPT_MARKER not in html:
     html = insert_before_last(html, "</body>", script)
 
 html_path.write_text(html, encoding="utf-8")
-print("Réparation structure GOD + entête mobile + fleur Administration appliquée.")
+print("Réparation GOD/mobile + caméra HTML directe + fleur Administration appliquée.")

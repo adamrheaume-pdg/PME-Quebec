@@ -71,7 +71,7 @@ public class MainActivity extends Activity {
         String mac = fromProcArp(ip);
         if(mac != null) return mac;
         try {
-            Process p = new ProcessBuilder("ip","neigh","show",ip).redirectErrorStream(true).start();
+            java.lang.Process p = new ProcessBuilder("ip","neigh","show",ip).redirectErrorStream(true).start();
             BufferedReader br=new BufferedReader(new InputStreamReader(p.getInputStream()));
             String line=br.readLine();
             if(line!=null) {

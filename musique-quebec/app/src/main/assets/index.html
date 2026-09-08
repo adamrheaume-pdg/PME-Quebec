@@ -1,1 +1,153 @@
-<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Musique Québec</title><style>:root{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color-scheme:dark;background:#0b0d10;color:#f7f8fa}*{box-sizing:border-box}body{margin:0;background:#0b0d10;color:#f7f8fa}.app{max-width:720px;margin:auto;padding:18px 14px 40px}.brand{display:flex;align-items:center;gap:12px}.logo{width:72px;height:72px;border-radius:18px;background:linear-gradient(145deg,#0635a8,#00bfff);display:grid;place-items:center;font-size:42px;box-shadow:0 8px 24px #0008}h1{font-size:26px;margin:0}.muted{color:#aab1bd;font-size:13px}.card{background:#151922;border:1px solid #262d39;border-radius:18px;padding:14px;margin-top:14px}input,textarea,button{font:inherit}input,textarea{width:100%;background:#0f131a;color:#fff;border:1px solid #303847;border-radius:12px;padding:11px}textarea{min-height:120px;resize:vertical}.row{display:flex;gap:8px;flex-wrap:wrap}.row>*{flex:1 1 130px}button{border:0;border-radius:12px;padding:11px 13px;background:#e8edf5;color:#111820;font-weight:800}button.primary{background:#5da9ff;color:#061523}button.active{outline:2px solid #5da9ff}#playerWrap{width:100%;aspect-ratio:16/9;background:#000;border-radius:14px;overflow:hidden;margin-top:12px}#player{width:100%;height:100%}.controls{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:10px}.controls button{padding:12px 4px;font-size:18px}.now{margin-top:10px;font-weight:800}.status{margin-top:8px;font-size:13px;color:#9ad0ff;min-height:18px}.tracklist{margin-top:10px;max-height:330px;overflow:auto;border-top:1px solid #2b3240}.track{display:flex;gap:10px;align-items:center;padding:10px 2px;border-bottom:1px solid #242a35;cursor:pointer}.track.current{color:#70b7ff}.track .n{width:28px;color:#8490a1}.track .t{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pill{display:inline-block;border:1px solid #3a4352;border-radius:999px;padding:5px 9px;font-size:12px;color:#cbd3df}</style></head><body><main class="app"><div class="brand"><div class="logo">⚜️</div><div><h1>Musique Québec</h1><div class="muted">Lecteur YouTube intégré</div></div></div><section class="card"><input id="playlistName" placeholder="Nom de la playlist"><textarea id="input" style="margin-top:8px" placeholder="Un lien YouTube direct par ligne"></textarea><div class="row" style="margin-top:8px"><button class="primary" onclick="importLinks()">➕ Importer</button><button onclick="savePlaylist()">💾 Sauvegarder</button><button onclick="loadPlaylist()">📂 Charger</button><button onclick="clearCurrent()">Vider</button></div><div id="importStatus" class="status"></div></section><section class="card"><div class="row"><span id="modeLabel" class="pill">Ordre</span><span id="repeatLabel" class="pill">Répétition : non</span><span id="countLabel" class="pill">0 titre</span></div><div id="playerWrap"><div id="player"></div></div><div class="controls"><button onclick="previousTrack()">⏮</button><button id="playBtn" onclick="togglePlay()">▶️</button><button onclick="nextTrack(true)">⏭</button><button id="shuffleBtn" onclick="toggleShuffle()">🔀</button><button id="repeatBtn" onclick="cycleRepeat()">🔁</button></div><div id="now" class="now">Aucun titre chargé</div><div id="playerStatus" class="status"></div><div id="trackList" class="tracklist"></div></section></main><script src="https://www.youtube.com/iframe_api"></script><script>const APP_ORIGIN='https://musique-quebec.local';const STORAGE='musique_quebec_playlists_v2';let ready=false,tracks=[],index=0,shuffle=false,repeatMode=0,playing=false,player=null;function $(id){return document.getElementById(id)}function onYouTubeIframeAPIReady(){player=new YT.Player('player',{width:'100%',height:'100%',videoId:'',playerVars:{playsinline:1,rel:0,origin:APP_ORIGIN,widget_referrer:APP_ORIGIN+'/'},events:{onReady:()=>{ready=true;$('playerStatus').textContent='Lecteur prêt.'},onStateChange:onState,onError:onPlayerError}})}function extractId(text){const p=[/youtu\.be\/([A-Za-z0-9_-]{11})/,/[?&]v=([A-Za-z0-9_-]{11})/,/youtube\.com\/shorts\/([A-Za-z0-9_-]{11})/,/youtube\.com\/embed\/([A-Za-z0-9_-]{11})/,/^([A-Za-z0-9_-]{11})$/];for(const r of p){const m=text.match(r);if(m)return m[1]}return null}function importLinks(){let added=0,bad=0;for(const line of $('input').value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean)){const id=extractId(line);if(!id){bad++;continue}if(!tracks.some(t=>t.id===id)){tracks.push({id,label:'Vidéo '+(tracks.length+1)});added++}}$('importStatus').textContent=added+' ajoutée(s)'+(bad?' • '+bad+' ignorée(s)':'');render();if(ready&&tracks.length&&!player.getVideoData().video_id)loadCurrent(false)}function clearCurrent(){tracks=[];index=0;if(ready)player.stopVideo();render()}function savePlaylist(){const n=$('playlistName').value.trim();if(!n||!tracks.length){$('importStatus').textContent='Entre un nom et ajoute des titres.';return}const d=JSON.parse(localStorage.getItem(STORAGE)||'{}');d[n]=tracks;localStorage.setItem(STORAGE,JSON.stringify(d));$('importStatus').textContent='Playlist sauvegardée.'}function loadPlaylist(){const n=$('playlistName').value.trim(),d=JSON.parse(localStorage.getItem(STORAGE)||'{}');if(!d[n]){$('importStatus').textContent='Playlist introuvable.';return}tracks=d[n];index=0;render();if(ready)loadCurrent(false)}function onState(e){playing=e.data===YT.PlayerState.PLAYING;$('playBtn').textContent=playing?'⏸':'▶️';if(e.data===YT.PlayerState.ENDED){if(repeatMode===2){player.seekTo(0);player.playVideo()}else nextTrack(false)}if(e.data===YT.PlayerState.PLAYING){const d=player.getVideoData();if(d&&d.title){tracks[index].label=d.title;render()}}}function onPlayerError(e){playing=false;$('playBtn').textContent='▶️';$('playerStatus').textContent=e.data===153?'Erreur 153 : YouTube refuse encore ce contexte WebView.':((e.data===101||e.data===150)?'Cette vidéo interdit la lecture intégrée.':'Erreur YouTube '+e.data)}function loadCurrent(auto=true){if(!ready||!tracks.length)return;index=Math.max(0,Math.min(index,tracks.length-1));$('playerStatus').textContent='';auto?player.loadVideoById(tracks[index].id):player.cueVideoById(tracks[index].id);render()}function togglePlay(){if(!ready||!tracks.length)return;if(playing)player.pauseVideo();else{const d=player.getVideoData();if(!d||!d.video_id)loadCurrent(true);else player.playVideo()}}function nextTrack(manual){if(!tracks.length)return;if(shuffle&&tracks.length>1){let n=index;while(n===index)n=Math.floor(Math.random()*tracks.length);index=n}else if(index<tracks.length-1)index++;else if(repeatMode===1||shuffle)index=0;else{if(!manual){$('playerStatus').textContent='Fin de la playlist.';return}index=0}loadCurrent(true)}function previousTrack(){if(!tracks.length)return;index=(index-1+tracks.length)%tracks.length;loadCurrent(true)}function playAt(i){index=i;loadCurrent(true)}function toggleShuffle(){shuffle=!shuffle;$('shuffleBtn').classList.toggle('active',shuffle);$('modeLabel').textContent=shuffle?'Aléatoire':'Ordre'}function cycleRepeat(){repeatMode=(repeatMode+1)%3;const t=['Répétition : non','Répéter tout','Répéter 1'];$('repeatLabel').textContent=t[repeatMode];$('repeatBtn').classList.toggle('active',repeatMode>0)}function render(){const l=$('trackList');l.innerHTML='';tracks.forEach((t,i)=>{const r=document.createElement('div');r.className='track'+(i===index?' current':'');r.onclick=()=>playAt(i);r.innerHTML='<span class="n">'+(i+1)+'</span><span class="t">'+esc(t.label)+'</span>';l.appendChild(r)});$('countLabel').textContent=tracks.length+' titre'+(tracks.length>1?'s':'');$('now').textContent=tracks.length?((index+1)+' / '+tracks.length+' — '+tracks[index].label):'Aucun titre chargé'}function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}render();</script></body></html>
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Musique Québec</title>
+<style>
+:root{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color-scheme:dark;background:#0b0d10;color:#f7f8fa}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:#0b0d10;color:#f7f8fa}body{overscroll-behavior-y:none}
+.app{max-width:720px;margin:auto;padding:18px 14px 40px}
+.brand{display:flex;align-items:center;gap:12px}.logo{width:72px;height:72px;object-fit:cover;border-radius:18px;background:#08111e;box-shadow:0 8px 24px #0008;flex:0 0 auto}
+h1{font-size:26px;line-height:1.08;margin:0}.muted{color:#aab1bd;font-size:13px;margin-top:4px}
+.card{background:#151922;border:1px solid #262d39;border-radius:18px;padding:14px;margin-top:14px}
+input,textarea,button{font:inherit}input,textarea{width:100%;background:#0f131a;color:#fff;border:1px solid #303847;border-radius:12px;padding:11px;outline:none}input:focus,textarea:focus{border-color:#5da9ff}textarea{min-height:120px;resize:vertical}
+.row{display:flex;gap:8px;flex-wrap:wrap}.row>*{flex:1 1 130px}button{border:0;border-radius:12px;padding:11px 13px;background:#e8edf5;color:#111820;font-weight:800;min-height:48px}button.primary{background:#5da9ff;color:#061523}button.active{outline:2px solid #5da9ff}button:disabled{opacity:.45}
+#playerWrap{width:100%;aspect-ratio:16/9;background:#000;border-radius:14px;overflow:hidden;margin-top:12px;position:relative}#player{width:100%;height:100%}.playerPlaceholder{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:24px;color:#cbd3df;background:radial-gradient(circle at center,#101725,#050607 70%)}.playerPlaceholder .big{font-size:54px;line-height:1}.playerPlaceholder b{display:block;font-size:16px;margin-top:8px}
+.controls{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:10px}.controls button{padding:12px 4px;font-size:18px}.now{margin-top:10px;font-weight:800}.status{margin-top:8px;font-size:13px;color:#9ad0ff;min-height:18px;white-space:pre-line}.status.error{color:#ffb4b4}.tracklist{margin-top:10px;max-height:330px;overflow:auto;border-top:1px solid #2b3240}.track{display:flex;gap:10px;align-items:center;padding:10px 2px;border-bottom:1px solid #242a35;cursor:pointer}.track.current{color:#70b7ff}.track .n{width:28px;color:#8490a1}.track .t{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pill{display:inline-block;border:1px solid #3a4352;border-radius:999px;padding:5px 9px;font-size:12px;color:#cbd3df}.saved{font-size:12px;color:#8e99aa;margin-top:8px}
+</style>
+</head>
+<body>
+<main class="app">
+  <div class="brand"><div class="logo">⚜️</div><div><h1>Musique Québec</h1><div class="muted">Lecteur YouTube intégré</div></div></div>
+
+  <section class="card">
+    <input id="playlistName" placeholder="Nom de la playlist" autocomplete="off">
+    <textarea id="input" style="margin-top:8px" placeholder="Un lien YouTube direct par ligne"></textarea>
+    <div class="row" style="margin-top:8px">
+      <button class="primary" onclick="importLinks()">➕ Importer</button>
+      <button onclick="savePlaylist()">💾 Sauvegarder</button>
+      <button onclick="loadPlaylist()">📂 Charger</button>
+      <button onclick="clearCurrent()">Vider</button>
+    </div>
+    <div id="importStatus" class="status"></div>
+    <div id="savedNames" class="saved"></div>
+  </section>
+
+  <section class="card">
+    <div class="row"><span id="modeLabel" class="pill">Ordre</span><span id="repeatLabel" class="pill">Répétition : non</span><span id="countLabel" class="pill">0 titre</span></div>
+    <div id="playerWrap"><div id="player"></div><div id="placeholder" class="playerPlaceholder"><div><div class="big">▶</div><b>Ajoute un titre pour démarrer</b></div></div></div>
+    <div class="controls">
+      <button id="prevBtn" onclick="previousTrack()">⏮</button>
+      <button id="playBtn" onclick="togglePlay()">▶️</button>
+      <button id="nextBtn" onclick="nextTrack(true)">⏭</button>
+      <button id="shuffleBtn" onclick="toggleShuffle()">🔀</button>
+      <button id="repeatBtn" onclick="cycleRepeat()">🔁</button>
+    </div>
+    <div id="now" class="now">Aucun titre chargé</div>
+    <div id="playerStatus" class="status">Chargement de l’API YouTube…</div>
+    <div id="trackList" class="tracklist"></div>
+  </section>
+</main>
+
+<script src="https://www.youtube.com/iframe_api"></script>
+<script>
+const APP_ORIGIN='https://musique-quebec.local';
+const STORAGE='musique_quebec_playlists_v2';
+const CURRENT='musique_quebec_current_v3';
+let apiReady=false,playerReady=false,tracks=[],index=0,shuffle=false,repeatMode=0,playing=false,player=null,pendingPlay=false;
+function $(id){return document.getElementById(id)}
+function setPlayerStatus(msg,isError=false){const e=$('playerStatus');e.textContent=msg||'';e.classList.toggle('error',!!isError)}
+function onYouTubeIframeAPIReady(){apiReady=true;setPlayerStatus(tracks.length?'Lecteur YouTube prêt. Appuie sur ▶.':'Lecteur prêt. Ajoute un titre.');if(tracks.length)ensurePlayer(tracks[index].id,false)}
+function extractId(text){
+  const s=String(text||'').trim();
+  const patterns=[
+    /youtu\.be\/([A-Za-z0-9_-]{11})(?:[?&#/]|$)/,
+    /[?&]v=([A-Za-z0-9_-]{11})(?:[&#]|$)/,
+    /youtube\.com\/shorts\/([A-Za-z0-9_-]{11})(?:[?&#/]|$)/,
+    /youtube\.com\/embed\/([A-Za-z0-9_-]{11})(?:[?&#/]|$)/,
+    /youtube\.com\/live\/([A-Za-z0-9_-]{11})(?:[?&#/]|$)/,
+    /^([A-Za-z0-9_-]{11})$/
+  ];
+  for(const r of patterns){const m=s.match(r);if(m)return m[1]}
+  return null;
+}
+function destroyPlayer(){try{if(player&&player.destroy)player.destroy()}catch(e){}player=null;playerReady=false;playing=false;pendingPlay=false;$('playBtn').textContent='▶️';$('placeholder').style.display='grid'}
+function ensurePlayer(videoId,autoplay){
+  if(!videoId||!extractId(videoId)){setPlayerStatus('Lien YouTube invalide.',true);return}
+  if(!apiReady){pendingPlay=!!autoplay;setPlayerStatus('Chargement de YouTube…');return}
+  $('placeholder').style.display='none';
+  if(player){
+    pendingPlay=false;
+    try{autoplay?player.loadVideoById(videoId):player.cueVideoById(videoId)}catch(e){setPlayerStatus('Impossible de charger ce titre.',true)}
+    return;
+  }
+  pendingPlay=!!autoplay;
+  player=new YT.Player('player',{
+    width:'100%',height:'100%',videoId:videoId,
+    playerVars:{playsinline:1,rel:0,origin:APP_ORIGIN,widget_referrer:APP_ORIGIN+'/'},
+    events:{
+      onReady:(e)=>{playerReady=true;setPlayerStatus('Lecteur prêt.');if(pendingPlay){pendingPlay=false;e.target.playVideo()}},
+      onStateChange:onState,
+      onError:onPlayerError,
+      onAutoplayBlocked:()=>setPlayerStatus('Lecture automatique bloquée : appuie sur ▶.',false)
+    }
+  })
+}
+function importLinks(){
+  let added=0,bad=0,duplicates=0;
+  for(const line of $('input').value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean)){
+    const id=extractId(line);if(!id){bad++;continue}
+    if(tracks.some(t=>t.id===id)){duplicates++;continue}
+    tracks.push({id,label:'Vidéo '+(tracks.length+1)});added++
+  }
+  $('importStatus').textContent=added+' ajoutée(s)'+(duplicates?' • '+duplicates+' doublon(s)':'')+(bad?' • '+bad+' lien(s) invalide(s)':'');
+  if(tracks.length===added&&added>0)index=0;
+  render();persistCurrent();
+  if(tracks.length)ensurePlayer(tracks[index].id,false)
+}
+function clearCurrent(){destroyPlayer();tracks=[];index=0;$('input').value='';setPlayerStatus('Lecteur prêt. Ajoute un titre.');render();persistCurrent()}
+function getSaved(){try{return JSON.parse(localStorage.getItem(STORAGE)||'{}')}catch(e){return {}}}
+function savePlaylist(){
+  const n=$('playlistName').value.trim();if(!n||!tracks.length){$('importStatus').textContent='Entre un nom et ajoute au moins un titre.';return}
+  const d=getSaved();d[n]=tracks;localStorage.setItem(STORAGE,JSON.stringify(d));$('importStatus').textContent='Playlist « '+n+' » sauvegardée.';renderSavedNames()
+}
+function loadPlaylist(){
+  const n=$('playlistName').value.trim(),d=getSaved();if(!d[n]||!Array.isArray(d[n])){$('importStatus').textContent='Playlist introuvable. Entre exactement un nom sauvegardé.';renderSavedNames();return}
+  destroyPlayer();tracks=d[n].filter(t=>t&&extractId(t.id)).map((t,i)=>({id:t.id,label:t.label||('Vidéo '+(i+1))}));index=0;render();persistCurrent();$('importStatus').textContent='Playlist « '+n+' » chargée.';if(tracks.length)ensurePlayer(tracks[0].id,false)
+}
+function renderSavedNames(){const names=Object.keys(getSaved()).sort((a,b)=>a.localeCompare(b,'fr'));$('savedNames').textContent=names.length?'Playlists : '+names.join(' • '):'Aucune playlist sauvegardée.'}
+function onState(e){
+  playing=e.data===YT.PlayerState.PLAYING;$('playBtn').textContent=playing?'⏸':'▶️';
+  if(e.data===YT.PlayerState.ENDED){if(repeatMode===2){player.seekTo(0);player.playVideo()}else nextTrack(false)}
+  if(e.data===YT.PlayerState.PLAYING){try{const d=player.getVideoData();if(d&&d.title&&tracks[index]){tracks[index].label=d.title;render();persistCurrent()}}catch(err){}}
+}
+function onPlayerError(e){
+  playing=false;$('playBtn').textContent='▶️';const code=Number(e.data);
+  if(code===2)setPlayerStatus('Erreur YouTube 2 : identifiant vidéo invalide.',true);
+  else if(code===5)setPlayerStatus('Cette vidéo ne peut pas être lue dans le lecteur HTML5.',true);
+  else if(code===100)setPlayerStatus('Vidéo supprimée, privée ou introuvable.',true);
+  else if(code===101||code===150)setPlayerStatus('Cette vidéo interdit la lecture intégrée.',true);
+  else if(code===153)setPlayerStatus('Erreur 153 : YouTube ne reçoit pas le contexte d’intégration requis.',true);
+  else setPlayerStatus('Erreur YouTube '+code+'.',true)
+}
+function loadCurrent(auto=true){if(!tracks.length)return;index=Math.max(0,Math.min(index,tracks.length-1));setPlayerStatus('');ensurePlayer(tracks[index].id,auto);render();persistCurrent()}
+function togglePlay(){if(!tracks.length){setPlayerStatus('Ajoute d’abord un titre.');return}if(!player){ensurePlayer(tracks[index].id,true);return}if(!playerReady){pendingPlay=true;return}try{if(playing)player.pauseVideo();else{const d=player.getVideoData();if(!d||d.video_id!==tracks[index].id)player.loadVideoById(tracks[index].id);else player.playVideo()}}catch(e){setPlayerStatus('Le lecteur n’est pas encore prêt.',true)}}
+function nextTrack(manual){if(!tracks.length)return;if(shuffle&&tracks.length>1){let n=index;while(n===index)n=Math.floor(Math.random()*tracks.length);index=n}else if(index<tracks.length-1)index++;else if(repeatMode===1||shuffle)index=0;else{if(!manual){setPlayerStatus('Fin de la playlist.');return}index=0}loadCurrent(true)}
+function previousTrack(){if(!tracks.length)return;index=(index-1+tracks.length)%tracks.length;loadCurrent(true)}
+function playAt(i){if(i<0||i>=tracks.length)return;index=i;loadCurrent(true)}
+function toggleShuffle(){shuffle=!shuffle;$('shuffleBtn').classList.toggle('active',shuffle);$('modeLabel').textContent=shuffle?'Aléatoire':'Ordre';persistCurrent()}
+function cycleRepeat(){repeatMode=(repeatMode+1)%3;const t=['Répétition : non','Répéter tout','Répéter 1'];$('repeatLabel').textContent=t[repeatMode];$('repeatBtn').classList.toggle('active',repeatMode>0);persistCurrent()}
+function persistCurrent(){try{localStorage.setItem(CURRENT,JSON.stringify({tracks,index,shuffle,repeatMode}))}catch(e){}}
+function restoreCurrent(){try{const s=JSON.parse(localStorage.getItem(CURRENT)||'null');if(!s||!Array.isArray(s.tracks))return;tracks=s.tracks.filter(t=>t&&extractId(t.id)).map((t,i)=>({id:t.id,label:t.label||('Vidéo '+(i+1))}));index=Math.min(Math.max(Number(s.index)||0,0),Math.max(tracks.length-1,0));shuffle=!!s.shuffle;repeatMode=[0,1,2].includes(Number(s.repeatMode))?Number(s.repeatMode):0}catch(e){}}
+function render(){
+  const l=$('trackList');l.innerHTML='';tracks.forEach((t,i)=>{const r=document.createElement('div');r.className='track'+(i===index?' current':'');r.onclick=()=>playAt(i);r.innerHTML='<span class="n">'+(i+1)+'</span><span class="t">'+esc(t.label)+'</span>';l.appendChild(r)});
+  $('countLabel').textContent=tracks.length+' titre'+(tracks.length>1?'s':'');$('now').textContent=tracks.length?((index+1)+' / '+tracks.length+' — '+tracks[index].label):'Aucun titre chargé';
+  $('modeLabel').textContent=shuffle?'Aléatoire':'Ordre';$('shuffleBtn').classList.toggle('active',shuffle);const reps=['Répétition : non','Répéter tout','Répéter 1'];$('repeatLabel').textContent=reps[repeatMode];$('repeatBtn').classList.toggle('active',repeatMode>0);
+  const disabled=!tracks.length;['prevBtn','playBtn','nextBtn','shuffleBtn','repeatBtn'].forEach(id=>$(id).disabled=disabled)
+}
+function esc(s){return String(s).replace(/[&<>\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[c]))}
+restoreCurrent();render();renderSavedNames();if(tracks.length)$('importStatus').textContent='Session précédente restaurée.';
+</script>
+</body>
+</html>

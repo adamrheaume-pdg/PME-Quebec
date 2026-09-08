@@ -1,0 +1,27 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:background="#F5F8FC" android:fitsSystemWindows="true">
+
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="vertical" android:padding="18dp" android:background="#FFFFFF">
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="BORNE GIGA CONTRÔLE" android:textStyle="bold" android:textSize="22sp" android:textColor="#003DA5"/>
+        <TextView android:id="@+id/status" android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="Prêt à analyser le réseau local" android:textSize="13sp" android:textColor="#44546A" android:paddingTop="4dp"/>
+    </LinearLayout>
+
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:padding="10dp">
+        <Button android:id="@+id/scanBtn" android:layout_width="0dp" android:layout_height="48dp" android:layout_weight="1" android:text="Analyser" />
+        <Space android:layout_width="8dp" android:layout_height="1dp" />
+        <Button android:id="@+id/modemBtn" android:layout_width="0dp" android:layout_height="48dp" android:layout_weight="1" android:text="Borne Bell" />
+    </LinearLayout>
+
+    <EditText android:id="@+id/search" android:layout_width="match_parent" android:layout_height="50dp"
+        android:layout_marginHorizontal="10dp" android:hint="Rechercher ou entrer IP / MAC" android:singleLine="true" android:background="#FFFFFF" android:paddingHorizontal="14dp"/>
+
+    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Appareils détectés" android:textStyle="bold" android:textSize="16sp" android:padding="12dp" android:textColor="#1F2D3D"/>
+
+    <ScrollView android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1">
+        <LinearLayout android:id="@+id/deviceList" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingBottom="20dp"/>
+    </ScrollView>
+</LinearLayout>

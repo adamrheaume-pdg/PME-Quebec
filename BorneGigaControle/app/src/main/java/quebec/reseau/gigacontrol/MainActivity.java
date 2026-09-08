@@ -5,7 +5,6 @@ import android.os.*;
 import android.content.*;
 import android.graphics.Color;
 import android.view.*;
-import android.webkit.*;
 import android.widget.*;
 import java.io.*;
 import java.net.*;
@@ -301,15 +300,15 @@ public class MainActivity extends Activity {
     }
 
     private void openModem(Device d) {
-        final WebView web=new WebView(this);
-        WebSettings ws=web.getSettings(); ws.setJavaScriptEnabled(true); ws.setDomStorageEnabled(true); ws.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
-        web.setWebViewClient(new WebViewClient()); web.loadUrl(MODEM);
-        String msg = d==null ? "Administration locale de la Borne Giga 2.0" : "Appareil : "+d.ip+" • "+d.mac+"\nDans Bell : Contrôle d’accès → configure le blocage ou l’horaire pour cet appareil.";
-        LinearLayout wrap=new LinearLayout(this); wrap.setOrientation(LinearLayout.VERTICAL);
-        TextView note=new TextView(this); note.setText(msg); note.setTextColor(Color.WHITE); note.setBackgroundColor(Color.rgb(0,61,165)); note.setPadding(18,12,18,12);
-        wrap.addView(note,new LinearLayout.LayoutParams(-1,-2)); wrap.addView(web,new LinearLayout.LayoutParams(-1,0,1));
-        AlertDialog dlg=new AlertDialog.Builder(this).setView(wrap).setNegativeButton("Fermer",null).create();
-        dlg.setOnShowListener(x -> dlg.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-        dlg.show();
+        if (d != null) {
+            Toast.makeText(this, "Appareil "+d.ip+" • ouvre Contrôle d’accès dans la Borne Bell", Toast.LENGTH_LONG).show();
+        }
+        try {
+            Intent browser = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse(MODEM));
+            browser.addCategory(Intent.CATEGORY_BROWSABLE);
+            startActivity(browser);
+        } catch (Exception e) {
+            Toast.makeText(this, "Impossible d’ouvrir 192.168.2.1 dans le navigateur.", Toast.LENGTH_LONG).show();
+        }
     }
 }

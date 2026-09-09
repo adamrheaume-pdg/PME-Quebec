@@ -1,0 +1,32 @@
+plugins {
+    id 'com.android.application'
+    id 'com.chaquo.python'
+}
+
+android {
+    namespace 'quebec.cast.hisense'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId 'quebec.cast.hisense'
+        minSdk 26
+        targetSdk 35
+        versionCode 1
+        versionName '1.0'
+        ndk { abiFilters 'arm64-v8a' }
+        python {
+            version '3.13'
+            pip {
+                install 'paho-mqtt==2.1.0'
+                install 'PyYAML==6.0.2'
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            signingConfig signingConfigs.debug
+        }
+    }
+}

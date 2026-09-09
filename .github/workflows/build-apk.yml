@@ -76,6 +76,8 @@ jobs:
         run: python3 .github/scripts/patch_pme_erp_suite.py
       - name: Corriger interface ERP mobile et navigation
         run: python3 .github/scripts/patch_erp_mobile_ui_fix.py
+      - name: Appliquer le visuel PME Québec bleu chrome
+        run: python3 .github/scripts/patch_erp_visual_quebec.py
       - name: Diagnostic complet APK
         run: python3 .github/scripts/full_apk_diagnostic.py
       - name: Vérifier scanner connexion GPS ERP et interface mobile
@@ -101,6 +103,8 @@ jobs:
           grep -q 'pme-erp-suite-runtime-6000' "$HTML"
           grep -q 'pme-erp-mobile-fix-6100' "$HTML"
           grep -q 'pme-erp-mobile-runtime-fix-6100' "$HTML"
+          grep -q 'pme-quebec-visual-7000' "$HTML"
+          grep -q 'pme-quebec-visual-runtime-7000' "$HTML"
           grep -q 'window.PMEERP_OPEN=openPage' "$HTML"
           grep -q 'Centre de gestion PME' "$HTML"
           grep -q 'Inventaire — lecture seule' "$HTML"
@@ -124,12 +128,8 @@ jobs:
           p=Path(os.environ['GRADLE_DIR'])/'app/src/main/assets/index.html'
           s=p.read_text(encoding='utf-8')
           lower=s.lower()
-          assert s.rfind('pme-admin-fleur-runtime-5140') < lower.rfind('</body>')
-          assert s.rfind('pme-admin-fleur-header-5140') < lower.rfind('</head>')
-          assert s.rfind('pme-erp-suite-runtime-6000') < lower.rfind('</body>')
-          assert s.rfind('pme-erp-suite-6000') < lower.rfind('</head>')
-          assert s.rfind('pme-erp-mobile-runtime-fix-6100') < lower.rfind('</body>')
-          assert s.rfind('pme-erp-mobile-fix-6100') < lower.rfind('</head>')
+          for token in ['pme-admin-fleur-runtime-5140','pme-admin-fleur-header-5140','pme-erp-suite-runtime-6000','pme-erp-suite-6000','pme-erp-mobile-runtime-fix-6100','pme-erp-mobile-fix-6100','pme-quebec-visual-runtime-7000','pme-quebec-visual-7000']:
+              assert s.rfind(token) < lower.rfind('</body>') if 'runtime' in token else s.rfind(token) < lower.rfind('</head>')
           a=s.find('function godPreviewDocument(htmlCode,cssCode)')
           b=s.find('function renderGodHtmlPreview()',a+1)
           assert a>=0 and b>a

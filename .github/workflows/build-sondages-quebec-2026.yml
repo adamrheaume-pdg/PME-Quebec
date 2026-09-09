@@ -6,6 +6,7 @@ on:
     paths:
       - 'SondagesQuebec2026/**'
       - '.github/workflows/build-sondages-quebec-2026.yml'
+      - '.github/scripts/patch_sondages_qc125_live.py'
   workflow_dispatch:
 
 jobs:
@@ -29,6 +30,9 @@ jobs:
       - name: Add election countdown
         working-directory: SondagesQuebec2026
         run: python3 patch_countdown.py
+
+      - name: Add Qc125 live section
+        run: python3 .github/scripts/patch_sondages_qc125_live.py
 
       - name: Build release APK
         working-directory: SondagesQuebec2026

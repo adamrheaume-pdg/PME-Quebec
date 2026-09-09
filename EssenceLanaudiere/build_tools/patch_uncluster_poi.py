@@ -12,14 +12,16 @@ s=s.replace("js.append(\"map.addLayer(cluster);if(bounds.length>1)map.fitBounds(
             "js.append(\"if(bounds.length>1)map.fitBounds(bounds,{padding:[35,35],maxZoom:14});\");")
 
 # 2) Remove marker-cluster JS/CSS dependencies from generated map HTML when present.
-s=s.replace("<link rel='stylesheet' href='https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css'>","")
-s=s.replace("<link rel='stylesheet' href='https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css'>","")
-s=s.replace("<script src='https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js'></script>","")
+for dep in [
+    "<link rel='stylesheet' href='https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css'>",
+    "<link rel='stylesheet' href='https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css'>",
+    "<script src='https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js'></script>"
+]: s=s.replace(dep,'')
 
 # 3) McDonald's + Tim Hortons as a completely separate POI layer using OpenStreetMap Overpass.
 if 'FOOD_POI_OVERPASS' not in s:
     anchor='    private static final String CHANNEL_ID="best_price";\n'
-    add='''    private static final String FOOD_POI_OVERPASS="https://overpass-api.de/api/interpreter";\n'''
+    add='    private static final String FOOD_POI_OVERPASS="https://overpass-api.de/api/interpreter";\n'
     if anchor not in s: raise SystemExit('channel anchor missing')
     s=s.replace(anchor,anchor+add,1)
 
@@ -44,12 +46,13 @@ if 'foodPoiJavascript' not in s:
     if marker not in s: raise SystemExit('radar method anchor missing')
     s=s.replace(marker,methods+marker,1)
 
-# Add styling into the same map CSS block.
-css_anchor='.radarSafety small{display:block;color:#bfe1ff;margin-top:4px;font-size:10px}'
-if 'foodPoi{' not in s:
-    css_add=".foodPoi{width:34px;height:34px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:21px;border:2px solid #fff;box-shadow:0 3px 10px #0007}.mcdPoi{background:#efc200}.timPoi{background:#8b2c1d}"
-    if css_anchor not in s: raise SystemExit('radar css anchor missing')
-    s=s.replace(css_anchor,css_anchor+css_add,1)
+# CSS injection is intentionally independent of radar CSS wording.
+css_add=".foodPoi{width:34px;height:34px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:21px;border:2px solid #fff;box-shadow:0 3px 10px #0007}.mcdPoi{background:#efc200}.timPoi{background:#8b2c1d}"
+if '.foodPoi{' not in s:
+    # Insert immediately before the first </style> embedded in the Java map HTML.
+    pos=s.find('</style>')
+    if pos < 0: raise SystemExit('map style closing tag missing')
+    s=s[:pos]+css_add+s[pos:]
 
 # Inject POI fetch after station rendering and radar overlay.
 needle='js+radarSafetyJavascript(centerLat,centerLng)+"</script></body></html>";'
@@ -57,7 +60,7 @@ if 'foodPoiJavascript(centerLat,centerLng)' not in s:
     if needle not in s: raise SystemExit('map script injection anchor missing')
     s=s.replace(needle,'js+radarSafetyJavascript(centerLat,centerLng)+foodPoiJavascript(centerLat,centerLng)+"</script></body></html>";',1)
 
-required=['FOOD_POI_OVERPASS','foodPoiJavascript','🍔','☕','McDonald','Tim Hortons']
+required=['FOOD_POI_OVERPASS','foodPoiJavascript','🍔','☕','McDonald','Tim Hortons','.foodPoi{']
 missing=[x for x in required if x not in s]
 if missing: raise SystemExit('poi patch incomplete: '+repr(missing))
 if 'markerClusterGroup' in s or 'cluster.addLayer' in s or 'map.addLayer(cluster)' in s:

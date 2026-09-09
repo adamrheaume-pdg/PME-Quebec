@@ -39,6 +39,12 @@ jobs:
       - name: Appliquer theme premium bleu natif
         run: python3 EssenceLanaudiere/build_tools/patch_premium_theme.py
 
+      - name: Ajouter caméras Québec 511
+        run: python3 EssenceLanaudiere/build_tools/patch_mtq_cameras.py
+
+      - name: Ajouter alerte radar photo securitaire 1 km
+        run: python3 EssenceLanaudiere/build_tools/patch_radar_safety.py
+
       - name: Ajouter bouton de fermeture complete
         run: python3 EssenceLanaudiere/build_tools/patch_shutdown.py
 
@@ -64,7 +70,14 @@ jobs:
           grep -F 'SIMPLE  •  PUISSANTE  •  QUÉBÉCOISE' "$FILE"
           grep -F 'premiumCard()' "$FILE"
           grep -F 'blueBackdrop()' "$FILE"
-          grep -F 'FERMER COMPLÈTEMENT L’APPLICATION' "$FILE"
+          grep -F 'MTQ_CAMERA_WFS' "$FILE"
+          grep -F 'QUÉBEC 511' "$FILE"
+          grep -F 'RADAR_PHOTO_GEOJSON' "$FILE"
+          grep -F 'RADAR_ALERT_METERS=1000' "$FILE"
+          grep -F 'RADAR PHOTO À PROXIMITÉ' "$FILE"
+          grep -F 'radarBlink' "$FILE"
+          grep -F 'NUCLEAR_SHUTDOWN_ARMED' "$FILE"
+          grep -F 'startNuclearIconBlink' "$FILE"
           grep -F 'finishAndRemoveTask()' "$FILE"
 
       - name: Verifier et deployer le logo Essence Quebec

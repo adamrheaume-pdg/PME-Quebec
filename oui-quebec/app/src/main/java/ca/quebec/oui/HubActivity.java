@@ -47,9 +47,10 @@ public class HubActivity extends Activity {
         LinearLayout head=new LinearLayout(this);head.setOrientation(LinearLayout.VERTICAL);head.setGravity(Gravity.CENTER_HORIZONTAL);head.setPadding(dp(18),dp(12),dp(18),dp(14));head.setBackgroundColor(DARK);
         head.addView(logo(88));
         TextView title=tx("OUI QUÉBEC",27,WHITE,true);title.setGravity(Gravity.CENTER);title.setPadding(0,dp(4),0,0);head.addView(title);
-        TextView version=tx("Centre documentaire • V4.3",13,Color.rgb(210,225,250),false);version.setGravity(Gravity.CENTER);head.addView(version);outer.addView(head);
+        TextView version=tx("Centre documentaire • V4.4",13,Color.rgb(210,225,250),false);version.setGravity(Gravity.CENTER);head.addView(version);outer.addView(head);
         ScrollView scroll=new ScrollView(this);scroll.setClipToPadding(false);LinearLayout root=new LinearLayout(this);root.setOrientation(LinearLayout.VERTICAL);root.setPadding(dp(15),dp(16),dp(15),dp(28));
         Button app=button("Ouvrir les données, le Livre bleu et le simulateur");app.setOnClickListener(v->startActivity(new Intent(this,MainActivity.class)));root.addView(app);
+        Button library=button("📚 Bibliothèque — indépendance du Québec");library.setOnClickListener(v->startActivity(new Intent(this,LiteratureActivity.class)));root.addView(library);
         TextView h=tx("Mouvement et recherche",22,DARK,true);h.setPadding(0,dp(18),0,dp(10));root.addView(h);
         card(root,"Rassemblement pour un Pays Souverain (RPS)","Mouvement de la société civile, sans attaches partisanes selon sa présentation, qui promeut l’indépendance du Québec, la langue française et la connaissance de l’histoire nationale.","https://www.rps.quebec/");
         card(root,"L’Action nationale","Revue publiée par la Ligue d’action nationale. Sa mission se présente comme un carrefour souverainiste de réflexion critique sur les aspirations de la nation québécoise.","https://action-nationale.qc.ca/");

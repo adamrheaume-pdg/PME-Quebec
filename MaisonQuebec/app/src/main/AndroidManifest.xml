@@ -15,6 +15,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:theme="@style/Theme.MaisonQuebec"
         android:usesCleartextTraffic="true">
+        <activity android:name=".DomotiqueActivity" android:screenOrientation="portrait" android:exported="false" />
+        <receiver android:name=".AutomationReceiver" android:exported="false" />
         <activity android:name=".WifiAnalyzerActivity" android:screenOrientation="portrait" android:exported="false" />
         <activity android:name=".BellRouterActivity" android:screenOrientation="portrait" android:exported="false" />
         <activity android:name=".MainActivity" android:screenOrientation="portrait" android:exported="true">

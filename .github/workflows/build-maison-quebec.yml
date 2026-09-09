@@ -23,25 +23,28 @@ jobs:
           p = Path('MaisonQuebec/app/build.gradle')
           s = p.read_text()
           s, n1 = re.subn(r'applicationId\s+["\'][^"\']+["\']', 'applicationId "quebec.reseau.wifiquebec"', s, count=1)
-          s, n2 = re.subn(r'versionCode\s+\d+', 'versionCode 13', s, count=1)
-          s, n3 = re.subn(r'versionName\s+["\'][^"\']+["\']', 'versionName "1.13.0"', s, count=1)
+          s, n2 = re.subn(r'versionCode\s+\d+', 'versionCode 14', s, count=1)
+          s, n3 = re.subn(r'versionName\s+["\'][^"\']+["\']', 'versionName "1.14.0"', s, count=1)
           if n1 != 1 or n2 != 1 or n3 != 1:
               raise SystemExit('Identité Android incomplète dans app/build.gradle')
           p.write_text(s)
-          print('Identité Android: quebec.reseau.wifiquebec v1.13.0 (13)')
+          print('Identité Android: quebec.reseau.wifiquebec v1.14.0 (14)')
           PY
 
-      - name: Activer l'analyseur Wi-Fi dans l'accueil
+      - name: Activer analyse Wi-Fi et domotique dans l'accueil
         run: |
           python3 - <<'PY'
           from pathlib import Path
           p=Path('MaisonQuebec/app/src/main/java/quebec/maison/universelle/MainActivity.java')
           s=p.read_text()
           needle='findViewById(R.id.btnScan).setOnClickListener(v->scanNetwork());'
-          add=needle+'\n        findViewById(R.id.btnAnalyzer).setOnClickListener(v->startActivity(new Intent(this,WifiAnalyzerActivity.class)));'
           if 'R.id.btnAnalyzer' not in s:
               if needle not in s: raise SystemExit('Point insertion analyseur introuvable')
-              s=s.replace(needle,add,1)
+              s=s.replace(needle,needle+'\n        findViewById(R.id.btnAnalyzer).setOnClickListener(v->startActivity(new Intent(this,WifiAnalyzerActivity.class)));',1)
+          if 'R.id.btnDomotique' not in s:
+              anchor='findViewById(R.id.btnAnalyzer).setOnClickListener(v->startActivity(new Intent(this,WifiAnalyzerActivity.class)));'
+              if anchor not in s: raise SystemExit('Point insertion domotique introuvable')
+              s=s.replace(anchor,anchor+'\n        findViewById(R.id.btnDomotique).setOnClickListener(v->startActivity(new Intent(this,DomotiqueActivity.class)));',1)
           p.write_text(s)
           a=Path('MaisonQuebec/app/src/main/java/quebec/maison/universelle/WifiAnalyzerActivity.java')
           q=a.read_text()
@@ -91,18 +94,18 @@ jobs:
       - name: Compiler APK debug
         run: gradle -p MaisonQuebec :app:assembleDebug --stacktrace
 
-      - name: Vérifier APK et icône
+      - name: Vérifier APK, logo et modules
         run: |
           $ANDROID_HOME/build-tools/35.0.0/apksigner verify --verbose MaisonQuebec/app/build/outputs/apk/debug/app-debug.apk
           $ANDROID_HOME/build-tools/35.0.0/aapt dump badging MaisonQuebec/app/build/outputs/apk/debug/app-debug.apk | head -8
-          unzip -l MaisonQuebec/app/build/outputs/apk/debug/app-debug.apk | grep -E 'ic_launcher|WifiAnalyzerActivity' | head -30
+          unzip -l MaisonQuebec/app/build/outputs/apk/debug/app-debug.apk | grep -E 'ic_launcher|WifiAnalyzerActivity|DomotiqueActivity|AutomationReceiver' | head -50
 
       - name: Renommer APK
-        run: cp MaisonQuebec/app/build/outputs/apk/debug/app-debug.apk WiFi-Quebec-v1.13.apk
+        run: cp MaisonQuebec/app/build/outputs/apk/debug/app-debug.apk WiFi-Quebec-v1.14.apk
 
       - name: Publier APK
         uses: actions/upload-artifact@v4
         with:
-          name: WiFi-Quebec-v1.13-APK
-          path: WiFi-Quebec-v1.13.apk
+          name: WiFi-Quebec-v1.14-APK
+          path: WiFi-Quebec-v1.14.apk
           if-no-files-found: error

@@ -18,7 +18,7 @@ android {
             version '3.13'
             pip {
                 install 'paho-mqtt==2.1.0'
-                install 'PyYAML==6.0.2'
+                install 'PyYAML==6.0.3'
             }
         }
     }

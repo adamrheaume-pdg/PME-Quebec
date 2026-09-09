@@ -74,6 +74,8 @@ jobs:
         run: python3 .github/scripts/patch_android_permissions_files.py
       - name: Intégrer le centre ERP PME Québec
         run: python3 .github/scripts/patch_pme_erp_suite.py
+      - name: Corriger interface ERP mobile et navigation
+        run: python3 .github/scripts/patch_erp_mobile_ui_fix.py
       - name: Diagnostic complet APK
         run: python3 .github/scripts/full_apk_diagnostic.py
       - name: Vérifier scanner connexion GPS ERP et interface mobile
@@ -97,6 +99,9 @@ jobs:
           grep -q '<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>' "$HTML"
           grep -q 'pme-erp-suite-6000' "$HTML"
           grep -q 'pme-erp-suite-runtime-6000' "$HTML"
+          grep -q 'pme-erp-mobile-fix-6100' "$HTML"
+          grep -q 'pme-erp-mobile-runtime-fix-6100' "$HTML"
+          grep -q 'window.PMEERP_OPEN=openPage' "$HTML"
           grep -q 'Centre de gestion PME' "$HTML"
           grep -q 'Inventaire — lecture seule' "$HTML"
           grep -q 'Autorisation d’achat requise' "$HTML"
@@ -116,7 +121,6 @@ jobs:
           from pathlib import Path
           from html.parser import HTMLParser
           import os
-
           p=Path(os.environ['GRADLE_DIR'])/'app/src/main/assets/index.html'
           s=p.read_text(encoding='utf-8')
           lower=s.lower()
@@ -124,18 +128,15 @@ jobs:
           assert s.rfind('pme-admin-fleur-header-5140') < lower.rfind('</head>')
           assert s.rfind('pme-erp-suite-runtime-6000') < lower.rfind('</body>')
           assert s.rfind('pme-erp-suite-6000') < lower.rfind('</head>')
-
+          assert s.rfind('pme-erp-mobile-runtime-fix-6100') < lower.rfind('</body>')
+          assert s.rfind('pme-erp-mobile-fix-6100') < lower.rfind('</head>')
           a=s.find('function godPreviewDocument(htmlCode,cssCode)')
           b=s.find('function renderGodHtmlPreview()',a+1)
           assert a>=0 and b>a
           assert '</script>' not in s[a:b]
-
           class LeakParser(HTMLParser):
               def __init__(self):
-                  super().__init__(convert_charrefs=True)
-                  self.in_script=False
-                  self.in_style=False
-                  self.visible=[]
+                  super().__init__(convert_charrefs=True);self.in_script=False;self.in_style=False;self.visible=[]
               def handle_starttag(self,tag,attrs):
                   if tag.lower()=='script': self.in_script=True
                   if tag.lower()=='style': self.in_style=True
@@ -143,14 +144,10 @@ jobs:
                   if tag.lower()=='script': self.in_script=False
                   if tag.lower()=='style': self.in_style=False
               def handle_data(self,data):
-                  if not self.in_script and not self.in_style:
-                      self.visible.append(data)
-          parser=LeakParser(); parser.feed(s)
-          visible='\n'.join(parser.visible)
-          forbidden=['function renderGodHtmlPreview','function ensureGodCustomStyle','function sanitizeGodHtml']
-          for token in forbidden:
+                  if not self.in_script and not self.in_style:self.visible.append(data)
+          parser=LeakParser();parser.feed(s);visible='\n'.join(parser.visible)
+          for token in ['function renderGodHtmlPreview','function ensureGodCustomStyle','function sanitizeGodHtml']:
               assert token not in visible, f'Code GOD visible dans le DOM: {token}'
-
           assert '#mainEditToolbar,' in s
           assert 'position: relative !important;' in s
           assert 'top: auto !important;' in s

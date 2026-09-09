@@ -6,7 +6,6 @@ on:
       - medias-quebec-app
     paths:
       - 'medias-quebec/**'
-      - '.github/scripts/patch_medias_ticker.py'
       - '.github/workflows/medias-quebec-apk.yml'
   workflow_dispatch:
 

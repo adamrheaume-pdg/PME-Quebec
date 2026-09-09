@@ -23,16 +23,31 @@ jobs:
           p = Path('MaisonQuebec/app/build.gradle')
           s = p.read_text()
           s, n1 = re.subn(r'applicationId\s+["\'][^"\']+["\']', 'applicationId "quebec.reseau.wifiquebec"', s, count=1)
-          s, n2 = re.subn(r'versionCode\s+\d+', 'versionCode 12', s, count=1)
-          s, n3 = re.subn(r'versionName\s+["\'][^"\']+["\']', 'versionName "1.12.0"', s, count=1)
-          if n1 != 1:
-              raise SystemExit('applicationId introuvable dans app/build.gradle')
-          if n2 != 1:
-              raise SystemExit('versionCode introuvable dans app/build.gradle')
-          if n3 != 1:
-              raise SystemExit('versionName introuvable dans app/build.gradle')
+          s, n2 = re.subn(r'versionCode\s+\d+', 'versionCode 13', s, count=1)
+          s, n3 = re.subn(r'versionName\s+["\'][^"\']+["\']', 'versionName "1.13.0"', s, count=1)
+          if n1 != 1 or n2 != 1 or n3 != 1:
+              raise SystemExit('Identité Android incomplète dans app/build.gradle')
           p.write_text(s)
-          print('Identité Android:', 'quebec.reseau.wifiquebec', 'v1.12.0 (12)')
+          print('Identité Android: quebec.reseau.wifiquebec v1.13.0 (13)')
+          PY
+
+      - name: Activer l'analyseur Wi-Fi dans l'accueil
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('MaisonQuebec/app/src/main/java/quebec/maison/universelle/MainActivity.java')
+          s=p.read_text()
+          needle='findViewById(R.id.btnScan).setOnClickListener(v->scanNetwork());'
+          add=needle+'\n        findViewById(R.id.btnAnalyzer).setOnClickListener(v->startActivity(new Intent(this,WifiAnalyzerActivity.class)));'
+          if 'R.id.btnAnalyzer' not in s:
+              if needle not in s: raise SystemExit('Point insertion analyseur introuvable')
+              s=s.replace(needle,add,1)
+          p.write_text(s)
+          a=Path('MaisonQuebec/app/src/main/java/quebec/maison/universelle/WifiAnalyzerActivity.java')
+          q=a.read_text()
+          if 'android.graphics.drawable.GradientDrawable' not in q:
+              q=q.replace('import android.graphics.*;','import android.graphics.*;\nimport android.graphics.drawable.GradientDrawable;')
+          a.write_text(q)
           PY
 
       - name: Restaurer le vrai logo WiFi Québec
@@ -43,14 +58,11 @@ jobs:
               MaisonQuebec/app/src/main/res/raw/logo_part2.txt \
               MaisonQuebec/app/src/main/res/raw/logo_part3.txt > /tmp/wifi-logo/logo.b64
           base64 -d /tmp/wifi-logo/logo.b64 > /tmp/wifi-logo/ic_launcher.png
-          file /tmp/wifi-logo/ic_launcher.png
           python3 - <<'PY'
           from pathlib import Path
-          p = Path('/tmp/wifi-logo/ic_launcher.png')
-          b = p.read_bytes()
-          if not b.startswith(b'\x89PNG\r\n\x1a\n') or len(b) < 5000:
-              raise SystemExit('Logo PNG invalide')
-          print('Logo PNG valide:', len(b), 'octets')
+          p=Path('/tmp/wifi-logo/ic_launcher.png'); b=p.read_bytes()
+          if not b.startswith(b'\x89PNG\r\n\x1a\n') or len(b)<5000: raise SystemExit('Logo PNG invalide')
+          print('Logo PNG valide:',len(b),'octets')
           PY
           cp /tmp/wifi-logo/ic_launcher.png MaisonQuebec/app/src/main/res/drawable/ic_launcher.png
           for d in mdpi hdpi xhdpi xxhdpi xxxhdpi; do
@@ -83,14 +95,14 @@ jobs:
         run: |
           $ANDROID_HOME/build-tools/35.0.0/apksigner verify --verbose MaisonQuebec/app/build/outputs/apk/debug/app-debug.apk
           $ANDROID_HOME/build-tools/35.0.0/aapt dump badging MaisonQuebec/app/build/outputs/apk/debug/app-debug.apk | head -8
-          unzip -l MaisonQuebec/app/build/outputs/apk/debug/app-debug.apk | grep -E 'ic_launcher|mipmap' | head -30
+          unzip -l MaisonQuebec/app/build/outputs/apk/debug/app-debug.apk | grep -E 'ic_launcher|WifiAnalyzerActivity' | head -30
 
       - name: Renommer APK
-        run: cp MaisonQuebec/app/build/outputs/apk/debug/app-debug.apk WiFi-Quebec-v1.12.apk
+        run: cp MaisonQuebec/app/build/outputs/apk/debug/app-debug.apk WiFi-Quebec-v1.13.apk
 
       - name: Publier APK
         uses: actions/upload-artifact@v4
         with:
-          name: WiFi-Quebec-v1.12-APK
-          path: WiFi-Quebec-v1.12.apk
+          name: WiFi-Quebec-v1.13-APK
+          path: WiFi-Quebec-v1.13.apk
           if-no-files-found: error

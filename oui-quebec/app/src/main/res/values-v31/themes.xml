@@ -1,0 +1,12 @@
+<resources>
+    <style name="Theme.OuiQuebec" parent="android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:fontFamily">sans</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:statusBarColor">#001F5B</item>
+        <item name="android:navigationBarColor">#001F5B</item>
+        <item name="android:colorAccent">#003DA5</item>
+        <item name="android:windowSplashScreenBackground">#001F5B</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/oui_logo</item>
+        <item name="android:windowSplashScreenIconBackgroundColor">#001F5B</item>
+    </style>
+</resources>

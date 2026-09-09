@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
+<meta name="theme-color" content="#020817" />
+<title>Médias Québec</title>
+<style>
+:root{--bg:#020817;--panel:#071a34;--panel2:#0a2548;--line:#0b78ff;--cyan:#18c9ff;--text:#f7fbff;--muted:#a9bdd3;--good:#39e58c;--warn:#ffc857;--danger:#ff5b6e;--shadow:0 14px 40px rgba(0,119,255,.22)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:radial-gradient(circle at 50% -10%,#0e4383 0,#03142d 35%,#020817 72%);color:var(--text);font-family:Arial,Helvetica,sans-serif;min-height:100%}body{padding-top:env(safe-area-inset-top);padding-bottom:calc(82px + env(safe-area-inset-bottom))}
+header{position:sticky;top:0;z-index:20;background:linear-gradient(180deg,rgba(2,8,23,.97),rgba(2,8,23,.9),rgba(2,8,23,.72));backdrop-filter:blur(14px);border-bottom:1px solid rgba(24,201,255,.16)}
+.hero{display:flex;align-items:center;gap:12px;padding:12px 14px 9px}.logo{width:62px;height:62px;object-fit:contain;border-radius:50%;filter:drop-shadow(0 0 14px rgba(24,201,255,.45))}.brand{min-width:0;flex:1}.brand h1{margin:0;font-size:24px;line-height:1;font-weight:900;letter-spacing:.4px;text-transform:uppercase;background:linear-gradient(180deg,#fff,#d7e5f4 50%,#20c7ff);-webkit-background-clip:text;color:transparent}.brand p{margin:5px 0 0;font-size:11px;letter-spacing:2.1px;color:#b8cde4;text-transform:uppercase}.sync{border:1px solid rgba(24,201,255,.32);background:rgba(6,30,63,.86);color:white;border-radius:14px;padding:10px 11px;font-weight:700;font-size:16px}.sync:active{transform:scale(.96)}
+.statusrow{display:flex;align-items:center;gap:8px;padding:0 14px 10px;font-size:12px;color:var(--muted)}.dot{width:9px;height:9px;border-radius:50%;background:var(--warn);box-shadow:0 0 10px currentColor}.dot.online{background:var(--good)}.dot.offline{background:var(--warn)}.dot.error{background:var(--danger)}
+.tabs{display:flex;overflow-x:auto;gap:8px;padding:0 12px 10px;scrollbar-width:none}.tabs::-webkit-scrollbar{display:none}.tab{white-space:nowrap;border:1px solid rgba(52,156,255,.27);background:linear-gradient(180deg,rgba(10,37,72,.95),rgba(4,22,47,.95));color:#d9eaff;border-radius:16px;padding:10px 13px;font-weight:800;font-size:13px}.tab.active{border-color:#22c5ff;background:linear-gradient(180deg,#0b8df0,#0558ca);box-shadow:0 0 18px rgba(0,140,255,.35)}
+main{max-width:980px;margin:0 auto;padding:14px}.toolbar{display:flex;gap:9px;margin-bottom:12px}.search{flex:1;display:flex;align-items:center;background:rgba(7,26,52,.94);border:1px solid rgba(57,161,255,.25);border-radius:16px;padding:0 12px;box-shadow:inset 0 0 20px rgba(0,98,255,.06)}.search input{width:100%;background:transparent;border:0;outline:0;color:white;font-size:15px;padding:13px 6px}.search input::placeholder{color:#6f8ca9}.filterbtn{border:1px solid rgba(57,161,255,.25);background:#071a34;color:#d8ebff;border-radius:16px;padding:0 15px;font-size:19px}.sectionTitle{display:flex;align-items:flex-end;justify-content:space-between;margin:7px 2px 10px}.sectionTitle h2{margin:0;font-size:21px}.count{font-size:12px;color:var(--muted)}
+.notice{border:1px solid rgba(24,201,255,.25);border-radius:18px;background:linear-gradient(135deg,rgba(8,40,81,.95),rgba(4,20,43,.96));padding:12px 14px;margin:0 0 12px;color:#cce7ff;font-size:13px;line-height:1.45}.notice strong{color:#fff}.keywords{display:flex;gap:7px;overflow-x:auto;scrollbar-width:none;padding:0 0 10px}.keywords::-webkit-scrollbar{display:none}.chip{font-size:11px;border:1px solid rgba(0,153,255,.32);background:#071a34;color:#cbe8ff;padding:7px 9px;border-radius:20px;white-space:nowrap}.chip.hit{background:#0b62c4;border-color:#3fd7ff;color:white}
+.grid{display:grid;grid-template-columns:1fr;gap:11px}.card{position:relative;border:1px solid rgba(41,140,241,.24);border-radius:20px;background:linear-gradient(145deg,rgba(9,31,62,.98),rgba(4,17,36,.98));padding:14px 14px 13px;box-shadow:0 8px 26px rgba(0,0,0,.22);overflow:hidden}.card:before{content:"";position:absolute;inset:0 auto 0 0;width:3px;background:linear-gradient(#1bcaff,#075dff);opacity:.9}.card.live:before{background:linear-gradient(#ff4f6d,#ff9a44)}.meta{display:flex;gap:7px;align-items:center;margin-bottom:8px;font-size:11px;color:#8fb4d5}.source{font-weight:800;color:#52cfff}.livebadge{font-weight:900;background:#e93456;color:#fff;border-radius:9px;padding:3px 6px}.card h3{font-size:17px;line-height:1.24;margin:0 0 9px}.desc{color:#b8c8d8;font-size:13px;line-height:1.42;margin:0 0 10px;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden}.matches{display:flex;flex-wrap:wrap;gap:5px;margin:7px 0}.match{font-size:10px;color:#dff7ff;background:rgba(10,111,224,.7);border:1px solid rgba(59,204,255,.3);border-radius:10px;padding:4px 6px}.actions{display:flex;justify-content:space-between;align-items:center;margin-top:9px}.open{border:1px solid #179af3;background:linear-gradient(180deg,#0799f6,#075bd1);color:white;font-weight:800;border-radius:13px;padding:9px 12px}.fav{border:1px solid rgba(88,174,255,.3);background:rgba(5,26,55,.75);color:#dcecff;border-radius:13px;padding:9px 11px;font-size:17px}.fav.on{color:#ffd45a;border-color:#ffd45a}.empty{text-align:center;color:#9db7cf;padding:44px 18px;border:1px dashed rgba(65,160,255,.22);border-radius:20px;background:rgba(6,24,49,.6)}.spinner{width:36px;height:36px;border:4px solid rgba(56,167,255,.18);border-top-color:#22c8ff;border-radius:50%;margin:10px auto 18px;animation:spin .85s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
+.bottom{position:fixed;z-index:40;left:0;right:0;bottom:0;height:calc(72px + env(safe-area-inset-bottom));padding-bottom:env(safe-area-inset-bottom);display:grid;grid-template-columns:repeat(5,1fr);background:linear-gradient(180deg,rgba(4,17,36,.94),rgba(2,8,23,.99));border-top:1px solid rgba(27,174,255,.24);backdrop-filter:blur(15px)}.nav{border:0;background:transparent;color:#91abc3;font-size:10px;font-weight:700;padding:7px 2px 5px}.nav i{display:block;font-style:normal;font-size:22px;margin-bottom:3px}.nav.active{color:#34caff;text-shadow:0 0 12px rgba(52,202,255,.38)}
+@media(min-width:720px){.grid{grid-template-columns:1fr 1fr}.hero{padding-left:24px;padding-right:24px}.tabs{padding-left:24px;padding-right:24px}.statusrow{padding-left:24px}.logo{width:74px;height:74px}.brand h1{font-size:31px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="hero">
+    <img class="logo" src="logo.png" alt="Médias Québec" />
+    <div class="brand"><h1>Médias Québec</h1><p>Toute l'actualité au même endroit</p></div>
+    <button class="sync" onclick="reloadNow()" aria-label="Actualiser">↻</button>
+  </div>
+  <div class="statusrow"><span id="statusDot" class="dot"></span><span id="statusText">Préparation des nouvelles…</span></div>
+  <div class="tabs" id="tabs">
+    <button class="tab active" data-section="QUEBEC">⚜ Québec</button>
+    <button class="tab" data-section="POLITIQUE">🏛 Politique</button>
+    <button class="tab" data-section="VEILLE">◎ Veille Québec</button>
+    <button class="tab" data-section="CANADA">🇨🇦 Canada</button>
+    <button class="tab" data-section="USA">🇺🇸 USA</button>
+    <button class="tab" data-section="FRANCE">🇫🇷 France</button>
+    <button class="tab" data-section="LIVE">● En direct</button>
+  </div>
+</header>
+<main>
+  <div class="toolbar">
+    <div class="search">⌕<input id="search" type="search" placeholder="Rechercher dans les nouvelles…" oninput="applyFilter()" /></div>
+    <button class="filterbtn" onclick="showFavorites()" title="Favoris">☆</button>
+  </div>
+  <div id="veilleInfo" class="notice" style="display:none"><strong>Veille automatique :</strong> les articles qui contiennent tes mots-clés sont regroupés ici. La recherche est neutre : elle remonte les mentions, qu'elles soient favorables, critiques ou factuelles.</div>
+  <div id="keywordStrip" class="keywords" style="display:none"></div>
+  <div class="sectionTitle"><h2 id="title">Québec</h2><span class="count" id="count"></span></div>
+  <div id="content" class="grid"><div class="empty"><div class="spinner"></div>Synchronisation des fils RSS…</div></div>
+</main>
+<nav class="bottom">
+  <button class="nav active" id="navFeed" onclick="switchSection('QUEBEC')"><i>◉</i>Fil RSS</button>
+  <button class="nav" id="navLive" onclick="switchSection('LIVE')"><i>▣</i>En direct</button>
+  <button class="nav" id="navNews" onclick="switchSection('POLITIQUE')"><i>▤</i>Actualités</button>
+  <button class="nav" id="navSearch" onclick="focusSearch()"><i>⌕</i>Recherche</button>
+  <button class="nav" id="navFav" onclick="showFavorites()"><i>☆</i>Favoris</button>
+</nav>
+<script>
+let currentSection='QUEBEC';
+let currentItems=[];
+let currentMode='';
+let showingFav=false;
+let favorites={};
+const names={QUEBEC:'Québec',POLITIQUE:'Politique',VEILLE:'Veille Québec',CANADA:'Canada',USA:'États-Unis',FRANCE:'France',LIVE:'En direct'};
+try{favorites=JSON.parse(localStorage.getItem('mq_favorites')||'{}')}catch(e){favorites={}}
+
+function escapeHtml(s){return String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
+function itemId(it){return btoa(unescape(encodeURIComponent((it.link||it.title||'').slice(0,400)))).replace(/=/g,'')}
+function saveFavs(){localStorage.setItem('mq_favorites',JSON.stringify(favorites))}
+function toggleFav(id){if(favorites[id]) delete favorites[id]; else {const it=currentItems.find(x=>itemId(x)===id); if(it) favorites[id]=it} saveFavs(); applyFilter()}
+
+function setStatus(mode){const dot=document.getElementById('statusDot'),txt=document.getElementById('statusText');dot.className='dot';
+ if(mode==='online'){dot.classList.add('online');txt.textContent='Synchronisé — nouvelles à jour';}
+ else if(mode==='cache'){dot.classList.add('online');txt.textContent='Cache affiché — mise à jour en cours…';}
+ else if(mode==='offline'){dot.classList.add('offline');txt.textContent='Mode hors connexion — dernières nouvelles synchronisées';}
+ else if(mode==='offline-empty'){dot.classList.add('offline');txt.textContent='Hors connexion — aucune synchronisation enregistrée pour cette section';}
+ else if(mode==='error'){dot.classList.add('error');txt.textContent='Impossible de joindre les fils RSS';}
+ else{txt.textContent='Synchronisation…';}
+}
+
+function switchSection(section){showingFav=false;currentSection=section;currentItems=[];setStatus('loading');document.getElementById('title').textContent=names[section]||section;document.getElementById('count').textContent='';document.getElementById('content').innerHTML='<div class="empty"><div class="spinner"></div>Chargement des nouvelles…</div>';
+ document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.section===section));
+ document.getElementById('veilleInfo').style.display=section==='VEILLE'?'block':'none';document.getElementById('keywordStrip').style.display=section==='VEILLE'?'flex':'none';
+ document.querySelectorAll('.nav').forEach(n=>n.classList.remove('active')); if(section==='LIVE')document.getElementById('navLive').classList.add('active'); else if(section==='POLITIQUE')document.getElementById('navNews').classList.add('active'); else document.getElementById('navFeed').classList.add('active');
+ if(window.Android) Android.loadSection(section);}
+function reloadNow(){switchSection(currentSection)}
+
+window.onNativeData=function(section,items,mode){if(section!==currentSection||showingFav)return;currentItems=Array.isArray(items)?items:[];currentMode=mode;setStatus(mode);applyFilter()}
+
+function applyFilter(){const q=document.getElementById('search').value.trim().toLowerCase();let list=currentItems;
+ if(q) list=list.filter(it=>((it.title||'')+' '+(it.description||'')+' '+(it.source||'')).toLowerCase().includes(q));render(list)}
+
+function render(list){const box=document.getElementById('content');document.getElementById('count').textContent=list.length+' élément'+(list.length>1?'s':''); if(!list.length){box.innerHTML='<div class="empty">Aucune nouvelle trouvée dans cette section.</div>';return}
+ box.innerHTML=list.map(it=>{const id=itemId(it),fav=!!favorites[id],matches=Array.isArray(it.matches)?it.matches:[];return `<article class="card ${it.live?'live':''}">
+ <div class="meta"><span class="source">${escapeHtml(it.source||'Source')}</span>${it.live?'<span class="livebadge">DIRECT</span>':''}<span>${escapeHtml(it.date||'')}</span></div>
+ <h3>${escapeHtml(it.title||'Sans titre')}</h3><p class="desc">${escapeHtml(it.description||'')}</p>
+ ${matches.length?`<div class="matches">${matches.slice(0,8).map(m=>`<span class="match">${escapeHtml(m)}</span>`).join('')}</div>`:''}
+ <div class="actions"><button class="open" onclick='openItem(${JSON.stringify(it.link||'')})'>${it.live?'Ouvrir le direct':'Lire l’article'}</button><button class="fav ${fav?'on':''}" onclick='toggleFav(${JSON.stringify(id)})'>${fav?'★':'☆'}</button></div></article>`}).join('')}
+
+function openItem(url){if(!url)return;if(window.Android)Android.openArticle(url)}
+function focusSearch(){document.getElementById('search').focus();document.getElementById('navSearch').classList.add('active')}
+function showFavorites(){showingFav=true;currentItems=Object.values(favorites);document.getElementById('title').textContent='Favoris hors ligne';document.getElementById('veilleInfo').style.display='none';document.getElementById('keywordStrip').style.display='none';document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));document.querySelectorAll('.nav').forEach(n=>n.classList.remove('active'));document.getElementById('navFav').classList.add('active');setStatus('offline');applyFilter()}
+
+function loadKeywords(){if(!window.Android)return;try{const kws=JSON.parse(Android.getKeywords());document.getElementById('keywordStrip').innerHTML=kws.filter((x,i)=>i===0||!kws.slice(0,i).includes(x)).slice(0,18).map(k=>`<span class="chip">${escapeHtml(k)}</span>`).join('')}catch(e){}}
+
+document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>switchSection(b.dataset.section)));
+window.addEventListener('load',()=>{setTimeout(()=>{loadKeywords();switchSection('QUEBEC')},120)});
+</script>
+</body>
+</html>

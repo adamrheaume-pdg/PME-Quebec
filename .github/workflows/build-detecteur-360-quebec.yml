@@ -7,6 +7,11 @@ on:
     paths:
       - 'Detecteur360Quebec/**'
       - '.github/workflows/build-detecteur-360-quebec.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'Detecteur360Quebec/**'
+      - '.github/workflows/build-detecteur-360-quebec.yml'
 
 jobs:
   build:

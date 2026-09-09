@@ -2,6 +2,18 @@ plugins {
     id 'com.android.application'
 }
 
+def generatedLogoResDir = layout.buildDirectory.dir('generated/logoRes')
+
+tasks.register('generateOuiLogo') {
+    inputs.file(file('logo/oui_logo.b64'))
+    outputs.file(generatedLogoResDir.map { it.file('drawable/oui_logo.webp') })
+    doLast {
+        def out = generatedLogoResDir.get().file('drawable/oui_logo.webp').asFile
+        out.parentFile.mkdirs()
+        out.bytes = java.util.Base64.decoder.decode(file('logo/oui_logo.b64').text.trim())
+    }
+}
+
 android {
     namespace 'ca.quebec.oui'
     compileSdk 35
@@ -10,12 +22,20 @@ android {
         applicationId 'ca.quebec.oui'
         minSdk 26
         targetSdk 35
-        versionCode 6
-        versionName '4.2.0'
+        versionCode 7
+        versionName '4.3.0'
+    }
+
+    sourceSets {
+        main.res.srcDir(generatedLogoResDir)
     }
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
     }
+}
+
+tasks.named('preBuild').configure {
+    dependsOn(tasks.named('generateOuiLogo'))
 }

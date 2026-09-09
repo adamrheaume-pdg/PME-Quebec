@@ -27,26 +27,165 @@ jobs:
       - name: Installer Android 35
         run: sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
 
-      - name: Ajouter rayon 60 km
+      - name: Ajouter rayon 60 km carte logos et zones securitaires
         shell: bash
         run: |
           set -euo pipefail
-          FILE="EssenceLanaudiere/app/src/main/java/quebec/lanaudiere/essence/MainActivity.java"
           python3 - <<'PY'
           from pathlib import Path
           p = Path("EssenceLanaudiere/app/src/main/java/quebec/lanaudiere/essence/MainActivity.java")
           s = p.read_text(encoding="utf-8")
-          old_spinner = 'radiusSpinner=spinner(new String[]{"5 km","10 km","20 km","30 km"}); radiusSpinner.setSelection(3);'
-          new_spinner = 'radiusSpinner=spinner(new String[]{"5 km","10 km","20 km","30 km","60 km"}); radiusSpinner.setSelection(3);'
-          old_values = 'int radius=new int[]{5,10,20,30}[radiusSpinner.getSelectedItemPosition()];'
-          new_values = 'int radius=new int[]{5,10,20,30,60}[radiusSpinner.getSelectedItemPosition()];'
-          if old_spinner in s:
-              s = s.replace(old_spinner, new_spinner, 1)
-          if old_values in s:
-              s = s.replace(old_values, new_values, 1)
-          if '60 km' not in s or '5,10,20,30,60' not in s:
-              raise SystemExit("Impossible de confirmer le rayon 60 km")
-          p.write_text(s, encoding="utf-8")
+
+          # Rayon 60 km.
+          s = s.replace('radiusSpinner=spinner(new String[]{"5 km","10 km","20 km","30 km"}); radiusSpinner.setSelection(3);',
+                        'radiusSpinner=spinner(new String[]{"5 km","10 km","20 km","30 km","60 km"}); radiusSpinner.setSelection(3);')
+          s = s.replace('int radius=new int[]{5,10,20,30}[radiusSpinner.getSelectedItemPosition()];',
+                        'int radius=new int[]{5,10,20,30,60}[radiusSpinner.getSelectedItemPosition()];')
+
+          # Imports pour logos distants et carte WebView.
+          s = s.replace('import android.graphics.Color;\nimport android.graphics.Typeface;',
+                        'import android.graphics.Color;\nimport android.graphics.Typeface;\nimport android.graphics.Bitmap;\nimport android.graphics.BitmapFactory;')
+          s = s.replace('import android.widget.*;\n', 'import android.widget.*;\nimport android.webkit.*;\n')
+
+          # WebView de carte dans la page principale.
+          s = s.replace('private LinearLayout page, results;\n',
+                        'private LinearLayout page, results;\n    private WebView stationMap;\n')
+
+          # Respect de la barre d etat, du trou camera et de la barre de navigation.
+          intro_old = 'LinearLayout root=new LinearLayout(this); root.setOrientation(LinearLayout.VERTICAL); root.setGravity(Gravity.CENTER_HORIZONTAL); root.setPadding(dp(26),dp(26),dp(26),dp(28)); sc.addView(root);'
+          intro_new = intro_old + '\n        applySafeInsets(root,26,26,26,28);'
+          if 'applySafeInsets(root,26,26,26,28);' not in s:
+              s = s.replace(intro_old, intro_new, 1)
+
+          page_old = 'page=new LinearLayout(this); page.setOrientation(LinearLayout.VERTICAL); page.setPadding(dp(18),dp(18),dp(18),dp(26)); page.setBackgroundColor(navy); sc.addView(page);'
+          page_new = page_old + '\n        applySafeInsets(page,18,18,18,26);'
+          if 'applySafeInsets(page,18,18,18,26);' not in s:
+              s = s.replace(page_old, page_new, 1)
+
+          # Carte visible directement sous la source de prix.
+          anchor = 'status=text("Prix récents • données ouvertes • vérifie le prix à la pompe",12,false,Color.rgb(220,228,238)); status.setPadding(0,dp(8),0,dp(10)); page.addView(status);\n        results=new LinearLayout(this); results.setOrientation(LinearLayout.VERTICAL); page.addView(results);'
+          replacement = '''status=text("Prix récents • données ouvertes • vérifie le prix à la pompe",12,false,Color.rgb(220,228,238)); status.setPadding(0,dp(8),0,dp(10)); page.addView(status);
+        LinearLayout mapCard=cardWhite(); mapCard.setPadding(dp(6),dp(6),dp(6),dp(6));
+        TextView mapTitle=text("CARTE DES STATIONS • ● VOUS",15,true,ink); mapTitle.setPadding(dp(8),dp(6),dp(8),dp(8)); mapCard.addView(mapTitle);
+        stationMap=new WebView(this); stationMap.setBackgroundColor(Color.rgb(232,238,245)); stationMap.getSettings().setJavaScriptEnabled(true); stationMap.getSettings().setDomStorageEnabled(true); stationMap.getSettings().setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
+        stationMap.loadDataWithBaseURL("https://www.openstreetmap.org/","<html><body style='font-family:sans-serif;background:#e8eef5;color:#2d3443;display:flex;align-items:center;justify-content:center;height:100%;margin:0'><b>La carte apparaîtra après la localisation.</b></body></html>","text/html","UTF-8",null);
+        mapCard.addView(stationMap,new LinearLayout.LayoutParams(-1,dp(330)));
+        LinearLayout.LayoutParams mcp=new LinearLayout.LayoutParams(-1,-2); mcp.bottomMargin=dp(10); page.addView(mapCard,mcp);
+        results=new LinearLayout(this); results.setOrientation(LinearLayout.VERTICAL); page.addView(results);'''
+          if 'CARTE DES STATIONS • ● VOUS' not in s:
+              if anchor not in s:
+                  raise SystemExit('Point insertion carte introuvable')
+              s = s.replace(anchor, replacement, 1)
+
+          # Le bouton carte ouvre la carte en grand au lieu de quitter l application.
+          old_map_action = 'map.setOnClickListener(v->{if(!lastStations.isEmpty()) openMap(lastStations.get(0)); else locateAndLoad();});'
+          s = s.replace(old_map_action, 'map.setOnClickListener(v->{if(!lastStations.isEmpty()) showMapDialog(); else locateAndLoad();});')
+
+          # Mettre a jour la carte a chaque resultat.
+          old_show = 'results.removeAllViews(); lastStations=new ArrayList<>(s); status.setText("Source : "+source+" • prix récents • touche une carte pour l’itinéraire.");'
+          new_show = 'results.removeAllViews(); lastStations=new ArrayList<>(s); renderStationMap(s); status.setText("Source : "+source+" • prix récents • touche une carte pour l’itinéraire.");'
+          s = s.replace(old_show, new_show)
+
+          # Logo de marque dans chaque carte de station.
+          old_body = 'LinearLayout body=new LinearLayout(this); body.setGravity(Gravity.CENTER_VERTICAL); TextView addr=text(x.address+"\\n"+x.city,14,false,ink); body.addView(addr,new LinearLayout.LayoutParams(0,-2,1));'
+          new_body = 'LinearLayout body=new LinearLayout(this); body.setGravity(Gravity.CENTER_VERTICAL); ImageView brand=new ImageView(this); brand.setScaleType(ImageView.ScaleType.CENTER_INSIDE); brand.setBackground(round(Color.WHITE,8)); body.addView(brand,new LinearLayout.LayoutParams(dp(62),dp(62))); loadBrandLogo(brand,x.name); TextView addr=text(x.address+"\\n"+x.city,14,false,ink); LinearLayout.LayoutParams ap=new LinearLayout.LayoutParams(0,-2,1); ap.leftMargin=dp(10); body.addView(addr,ap);'
+          if 'loadBrandLogo(brand,x.name);' not in s:
+              if old_body not in s:
+                  raise SystemExit('Point insertion logos introuvable')
+              s = s.replace(old_body, new_body, 1)
+
+          # Methodes carte, logos, position utilisateur et zones securitaires.
+          methods_anchor = '    private void showTrendDialog(){'
+          methods = r'''    private void renderStationMap(List<Station> stations){
+        if(stationMap==null)return;
+        stationMap.loadDataWithBaseURL("https://www.openstreetmap.org/",buildMapHtml(stations),"text/html","UTF-8",null);
+    }
+
+    private String buildMapHtml(List<Station> stations){
+        double centerLat=lastLocation!=null?lastLocation.getLatitude():(stations.isEmpty()?46.0:stations.get(0).lat);
+        double centerLng=lastLocation!=null?lastLocation.getLongitude():(stations.isEmpty()?-73.5:stations.get(0).lng);
+        StringBuilder js=new StringBuilder();
+        js.append("const bounds=[];");
+        if(lastLocation!=null){
+            js.append("L.circleMarker([").append(lastLocation.getLatitude()).append(',').append(lastLocation.getLongitude()).append("],{radius:10,color:'#ffffff',weight:3,fillColor:'#1677ff',fillOpacity:1}).addTo(map).bindPopup('<b>VOUS ÊTES ICI</b>');");
+            js.append("L.marker([").append(lastLocation.getLatitude()).append(',').append(lastLocation.getLongitude()).append("],{icon:L.divIcon({className:'',html:\"<div class='you-label'>VOUS</div>\",iconSize:[54,22],iconAnchor:[27,-12]})}).addTo(map);");
+            js.append("bounds.push([").append(lastLocation.getLatitude()).append(',').append(lastLocation.getLongitude()).append("]);");
+        }
+        for(Station x:stations){
+            String logo=brandLogoUrl(x.name);
+            String price=String.format(Locale.CANADA_FRENCH,"%.1f",x.price);
+            String iconHtml="<div class='gas-pin'><img src='"+logo+"' onerror=\"this.style.display='none'\"><span>"+price+"</span></div>";
+            String popup="<b>"+html(x.name)+"</b><br>"+html(x.address)+"<br>"+price+" ¢/L • "+String.format(Locale.CANADA_FRENCH,"%.1f",x.distance)+" km";
+            js.append("L.marker([").append(x.lat).append(',').append(x.lng).append("],{icon:L.divIcon({className:'',html:").append(JSONObject.quote(iconHtml)).append(",iconSize:[76,58],iconAnchor:[38,58]})}).addTo(map).bindPopup(").append(JSONObject.quote(popup)).append(");");
+            js.append("bounds.push([").append(x.lat).append(',').append(x.lng).append("]);");
+        }
+        js.append("if(bounds.length>1){map.fitBounds(bounds,{padding:[35,35],maxZoom:14});}");
+        return "<!doctype html><html><head><meta name='viewport' content='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no'>"+
+                "<link rel='stylesheet' href='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'>"+
+                "<style>html,body,#map{width:100%;height:100%;margin:0}.gas-pin{width:72px;background:white;border:2px solid #31405a;border-radius:10px;padding:3px;display:flex;align-items:center;gap:4px;box-shadow:0 2px 6px #0006}.gas-pin img{width:28px;height:28px;object-fit:contain}.gas-pin span{font:bold 13px sans-serif;color:#283348;white-space:nowrap}.you-label{background:#1677ff;color:white;font:bold 12px sans-serif;border-radius:10px;padding:3px 8px;text-align:center;box-shadow:0 1px 4px #0005}</style></head><body>"+
+                "<div id='map'></div><script src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'></script><script>"+
+                "const map=L.map('map',{zoomControl:true}).setView(["+centerLat+","+centerLng+"],12);"+
+                "L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(map);"+js+"</script></body></html>";
+    }
+
+    private void showMapDialog(){
+        if(lastStations.isEmpty()){locateAndLoad();return;}
+        WebView w=new WebView(this); w.getSettings().setJavaScriptEnabled(true); w.getSettings().setDomStorageEnabled(true); w.setBackgroundColor(Color.rgb(232,238,245));
+        w.loadDataWithBaseURL("https://www.openstreetmap.org/",buildMapHtml(lastStations),"text/html","UTF-8",null);
+        LinearLayout box=new LinearLayout(this); box.setOrientation(LinearLayout.VERTICAL); box.setPadding(dp(8),dp(8),dp(8),dp(8)); box.addView(w,new LinearLayout.LayoutParams(-1,dp(520)));
+        new AlertDialog.Builder(this).setTitle("Carte des stations • ● Vous").setView(box).setPositiveButton("FERMER",null).show();
+    }
+
+    private String brandDomain(String name){
+        String n=name==null?"":name.toLowerCase(Locale.CANADA_FRENCH);
+        if(n.contains("petro"))return "petro-canada.ca";
+        if(n.contains("ultramar"))return "ultramar.ca";
+        if(n.contains("shell"))return "shell.ca";
+        if(n.contains("esso"))return "esso.ca";
+        if(n.contains("costco"))return "costco.ca";
+        if(n.contains("irving"))return "irvingoil.com";
+        if(n.contains("coupe-tard")||n.contains("couche-tard"))return "couche-tard.com";
+        if(n.contains("circle k"))return "circlek.com";
+        if(n.contains("harnois"))return "harnoisenergies.com";
+        if(n.contains("sonic"))return "energiesonic.com";
+        if(n.contains("canadian tire"))return "canadiantire.ca";
+        return "gasquebec.ca";
+    }
+
+    private String brandLogoUrl(String name){return "https://www.google.com/s2/favicons?sz=128&domain="+Uri.encode(brandDomain(name));}
+
+    private void loadBrandLogo(ImageView view,String name){
+        view.setContentDescription(name);
+        new Thread(()->{try{HttpURLConnection c=(HttpURLConnection)new URL(brandLogoUrl(name)).openConnection();c.setConnectTimeout(5000);c.setReadTimeout(5000);Bitmap b=BitmapFactory.decodeStream(c.getInputStream());if(b!=null)runOnUiThread(()->view.setImageBitmap(b));}catch(Exception ignored){}}).start();
+    }
+
+    private String html(String s){if(s==null)return "";return s.replace("&","&amp;").replace("<","&lt;").replace(">","&gt;").replace("\"","&quot;").replace("'","&#39;");}
+
+    private void applySafeInsets(View v,int leftDp,int topDp,int rightDp,int bottomDp){
+        v.setOnApplyWindowInsetsListener((view,insets)->{
+            int l=0,t=0,r=0,b=0;
+            if(Build.VERSION.SDK_INT>=30){android.graphics.Insets z=insets.getInsets(WindowInsets.Type.systemBars()|WindowInsets.Type.displayCutout());l=z.left;t=z.top;r=z.right;b=z.bottom;}
+            else {l=insets.getSystemWindowInsetLeft();t=insets.getSystemWindowInsetTop();r=insets.getSystemWindowInsetRight();b=insets.getSystemWindowInsetBottom();}
+            view.setPadding(dp(leftDp)+l,dp(topDp)+t,dp(rightDp)+r,dp(bottomDp)+b);
+            return insets;
+        });
+        v.requestApplyInsets();
+    }
+
+'''
+          if 'private void renderStationMap(List<Station> stations)' not in s:
+              if methods_anchor not in s:
+                  raise SystemExit('Point insertion methodes introuvable')
+              s = s.replace(methods_anchor, methods + methods_anchor, 1)
+
+          required = [
+              '60 km','5,10,20,30,60','CARTE DES STATIONS • ● VOUS',
+              'renderStationMap(s)','loadBrandLogo(brand,x.name)','VOUS ÊTES ICI',
+              'applySafeInsets(page,18,18,18,26)'
+          ]
+          missing=[x for x in required if x not in s]
+          if missing: raise SystemExit('Fonctions manquantes: '+repr(missing))
+          p.write_text(s,encoding='utf-8')
           PY
 
       - name: Verifier et deployer le logo Essence Quebec

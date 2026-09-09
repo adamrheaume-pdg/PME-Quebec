@@ -6,6 +6,7 @@ on:
     branches: [ main ]
     paths:
       - 'musique-quebec/**'
+      - '.github/scripts/patch_musique_presets.py'
       - '.github/workflows/musique-quebec.yml'
 
 jobs:
@@ -14,6 +15,8 @@ jobs:
     steps:
       - name: Récupérer le dépôt
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Java 17
         uses: actions/setup-java@v4
@@ -25,6 +28,9 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.10.2'
+
+      - name: Restaurer playlists et zone sûre Android
+        run: python3 .github/scripts/patch_musique_presets.py
 
       - name: Préparer logo et signature
         working-directory: musique-quebec
@@ -41,11 +47,11 @@ jobs:
         run: gradle --no-daemon assembleRelease
 
       - name: Préparer le fichier final
-        run: cp musique-quebec/app/build/outputs/apk/release/app-release.apk Musique-Quebec-FIX.apk
+        run: cp musique-quebec/app/build/outputs/apk/release/app-release.apk Musique-Quebec-PLAYLISTS.apk
 
       - name: Publier l'APK
         uses: actions/upload-artifact@v4
         with:
-          name: Musique-Quebec-FIX
-          path: Musique-Quebec-FIX.apk
+          name: Musique-Quebec-PLAYLISTS
+          path: Musique-Quebec-PLAYLISTS.apk
           if-no-files-found: error

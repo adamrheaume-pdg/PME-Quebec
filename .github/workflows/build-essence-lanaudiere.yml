@@ -48,25 +48,23 @@ jobs:
               raise SystemExit("Impossible de confirmer le rayon 60 km")
           p.write_text(s, encoding="utf-8")
           PY
-          grep -F '60 km' "$FILE"
-          grep -F '5,10,20,30,60' "$FILE"
 
-      - name: Integrer le logo Essence Quebec exact et icone adaptative
+      - name: Integrer et verifier le logo Essence Quebec exact
         shell: bash
         run: |
           set -euo pipefail
           RES="EssenceLanaudiere/app/src/main/res"
           mkdir -p "$RES/drawable" "$RES/mipmap-anydpi-v26" "$RES/values"
-          cat EssenceLanaudiere/logo/icon.part00 EssenceLanaudiere/logo/icon.part01 EssenceLanaudiere/logo/icon.part02 EssenceLanaudiere/logo/icon.part03 | base64 --decode > "$RES/drawable/essence_quebec_logo.png"
+          cat EssenceLanaudiere/logo/icon2.part00 EssenceLanaudiere/logo/icon2.part01 EssenceLanaudiere/logo/icon2.part02 EssenceLanaudiere/logo/icon2.part03 EssenceLanaudiere/logo/icon2.part04 | base64 --decode > "$RES/drawable/essence_quebec_logo.png"
+          echo '22f6fa0a670b1f838d9187927dc633d0a42fc60acb8813ceeef31e250a8c0af9  '"$RES/drawable/essence_quebec_logo.png" | sha256sum -c -
+          file "$RES/drawable/essence_quebec_logo.png" | grep -F 'PNG image data, 128 x 128, 8-bit/color RGBA'
           for d in mipmap-mdpi mipmap-hdpi mipmap-xhdpi mipmap-xxhdpi mipmap-xxxhdpi; do
             mkdir -p "$RES/$d"
             cp "$RES/drawable/essence_quebec_logo.png" "$RES/$d/ic_launcher.png"
           done
           cat > "$RES/values/icon_colors.xml" <<'XML'
           <?xml version="1.0" encoding="utf-8"?>
-          <resources>
-              <color name="essence_icon_background">#0A1528</color>
-          </resources>
+          <resources><color name="essence_icon_background">#0A1528</color></resources>
           XML
           cat > "$RES/mipmap-anydpi-v26/ic_launcher.xml" <<'XML'
           <?xml version="1.0" encoding="utf-8"?>
@@ -75,7 +73,6 @@ jobs:
               <foreground android:drawable="@drawable/essence_quebec_logo" />
           </adaptive-icon>
           XML
-          file "$RES/drawable/essence_quebec_logo.png"
 
       - name: Installer Gradle
         uses: gradle/actions/setup-gradle@v4

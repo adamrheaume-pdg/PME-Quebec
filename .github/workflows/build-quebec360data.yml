@@ -6,6 +6,10 @@ on:
     paths:
       - 'apps/quebec360data/**'
       - '.github/workflows/build-quebec360data.yml'
+  pull_request:
+    paths:
+      - 'apps/quebec360data/**'
+      - '.github/workflows/build-quebec360data.yml'
 
 jobs:
   build:

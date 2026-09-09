@@ -28,25 +28,29 @@ jobs:
           GRADLE_DIR="$GITHUB_WORKSPACE/source-5.10.4/PME-Quebec-5.10-Native-Wyze-Source"
           test -f "$GRADLE_DIR/settings.gradle"
           echo "GRADLE_DIR=$GRADLE_DIR" >> "$GITHUB_ENV"
-      - name: Intégrer l'icône Inc Québec
+      - name: Intégrer le nouveau logo Inc Québec
         run: |
           ICON_B64="$GRADLE_DIR/app/pme_inc_quebec_icon.b64"
           ICON_DIR="$GRADLE_DIR/app/src/main/res/drawable"
-          mkdir -p "$ICON_DIR"
+          ASSET_DIR="$GRADLE_DIR/app/src/main/assets"
+          mkdir -p "$ICON_DIR" "$ASSET_DIR"
           test -s "$ICON_B64"
           python3 - <<'PY'
           import base64, os, pathlib, re
           src = pathlib.Path(os.environ['GRADLE_DIR']) / 'app/pme_inc_quebec_icon.b64'
-          dst = pathlib.Path(os.environ['GRADLE_DIR']) / 'app/src/main/res/drawable/pme_inc_quebec_icon.jpg'
+          drawable = pathlib.Path(os.environ['GRADLE_DIR']) / 'app/src/main/res/drawable/pme_inc_quebec_icon.png'
+          brand = pathlib.Path(os.environ['GRADLE_DIR']) / 'app/src/main/assets/pme-brand-logo.png'
           raw = src.read_text(encoding='utf-8', errors='ignore')
           clean = re.sub(r'[^A-Za-z0-9+/=]', '', raw)
           clean += '=' * ((4 - len(clean) % 4) % 4)
           data = base64.b64decode(clean, validate=False)
-          assert len(data) > 1000, 'Icône décodée trop petite'
-          assert data[:2] == b'\xff\xd8', 'Icône décodée invalide: JPEG attendu'
-          dst.write_bytes(data)
+          assert len(data) > 5000, 'Icône décodée trop petite'
+          assert data[:8] == b'\x89PNG\r\n\x1a\n', 'Icône décodée invalide: PNG attendu'
+          drawable.write_bytes(data)
+          brand.write_bytes(data)
           PY
-          test -s "$ICON_DIR/pme_inc_quebec_icon.jpg"
+          test -s "$ICON_DIR/pme_inc_quebec_icon.png"
+          test -s "$ASSET_DIR/pme-brand-logo.png"
           grep -q 'android:icon="@drawable/pme_inc_quebec_icon"' "$GRADLE_DIR/app/src/main/AndroidManifest.xml"
           grep -q 'android:roundIcon="@drawable/pme_inc_quebec_icon"' "$GRADLE_DIR/app/src/main/AndroidManifest.xml"
       - name: Vérifier Supabase
@@ -58,18 +62,29 @@ jobs:
           mkdir -p "$VENDOR"
           curl --fail --location --silent --show-error "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js" -o "$VENDOR/html5-qrcode.min.js"
           curl --fail --location --silent --show-error "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" -o "$VENDOR/supabase-js.min.js"
-          test -s "$VENDOR/html5-qrcode.min.js" && test -s "$VENDOR/supabase-js.min.js"
+          curl --fail --location --silent --show-error "https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js" -o "$VENDOR/jsbarcode.min.js"
+          test -s "$VENDOR/html5-qrcode.min.js"
+          test -s "$VENDOR/supabase-js.min.js"
+          test -s "$VENDOR/jsbarcode.min.js"
       - name: Réparer la connexion Android
         run: python3 .github/scripts/patch_android_login.py
       - name: Réparer structure GOD et interface mobile
         run: python3 .github/scripts/patch_admin_fleur_header.py
+      - name: Réparer GPS permissions et fichiers Android
+        run: python3 .github/scripts/patch_android_permissions_files.py
+      - name: Intégrer le centre ERP PME Québec
+        run: python3 .github/scripts/patch_pme_erp_suite.py
       - name: Diagnostic complet APK
         run: python3 .github/scripts/full_apk_diagnostic.py
-      - name: Vérifier scanner, connexion et interface mobile
+      - name: Vérifier scanner connexion GPS ERP et interface mobile
         run: |
           HTML="$GRADLE_DIR/app/src/main/assets/index.html"
+          JAVA="$GRADLE_DIR/app/src/main/java/com/pmequebec/app/MainActivity.java"
+          MANIFEST="$GRADLE_DIR/app/src/main/AndroidManifest.xml"
+          test -s "$GRADLE_DIR/app/src/main/assets/pme-brand-logo.png"
           grep -q 'src="vendor/html5-qrcode.min.js"' "$HTML"
           grep -q 'src="vendor/supabase-js.min.js"' "$HTML"
+          grep -q 'src="vendor/jsbarcode.min.js"' "$HTML"
           grep -q 'pme-login-android-5110' "$HTML"
           grep -q 'pme-login-runtime-5110' "$HTML"
           grep -q 'pme-auth-closed' "$HTML"
@@ -80,6 +95,23 @@ jobs:
           grep -q 'pmeAdminFleurLauncher' "$HTML"
           grep -q '.god-global-launcher { display: none !important; }' "$HTML"
           grep -q '<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>' "$HTML"
+          grep -q 'pme-erp-suite-6000' "$HTML"
+          grep -q 'pme-erp-suite-runtime-6000' "$HTML"
+          grep -q 'Centre de gestion PME' "$HTML"
+          grep -q 'Inventaire — lecture seule' "$HTML"
+          grep -q 'Autorisation d’achat requise' "$HTML"
+          grep -q 'window.PMEERP.confirmTerminalPayment' "$HTML"
+          grep -q 'pmeInvRed' "$HTML"
+          grep -q 'pmeInvYellow' "$HTML"
+          grep -q 'pmeInvBlue' "$HTML"
+          grep -q 'pmeInvSmall' "$HTML"
+          grep -q 'JsBarcode' "$HTML"
+          grep -q 'PME_ANDROID_PERMISSIONS_6000' "$JAVA"
+          grep -q 'onGeolocationPermissionsShowPrompt' "$JAVA"
+          grep -q 'onShowFileChooser' "$JAVA"
+          grep -q 'setGeolocationEnabled(true)' "$JAVA"
+          grep -q 'android.permission.ACCESS_FINE_LOCATION' "$MANIFEST"
+          grep -q 'android.permission.ACCESS_COARSE_LOCATION' "$MANIFEST"
           python3 - <<'PY'
           from pathlib import Path
           from html.parser import HTMLParser
@@ -90,6 +122,8 @@ jobs:
           lower=s.lower()
           assert s.rfind('pme-admin-fleur-runtime-5140') < lower.rfind('</body>')
           assert s.rfind('pme-admin-fleur-header-5140') < lower.rfind('</head>')
+          assert s.rfind('pme-erp-suite-runtime-6000') < lower.rfind('</body>')
+          assert s.rfind('pme-erp-suite-6000') < lower.rfind('</head>')
 
           a=s.find('function godPreviewDocument(htmlCode,cssCode)')
           b=s.find('function renderGodHtmlPreview()',a+1)

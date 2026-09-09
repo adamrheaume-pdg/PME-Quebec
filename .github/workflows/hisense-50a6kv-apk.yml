@@ -3,7 +3,7 @@ name: Compiler APK Hisense 50A6KV
 on:
   workflow_dispatch:
   push:
-    branches: [hisense-50a6kv-remote]
+    branches: [main, hisense-50a6kv-remote]
     paths:
       - 'hisense-remote/**'
       - '.github/workflows/hisense-50a6kv-apk.yml'

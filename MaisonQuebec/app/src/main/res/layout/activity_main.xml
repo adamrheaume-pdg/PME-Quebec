@@ -22,6 +22,7 @@
     <HorizontalScrollView android:layout_width="match_parent" android:layout_height="wrap_content" android:scrollbars="none">
         <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal" android:padding="12dp">
             <Button android:id="@+id/btnScan" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Scanner le réseau" android:textColor="#FFFFFF" android:background="@drawable/button_primary"/>
+            <Button android:id="@+id/btnAnalyzer" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="8dp" android:text="Analyse Wi-Fi"/>
             <Button android:id="@+id/btnAdd" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="8dp" android:text="Ajouter IP"/>
             <Button android:id="@+id/btnBell" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="8dp" android:text="Borne Giga directe"/>
         </LinearLayout>

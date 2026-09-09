@@ -18,7 +18,7 @@ jobs:
       - name: Récupérer le dépôt
         uses: actions/checkout@v4
 
-      - name: Corriger le contraste visuel
+      - name: Corriger contraste et barres système
         shell: python
         run: |
           from pathlib import Path
@@ -35,6 +35,7 @@ jobs:
           s = s.replace('Text(if (loading) "…" else value, fontSize = 28.sp, fontWeight = FontWeight.Black)', 'Text(if (loading) "…" else value, fontSize = 28.sp, fontWeight = FontWeight.Black, color = Color.White)')
           s = s.replace('Text(module.title, fontWeight = FontWeight.Black, fontSize = 16.sp)', 'Text(module.title, fontWeight = FontWeight.Black, fontSize = 16.sp, color = Color.White)')
           s = s.replace('Text("Québec 360 – Données", fontSize = 20.sp, fontWeight = FontWeight.Black)', 'Text("Québec 360 – Données", fontSize = 20.sp, fontWeight = FontWeight.Black, color = Color.White)')
+          s = s.replace('modifier = Modifier.fillMaxSize(),\n                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 20.dp, bottom = 90.dp),', 'modifier = Modifier.fillMaxSize().systemBarsPadding(),\n                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 24.dp),')
           p.write_text(s, encoding='utf-8')
 
       - name: Java 17
@@ -58,11 +59,11 @@ jobs:
         run: gradle -p apps/quebec360data :app:assembleDebug --stacktrace
 
       - name: Renommer APK
-        run: cp apps/quebec360data/app/build/outputs/apk/debug/app-debug.apk Quebec-360-Donnees-v1.1-Contraste.apk
+        run: cp apps/quebec360data/app/build/outputs/apk/debug/app-debug.apk Quebec-360-Donnees-v1.2-Barres-Systeme.apk
 
       - name: Publier APK
         uses: actions/upload-artifact@v4
         with:
-          name: Quebec-360-Donnees-v1.1-Contraste
-          path: Quebec-360-Donnees-v1.1-Contraste.apk
+          name: Quebec-360-Donnees-v1.2-Barres-Systeme
+          path: Quebec-360-Donnees-v1.2-Barres-Systeme.apk
           retention-days: 30

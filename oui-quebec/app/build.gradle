@@ -23,8 +23,8 @@ android {
         applicationId 'ca.quebec.oui'
         minSdk 26
         targetSdk 35
-        versionCode 8
-        versionName '4.4.0'
+        versionCode 9
+        versionName '4.5.1'
     }
 
     sourceSets {

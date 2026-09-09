@@ -40,28 +40,50 @@ jobs:
           new_spinner = 'radiusSpinner=spinner(new String[]{"5 km","10 km","20 km","30 km","60 km"}); radiusSpinner.setSelection(3);'
           old_values = 'int radius=new int[]{5,10,20,30}[radiusSpinner.getSelectedItemPosition()];'
           new_values = 'int radius=new int[]{5,10,20,30,60}[radiusSpinner.getSelectedItemPosition()];'
-          if old_spinner not in s:
-              raise SystemExit("Sélecteur de rayon introuvable")
-          if old_values not in s:
-              raise SystemExit("Tableau des rayons introuvable")
-          s = s.replace(old_spinner, new_spinner, 1).replace(old_values, new_values, 1)
+          if old_spinner in s:
+              s = s.replace(old_spinner, new_spinner, 1)
+          if old_values in s:
+              s = s.replace(old_values, new_values, 1)
+          if '60 km' not in s or '5,10,20,30,60' not in s:
+              raise SystemExit("Impossible de confirmer le rayon 60 km")
           p.write_text(s, encoding="utf-8")
           PY
           grep -F '60 km' "$FILE"
           grep -F '5,10,20,30,60' "$FILE"
 
-      - name: Integrer le logo PNG transparent
+      - name: Integrer le logo Essence Quebec exact et icone adaptative
         shell: bash
         run: |
           set -euo pipefail
-          LOGO_B64="EssenceLanaudiere/logo/essence_quebec_logo.b64"
           RES="EssenceLanaudiere/app/src/main/res"
-          base64 --decode "$LOGO_B64" > "$RES/drawable/essence_quebec_logo.png"
+          mkdir -p "$RES/drawable" "$RES/mipmap-anydpi-v26" "$RES/values"
+          cat EssenceLanaudiere/logo/icon.part00 EssenceLanaudiere/logo/icon.part01 EssenceLanaudiere/logo/icon.part02 EssenceLanaudiere/logo/icon.part03 | base64 --decode > "$RES/drawable/essence_quebec_logo.png"
           for d in mipmap-mdpi mipmap-hdpi mipmap-xhdpi mipmap-xxhdpi mipmap-xxxhdpi; do
             mkdir -p "$RES/$d"
             cp "$RES/drawable/essence_quebec_logo.png" "$RES/$d/ic_launcher.png"
           done
+          cat > "$RES/values/icon_colors.xml" <<'XML'
+          <?xml version="1.0" encoding="utf-8"?>
+          <resources>
+              <color name="essence_icon_background">#0A1528</color>
+          </resources>
+          XML
+          cat > "$RES/mipmap-anydpi-v26/ic_launcher.xml" <<'XML'
+          <?xml version="1.0" encoding="utf-8"?>
+          <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+              <background android:drawable="@color/essence_icon_background" />
+              <foreground android:drawable="@drawable/essence_quebec_logo" />
+          </adaptive-icon>
+          XML
           file "$RES/drawable/essence_quebec_logo.png"
+          python3 - <<'PY'
+          from PIL import Image
+          p='EssenceLanaudiere/app/src/main/res/drawable/essence_quebec_logo.png'
+          im=Image.open(p).convert('RGBA')
+          assert im.size == (128,128), im.size
+          assert im.getchannel('A').getextrema()[0] == 0
+          print('Logo valide:', im.size, im.getchannel('A').getextrema())
+          PY
 
       - name: Installer Gradle
         uses: gradle/actions/setup-gradle@v4

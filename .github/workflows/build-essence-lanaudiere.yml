@@ -27,6 +27,29 @@ jobs:
       - name: Installer Android 35
         run: sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
 
+      - name: Ajouter rayon 60 km
+        shell: bash
+        run: |
+          set -euo pipefail
+          FILE="EssenceLanaudiere/app/src/main/java/quebec/lanaudiere/essence/MainActivity.java"
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path("EssenceLanaudiere/app/src/main/java/quebec/lanaudiere/essence/MainActivity.java")
+          s = p.read_text(encoding="utf-8")
+          old_spinner = 'radiusSpinner=spinner(new String[]{"5 km","10 km","20 km","30 km"}); radiusSpinner.setSelection(3);'
+          new_spinner = 'radiusSpinner=spinner(new String[]{"5 km","10 km","20 km","30 km","60 km"}); radiusSpinner.setSelection(3);'
+          old_values = 'int radius=new int[]{5,10,20,30}[radiusSpinner.getSelectedItemPosition()];'
+          new_values = 'int radius=new int[]{5,10,20,30,60}[radiusSpinner.getSelectedItemPosition()];'
+          if old_spinner not in s:
+              raise SystemExit("Sélecteur de rayon introuvable")
+          if old_values not in s:
+              raise SystemExit("Tableau des rayons introuvable")
+          s = s.replace(old_spinner, new_spinner, 1).replace(old_values, new_values, 1)
+          p.write_text(s, encoding="utf-8")
+          PY
+          grep -F '60 km' "$FILE"
+          grep -F '5,10,20,30,60' "$FILE"
+
       - name: Integrer le logo PNG transparent
         shell: bash
         run: |

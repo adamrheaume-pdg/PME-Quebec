@@ -32,6 +32,9 @@ jobs:
       - name: Installer Android 35
         run: sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
 
+      - name: Corriger zones systeme Android
+        run: python3 Detecteur360Quebec/build_tools/fix_safe_insets.py
+
       - name: Installer Gradle
         uses: gradle/actions/setup-gradle@v4
         with:

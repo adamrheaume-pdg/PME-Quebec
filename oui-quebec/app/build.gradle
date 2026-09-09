@@ -10,7 +10,8 @@ tasks.register('generateOuiLogo') {
     doLast {
         def out = generatedLogoResDir.get().file('drawable/oui_logo.webp').asFile
         out.parentFile.mkdirs()
-        out.bytes = java.util.Base64.decoder.decode(file('logo/oui_logo.b64').text.trim())
+        def encoded = file('logo/oui_logo.b64').text.replaceAll('[^A-Za-z0-9+/=]', '')
+        out.bytes = java.util.Base64.decoder.decode(encoded)
     }
 }
 

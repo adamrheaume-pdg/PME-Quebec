@@ -6,6 +6,7 @@ on:
       - medias-quebec-app
     paths:
       - 'medias-quebec/**'
+      - '.github/scripts/patch_medias_ticker.py'
       - '.github/workflows/medias-quebec-apk.yml'
   workflow_dispatch:
 
@@ -31,6 +32,9 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.10.2'
+
+      - name: Appliquer le ticker Monde 24/7
+        run: python3 .github/scripts/patch_medias_ticker.py
 
       - name: Compiler l'APK debug
         working-directory: medias-quebec

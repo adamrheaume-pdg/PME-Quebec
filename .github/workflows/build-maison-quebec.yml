@@ -20,128 +20,96 @@ jobs:
           python3 - <<'PY'
           from pathlib import Path
           import re
-          p = Path('MaisonQuebec/app/build.gradle')
-          s = p.read_text()
-          s, n1 = re.subn(r'applicationId\s+["\'][^"\']+["\']', 'applicationId "quebec.reseau.wifiquebec"', s, count=1)
-          s, n2 = re.subn(r'versionCode\s+\d+', 'versionCode 16', s, count=1)
-          s, n3 = re.subn(r'versionName\s+["\'][^"\']+["\']', 'versionName "1.16.0"', s, count=1)
-          if n1 != 1 or n2 != 1 or n3 != 1:
-              raise SystemExit('Identité Android incomplète dans app/build.gradle')
+          p=Path('MaisonQuebec/app/build.gradle'); s=p.read_text()
+          s=re.sub(r'applicationId\s+["\'][^"\']+["\']','applicationId "quebec.reseau.wifiquebec"',s,count=1)
+          s=re.sub(r'versionCode\s+\d+','versionCode 17',s,count=1)
+          s=re.sub(r'versionName\s+["\'][^"\']+["\']','versionName "1.17.0"',s,count=1)
           p.write_text(s)
-          print('Identité Android: quebec.reseau.wifiquebec v1.16.0 (16)')
           PY
 
-      - name: Activer analyse Wi-Fi et domotique dans l'accueil
+      - name: Activer modules et radar interactif
         run: |
           python3 - <<'PY'
           from pathlib import Path
-          p=Path('MaisonQuebec/app/src/main/java/quebec/maison/universelle/MainActivity.java')
-          s=p.read_text()
+          p=Path('MaisonQuebec/app/src/main/java/quebec/maison/universelle/MainActivity.java'); s=p.read_text()
           needle='findViewById(R.id.btnScan).setOnClickListener(v->scanNetwork());'
-          if 'R.id.btnAnalyzer' not in s:
-              if needle not in s: raise SystemExit('Point insertion analyseur introuvable')
-              s=s.replace(needle,needle+'\n        findViewById(R.id.btnAnalyzer).setOnClickListener(v->startActivity(new Intent(this,WifiAnalyzerActivity.class)));',1)
+          if 'R.id.btnAnalyzer' not in s:s=s.replace(needle,needle+'\n        findViewById(R.id.btnAnalyzer).setOnClickListener(v->startActivity(new Intent(this,WifiAnalyzerActivity.class)));',1)
           if 'R.id.btnDomotique' not in s:
-              anchor='findViewById(R.id.btnAnalyzer).setOnClickListener(v->startActivity(new Intent(this,WifiAnalyzerActivity.class)));'
-              if anchor not in s: raise SystemExit('Point insertion domotique introuvable')
-              s=s.replace(anchor,anchor+'\n        findViewById(R.id.btnDomotique).setOnClickListener(v->startActivity(new Intent(this,DomotiqueActivity.class)));',1)
+            a='findViewById(R.id.btnAnalyzer).setOnClickListener(v->startActivity(new Intent(this,WifiAnalyzerActivity.class)));'
+            s=s.replace(a,a+'\n        findViewById(R.id.btnDomotique).setOnClickListener(v->startActivity(new Intent(this,DomotiqueActivity.class)));',1)
+          p.write_text(s)
+
+          p=Path('MaisonQuebec/app/src/main/java/quebec/maison/universelle/WifiAnalyzerActivity.java'); s=p.read_text()
+          old='RadarView(Context c){super(c);p.setTypeface(Typeface.create(Typeface.MONOSPACE,Typeface.BOLD));anim.post(spin);}'
+          new='''private float zoom=1f,lastDist=0f; private final Map<ScanResult,float[]> hit=new LinkedHashMap<>();
+        RadarView(Context c){super(c);p.setTypeface(Typeface.create(Typeface.MONOSPACE,Typeface.BOLD));setFocusable(true);anim.post(spin);}
+        @Override public boolean onTouchEvent(android.view.MotionEvent e){
+            if(e.getPointerCount()>=2){float dx=e.getX(0)-e.getX(1),dy=e.getY(0)-e.getY(1),d=(float)Math.sqrt(dx*dx+dy*dy);if(lastDist>0){zoom*=d/lastDist;zoom=Math.max(.65f,Math.min(2.8f,zoom));invalidate();}lastDist=d;return true;}
+            if(e.getAction()==android.view.MotionEvent.ACTION_UP){lastDist=0;float best=60f;ScanResult pick=null;for(Map.Entry<ScanResult,float[]> z:hit.entrySet()){float dx=e.getX()-z.getValue()[0],dy=e.getY()-z.getValue()[1],d=(float)Math.sqrt(dx*dx+dy*dy);if(d<best){best=d;pick=z.getKey();}}if(pick!=null){ScanResult r=pick;new AlertDialog.Builder(getContext()).setTitle((r.SSID==null||r.SSID.isEmpty()?"*hidden*":r.SSID)).setMessage("BSSID : "+r.BSSID+"\\nSignal : "+r.level+" dBm\\nCanal : "+channelOf(r.frequency)+"\\nFréquence : "+r.frequency+" MHz\\nLargeur : "+widthOf(r.channelWidth)+"\\nSécurité : "+securityOf(r.capabilities)+"\\n\\nDistance au centre = proximité radio relative. L’angle ne représente pas une direction physique.").setPositiveButton("OK",null).show();return true;}}
+            return true;
+        }
+        private int channelOf(int f){if(f==2484)return 14;if(f>=2412&&f<=2472)return(f-2407)/5;if(f>=5000&&f<5925)return(f-5000)/5;if(f>=5955)return(f-5950)/5;return 0;}
+        private String widthOf(int w){if(w==ScanResult.CHANNEL_WIDTH_40MHZ)return"40 MHz";if(w==ScanResult.CHANNEL_WIDTH_80MHZ)return"80 MHz";if(w==ScanResult.CHANNEL_WIDTH_160MHZ)return"160 MHz";if(w==ScanResult.CHANNEL_WIDTH_80MHZ_PLUS_MHZ)return"80+80 MHz";return"20 MHz";}
+        private String securityOf(String c){if(c==null)return"Inconnue";if(c.contains("WPA3")||c.contains("SAE"))return"WPA3";if(c.contains("WPA2"))return"WPA2";if(c.contains("WPA"))return"WPA";if(c.contains("WEP"))return"WEP";return c.contains("ESS")?"Ouvert / ESS":c;}'''
+          if old not in s: raise SystemExit('Constructeur RadarView introuvable')
+          s=s.replace(old,new,1)
+          s=s.replace('float R=Math.min(w,hh)*0.43f;c.drawColor','float R=Math.min(w,hh)*0.43f*zoom;c.drawColor',1)
+          s=s.replace('p.setStyle(Paint.Style.FILL);p.setTextSize(22);','hit.clear();p.setStyle(Paint.Style.FILL);p.setTextSize(22);',1)
+          needle='p.setColor(col);c.drawCircle(x,y,9,p);p.setTextSize(16);'
+          repl='p.setColor(col);c.drawCircle(x,y,12,p);hit.put(r,new float[]{x,y});p.setTextSize(16);'
+          if needle not in s: raise SystemExit('Point radar introuvable')
+          s=s.replace(needle,repl,1)
+          s=s.replace('RADAR PASSIF • rafraîchissement visuel ~0,7 s\\n','RADAR PASSIF • pincer avec 2 doigts pour zoomer • toucher un point pour ses détails\\n',1)
           p.write_text(s)
           PY
 
-      - name: Corriger logo et zones écran dans les modules
+      - name: Corriger logo et zones écran
         run: |
           python3 - <<'PY'
           from pathlib import Path
-
-          p=Path('MaisonQuebec/app/src/main/java/quebec/maison/universelle/WifiAnalyzerActivity.java')
-          s=p.read_text()
+          p=Path('MaisonQuebec/app/src/main/java/quebec/maison/universelle/WifiAnalyzerActivity.java');s=p.read_text()
           old='@Override public void onCreate(Bundle b){super.onCreate(b);wm=(WifiManager)getApplicationContext().getSystemService(WIFI_SERVICE);buildUi();requestNeeded();refresh();}'
           new='@Override public void onCreate(Bundle b){super.onCreate(b);getWindow().setStatusBarColor(Color.rgb(16,20,24));getWindow().setNavigationBarColor(Color.rgb(16,20,24));wm=(WifiManager)getApplicationContext().getSystemService(WIFI_SERVICE);buildUi();requestNeeded();refresh();}'
-          if old in s: s=s.replace(old,new,1)
-
+          if old in s:s=s.replace(old,new,1)
           old='LinearLayout root=new LinearLayout(this);root.setOrientation(LinearLayout.VERTICAL);root.setBackgroundColor(Color.rgb(10,18,15));root.setPadding(12,12,12,0);'
           new='LinearLayout root=new LinearLayout(this);root.setOrientation(LinearLayout.VERTICAL);root.setBackgroundColor(Color.rgb(10,18,15));root.setPadding(12,12,12,0);root.setOnApplyWindowInsetsListener((v,insets)->{v.setPadding(12,insets.getSystemWindowInsetTop()+12,12,insets.getSystemWindowInsetBottom());return insets;});'
-          if old in s: s=s.replace(old,new,1)
-
+          if old in s:s=s.replace(old,new,1)
           old='Button back=btn("‹");back.setTextSize(30);back.setOnClickListener(v->finish());top.addView(back,new LinearLayout.LayoutParams(70,70));\n        title=txt("Access Points",22,true);'
           new='Button back=btn("‹");back.setTextSize(30);back.setOnClickListener(v->finish());top.addView(back,new LinearLayout.LayoutParams(70,70));\n        ImageView logo=new ImageView(this);logo.setImageResource(R.drawable.ic_launcher);logo.setScaleType(ImageView.ScaleType.CENTER_INSIDE);top.addView(logo,new LinearLayout.LayoutParams(64,64));\n        title=txt("Access Points",22,true);'
-          if old in s: s=s.replace(old,new,1)
-
+          if old in s:s=s.replace(old,new,1)
           old='root.addView(nav);setContentView(root);'
           new='nav.setBackgroundColor(Color.rgb(16,20,24));root.addView(nav);View footer=new View(this);footer.setBackgroundColor(Color.rgb(16,20,24));root.addView(footer,new LinearLayout.LayoutParams(-1,24));setContentView(root);'
-          if old in s: s=s.replace(old,new,1)
+          if old in s:s=s.replace(old,new,1)
           p.write_text(s)
-
-          d=Path('MaisonQuebec/app/src/main/java/quebec/maison/universelle/DomotiqueActivity.java')
-          q=d.read_text()
-          old='getWindow().setStatusBarColor(Color.rgb(245,249,255));'
-          new='getWindow().setStatusBarColor(Color.rgb(16,20,24));getWindow().setNavigationBarColor(Color.rgb(16,20,24));'
-          if old in q: q=q.replace(old,new,1)
-          old='LinearLayout root=new LinearLayout(this);root.setOrientation(LinearLayout.VERTICAL);root.setBackgroundColor(Color.rgb(245,249,255));root.setPadding(16,16,16,12);'
-          new='LinearLayout root=new LinearLayout(this);root.setOrientation(LinearLayout.VERTICAL);root.setBackgroundColor(Color.rgb(245,249,255));root.setPadding(16,16,16,12);root.setOnApplyWindowInsetsListener((v,insets)->{v.setPadding(16,insets.getSystemWindowInsetTop()+12,16,insets.getSystemWindowInsetBottom()+12);return insets;});'
-          if old in q: q=q.replace(old,new,1)
-          old='TextView title=t("🏠 Domotique — WiFi Québec",25,true);title.setTextColor(Color.rgb(0,67,160));root.addView(title);'
-          new='LinearLayout head=new LinearLayout(this);head.setGravity(Gravity.CENTER_VERTICAL);ImageView logo=new ImageView(this);logo.setImageResource(R.drawable.ic_launcher);logo.setScaleType(ImageView.ScaleType.CENTER_INSIDE);head.addView(logo,new LinearLayout.LayoutParams(64,64));TextView title=t("🏠 Domotique — WiFi Québec",25,true);title.setTextColor(Color.rgb(0,67,160));head.addView(title,new LinearLayout.LayoutParams(0,-2,1));root.addView(head);'
-          if old in q: q=q.replace(old,new,1)
-          old='sv.addView(devices);root.addView(sv,new LinearLayout.LayoutParams(-1,0,1));setContentView(root);'
-          new='sv.addView(devices);root.addView(sv,new LinearLayout.LayoutParams(-1,0,1));View footer=new View(this);footer.setBackgroundColor(Color.rgb(16,20,24));root.addView(footer,new LinearLayout.LayoutParams(-1,24));setContentView(root);'
-          if old in q: q=q.replace(old,new,1)
-          d.write_text(q)
           PY
 
       - name: Restaurer le vrai logo WiFi Québec
         run: |
           mkdir -p /tmp/wifi-logo
-          cat MaisonQuebec/app/src/main/res/raw/logo_part0.txt \
-              MaisonQuebec/app/src/main/res/raw/logo_part1.txt \
-              MaisonQuebec/app/src/main/res/raw/logo_part2.txt \
-              MaisonQuebec/app/src/main/res/raw/logo_part3.txt > /tmp/wifi-logo/logo.b64
+          cat MaisonQuebec/app/src/main/res/raw/logo_part0.txt MaisonQuebec/app/src/main/res/raw/logo_part1.txt MaisonQuebec/app/src/main/res/raw/logo_part2.txt MaisonQuebec/app/src/main/res/raw/logo_part3.txt > /tmp/wifi-logo/logo.b64
           base64 -d /tmp/wifi-logo/logo.b64 > /tmp/wifi-logo/ic_launcher.png
-          python3 - <<'PY'
-          from pathlib import Path
-          p=Path('/tmp/wifi-logo/ic_launcher.png'); b=p.read_bytes()
-          if not b.startswith(b'\x89PNG\r\n\x1a\n') or len(b)<5000: raise SystemExit('Logo PNG invalide')
-          print('Logo PNG valide:',len(b),'octets')
-          PY
           cp /tmp/wifi-logo/ic_launcher.png MaisonQuebec/app/src/main/res/drawable/ic_launcher.png
-          for d in mdpi hdpi xhdpi xxhdpi xxxhdpi; do
-            mkdir -p "MaisonQuebec/app/src/main/res/mipmap-$d"
-            cp /tmp/wifi-logo/ic_launcher.png "MaisonQuebec/app/src/main/res/mipmap-$d/ic_launcher.png"
-            cp /tmp/wifi-logo/ic_launcher.png "MaisonQuebec/app/src/main/res/mipmap-$d/ic_launcher_round.png"
-          done
+          for d in mdpi hdpi xhdpi xxhdpi xxxhdpi; do mkdir -p "MaisonQuebec/app/src/main/res/mipmap-$d"; cp /tmp/wifi-logo/ic_launcher.png "MaisonQuebec/app/src/main/res/mipmap-$d/ic_launcher.png"; cp /tmp/wifi-logo/ic_launcher.png "MaisonQuebec/app/src/main/res/mipmap-$d/ic_launcher_round.png"; done
 
       - name: Java 17
         uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: '17'
-
+        with: {distribution: temurin, java-version: '17'}
       - name: Android SDK
         uses: android-actions/setup-android@v3
-
       - name: Installer SDK 35
         run: sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
-
       - name: Gradle
         uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: '8.9'
-
+        with: {gradle-version: '8.9'}
       - name: Compiler APK debug
         run: gradle -p MaisonQuebec :app:assembleDebug --stacktrace
-
-      - name: Vérifier APK, logo, radar et zones écran
-        run: |
-          $ANDROID_HOME/build-tools/35.0.0/apksigner verify --verbose MaisonQuebec/app/build/outputs/apk/debug/app-debug.apk
-          $ANDROID_HOME/build-tools/35.0.0/aapt dump badging MaisonQuebec/app/build/outputs/apk/debug/app-debug.apk | head -10
-          unzip -l MaisonQuebec/app/build/outputs/apk/debug/app-debug.apk | grep -E 'ic_launcher|WifiAnalyzerActivity|DomotiqueActivity|AutomationReceiver' | head -60
-
+      - name: Vérifier APK
+        run: $ANDROID_HOME/build-tools/35.0.0/apksigner verify --verbose MaisonQuebec/app/build/outputs/apk/debug/app-debug.apk
       - name: Renommer APK
-        run: cp MaisonQuebec/app/build/outputs/apk/debug/app-debug.apk WiFi-Quebec-v1.16.apk
-
+        run: cp MaisonQuebec/app/build/outputs/apk/debug/app-debug.apk WiFi-Quebec-v1.17.apk
       - name: Publier APK
         uses: actions/upload-artifact@v4
         with:
-          name: WiFi-Quebec-v1.16-APK
-          path: WiFi-Quebec-v1.16.apk
+          name: WiFi-Quebec-v1.17-APK
+          path: WiFi-Quebec-v1.17.apk
           if-no-files-found: error

@@ -28,8 +28,8 @@ if 'CARTE DES STATIONS • ● VOUS' not in s:
     repl = '''status=text("Prix récents • données ouvertes • vérifie le prix à la pompe",12,false,Color.rgb(220,228,238)); status.setPadding(0,dp(8),0,dp(10)); page.addView(status);
         LinearLayout mapCard=cardWhite(); mapCard.setPadding(dp(6),dp(6),dp(6),dp(6));
         TextView mapTitle=text("CARTE DES STATIONS • ● VOUS",15,true,ink); mapTitle.setPadding(dp(8),dp(6),dp(8),dp(8)); mapCard.addView(mapTitle);
-        stationMap=new WebView(this); stationMap.setBackgroundColor(Color.rgb(232,238,245)); stationMap.getSettings().setJavaScriptEnabled(true); stationMap.getSettings().setDomStorageEnabled(true);
-        stationMap.loadDataWithBaseURL("https://www.openstreetmap.org/","<html><body style='font-family:sans-serif;background:#e8eef5;color:#2d3443;display:flex;align-items:center;justify-content:center;height:100%;margin:0'><b>La carte apparaîtra après la localisation.</b></body></html>","text/html","UTF-8",null);
+        stationMap=new WebView(this); stationMap.setBackgroundColor(Color.rgb(232,238,245)); stationMap.getSettings().setJavaScriptEnabled(true); stationMap.getSettings().setDomStorageEnabled(true); stationMap.getSettings().setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
+        stationMap.loadDataWithBaseURL("https://carto.com/","<html><body style='font-family:sans-serif;background:#e8eef5;color:#2d3443;display:flex;align-items:center;justify-content:center;height:100%;margin:0'><b>La carte apparaîtra après la localisation.</b></body></html>","text/html","UTF-8",null);
         mapCard.addView(stationMap,new LinearLayout.LayoutParams(-1,dp(330)));
         LinearLayout.LayoutParams mcp=new LinearLayout.LayoutParams(-1,-2); mcp.bottomMargin=dp(10); page.addView(mapCard,mcp);
         results=new LinearLayout(this); results.setOrientation(LinearLayout.VERTICAL); page.addView(results);'''
@@ -52,13 +52,13 @@ if 'loadBrandLogo(brand,x.name);' not in s:
 methods = r'''
     private void renderStationMap(List<Station> stations){
         if(stationMap==null)return;
-        stationMap.loadDataWithBaseURL("https://www.openstreetmap.org/",buildMapHtml(stations),"text/html","UTF-8",null);
+        stationMap.loadDataWithBaseURL("https://carto.com/",buildMapHtml(stations),"text/html","UTF-8",null);
     }
 
     private String buildMapHtml(List<Station> stations){
         double centerLat=lastLocation!=null?lastLocation.getLatitude():(stations.isEmpty()?46.0:stations.get(0).lat);
         double centerLng=lastLocation!=null?lastLocation.getLongitude():(stations.isEmpty()?-73.5:stations.get(0).lng);
-        StringBuilder js=new StringBuilder("const bounds=[];");
+        StringBuilder js=new StringBuilder("const bounds=[];const cluster=L.markerClusterGroup({showCoverageOnHover:false,maxClusterRadius:46,spiderfyOnMaxZoom:true});");
         if(lastLocation!=null){
             double la=lastLocation.getLatitude(),lo=lastLocation.getLongitude();
             js.append("L.circleMarker([").append(la).append(',').append(lo).append("],{radius:10,color:'#fff',weight:3,fillColor:'#1677ff',fillOpacity:1}).addTo(map).bindPopup('<b>VOUS ÊTES ICI</b>');");
@@ -67,21 +67,26 @@ methods = r'''
         }
         for(Station x:stations){
             String price=String.format(Locale.CANADA_FRENCH,"%.1f",x.price);
-            String icon="<div class='pin'><img src='"+brandLogoUrl(x.name)+"'><span>"+price+"</span></div>";
+            String icon="<div class='pin'><img src='"+brandLogoUrl(x.name)+"' onerror=\"this.style.display='none'\"><span>"+price+"</span></div>";
             String pop="<b>"+html(x.name)+"</b><br>"+html(x.address)+"<br>"+price+" ¢/L • "+String.format(Locale.CANADA_FRENCH,"%.1f",x.distance)+" km";
-            js.append("L.marker([").append(x.lat).append(',').append(x.lng).append("],{icon:L.divIcon({className:'',html:").append(JSONObject.quote(icon)).append(",iconSize:[76,58],iconAnchor:[38,58]})}).addTo(map).bindPopup(").append(JSONObject.quote(pop)).append(");");
+            js.append("cluster.addLayer(L.marker([").append(x.lat).append(',').append(x.lng).append("],{icon:L.divIcon({className:'',html:").append(JSONObject.quote(icon)).append(",iconSize:[70,48],iconAnchor:[35,48]})}).bindPopup(").append(JSONObject.quote(pop)).append("));");
             js.append("bounds.push([").append(x.lat).append(',').append(x.lng).append("]);");
         }
-        js.append("if(bounds.length>1)map.fitBounds(bounds,{padding:[30,30],maxZoom:14});");
+        js.append("map.addLayer(cluster);if(bounds.length>1)map.fitBounds(bounds,{padding:[35,35],maxZoom:14});");
         return "<!doctype html><html><head><meta name='viewport' content='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no'>"+
-          "<link rel='stylesheet' href='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'><style>html,body,#map{width:100%;height:100%;margin:0}.pin{width:72px;background:#fff;border:2px solid #31405a;border-radius:10px;padding:3px;display:flex;align-items:center;gap:4px;box-shadow:0 2px 6px #0006}.pin img{width:28px;height:28px;object-fit:contain}.pin span{font:bold 13px sans-serif;color:#283348;white-space:nowrap}.you{background:#1677ff;color:#fff;font:bold 12px sans-serif;border-radius:10px;padding:3px 8px;text-align:center}</style></head><body><div id='map'></div>"+
-          "<script src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'></script><script>const map=L.map('map').setView(["+centerLat+","+centerLng+"],12);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(map);"+js+"</script></body></html>";
+          "<link rel='stylesheet' href='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'>"+
+          "<link rel='stylesheet' href='https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css'>"+
+          "<link rel='stylesheet' href='https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css'>"+
+          "<style>html,body,#map{width:100%;height:100%;margin:0}.pin{min-width:64px;height:36px;background:#fff;border:2px solid #31405a;border-radius:10px;padding:3px 5px;display:flex;align-items:center;gap:4px;box-shadow:0 2px 6px #0005}.pin img{width:26px;height:26px;object-fit:contain}.pin span{font:bold 13px sans-serif;color:#283348;white-space:nowrap}.you{background:#1677ff;color:#fff;font:bold 12px sans-serif;border-radius:10px;padding:3px 8px;text-align:center;box-shadow:0 1px 4px #0005}.marker-cluster-small,.marker-cluster-medium,.marker-cluster-large{background:#1677ff55}.marker-cluster div{background:#1677ff;color:#fff;font:bold 13px sans-serif}</style></head><body><div id='map'></div>"+
+          "<script src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'></script>"+
+          "<script src='https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js'></script>"+
+          "<script>const map=L.map('map',{zoomControl:true}).setView(["+centerLat+","+centerLng+"],12);L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{subdomains:'abcd',maxZoom:20,attribution:'© OpenStreetMap contributors © CARTO'}).addTo(map);"+js+"</script></body></html>";
     }
 
     private void showMapDialog(){
         if(lastStations.isEmpty()){locateAndLoad();return;}
-        WebView w=new WebView(this); w.getSettings().setJavaScriptEnabled(true); w.getSettings().setDomStorageEnabled(true);
-        w.loadDataWithBaseURL("https://www.openstreetmap.org/",buildMapHtml(lastStations),"text/html","UTF-8",null);
+        WebView w=new WebView(this); w.getSettings().setJavaScriptEnabled(true); w.getSettings().setDomStorageEnabled(true); w.getSettings().setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
+        w.loadDataWithBaseURL("https://carto.com/",buildMapHtml(lastStations),"text/html","UTF-8",null);
         LinearLayout box=new LinearLayout(this); box.setPadding(dp(8),dp(8),dp(8),dp(8)); box.addView(w,new LinearLayout.LayoutParams(-1,dp(520)));
         new AlertDialog.Builder(this).setTitle("Carte des stations • ● Vous").setView(box).setPositiveButton("FERMER",null).show();
     }
@@ -127,7 +132,7 @@ if 'private void renderStationMap(List<Station> stations)' not in s:
         raise SystemExit("Point insertion méthodes introuvable")
     s = s.replace(marker, methods + marker, 1)
 
-required = ['60 km','5,10,20,30,60','CARTE DES STATIONS • ● VOUS','renderStationMap(s)','VOUS ÊTES ICI','loadBrandLogo(brand,x.name)','applySafeInsets(page,18,18,18,26)']
+required = ['60 km','5,10,20,30,60','CARTE DES STATIONS • ● VOUS','renderStationMap(s)','VOUS ÊTES ICI','loadBrandLogo(brand,x.name)','applySafeInsets(page,18,18,18,26)','basemaps.cartocdn.com','markerClusterGroup']
 missing = [x for x in required if x not in s]
 if missing:
     raise SystemExit("Fonctions manquantes: " + repr(missing))

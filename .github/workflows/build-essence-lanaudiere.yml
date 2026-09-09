@@ -36,6 +36,9 @@ jobs:
       - name: Ajouter prix moyens Ontario Vermont Nouveau-Brunswick
         run: python3 EssenceLanaudiere/build_tools/patch_regional_prices.py
 
+      - name: Appliquer theme premium bleu natif
+        run: python3 EssenceLanaudiere/build_tools/patch_premium_theme.py
+
       - name: Verifier les fonctions demandees
         shell: bash
         run: |
@@ -55,6 +58,9 @@ jobs:
           grep -F 'Ontario ≈ 182,0 ¢/L' "$FILE"
           grep -F 'Vermont ≈ 4,30 $US/gal' "$FILE"
           grep -F 'N.-B. ≈ 190,3 ¢/L' "$FILE"
+          grep -F 'SIMPLE  •  PUISSANTE  •  QUÉBÉCOISE' "$FILE"
+          grep -F 'premiumCard()' "$FILE"
+          grep -F 'blueBackdrop()' "$FILE"
 
       - name: Verifier et deployer le logo Essence Quebec
         shell: bash

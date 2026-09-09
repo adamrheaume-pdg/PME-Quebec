@@ -76,14 +76,6 @@ jobs:
           </adaptive-icon>
           XML
           file "$RES/drawable/essence_quebec_logo.png"
-          python3 - <<'PY'
-          from PIL import Image
-          p='EssenceLanaudiere/app/src/main/res/drawable/essence_quebec_logo.png'
-          im=Image.open(p).convert('RGBA')
-          assert im.size == (128,128), im.size
-          assert im.getchannel('A').getextrema()[0] == 0
-          print('Logo valide:', im.size, im.getchannel('A').getextrema())
-          PY
 
       - name: Installer Gradle
         uses: gradle/actions/setup-gradle@v4

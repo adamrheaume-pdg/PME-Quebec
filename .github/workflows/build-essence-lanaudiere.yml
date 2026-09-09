@@ -30,6 +30,9 @@ jobs:
       - name: Integrer carte logos position et zones securitaires
         run: python3 EssenceLanaudiere/build_tools/patch_map.py
 
+      - name: Integrer alertes prix et corriger villes doubles
+        run: python3 EssenceLanaudiere/build_tools/patch_alerts.py
+
       - name: Verifier les fonctions demandees
         shell: bash
         run: |
@@ -40,6 +43,11 @@ jobs:
           grep -F 'CARTE DES STATIONS • ● VOUS' "$FILE"
           grep -F 'loadBrandLogo(brand,x.name)' "$FILE"
           grep -F 'applySafeInsets(page,18,18,18,26)' "$FILE"
+          grep -F 'PRIX LE MOINS CHER DANS LA ZONE' "$FILE"
+          grep -F 'PRIX LE PLUS ÉLEVÉ DANS LA ZONE' "$FILE"
+          grep -F 'BAISSE DE PRIX' "$FILE"
+          grep -F 'displayStationAddress(x)' "$FILE"
+          grep -F 'rememberStationPrice(x)' "$FILE"
 
       - name: Verifier et deployer le logo Essence Quebec
         shell: bash

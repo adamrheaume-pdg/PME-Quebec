@@ -4,7 +4,7 @@
         android:label="Cintrage EMT Québec"
         android:theme="@style/AppTheme">
         <activity
-            android:name=".MainActivity"
+            android:name=".ReferenceActivity"
             android:screenOrientation="portrait"
             android:exported="true">
             <intent-filter>
@@ -12,5 +12,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".MainActivity"
+            android:screenOrientation="portrait"
+            android:exported="false" />
     </application>
 </manifest>

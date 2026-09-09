@@ -185,6 +185,21 @@ public class MainActivity extends Activity {
         return arr;
     }
 
+    private void addQuebecPoliticalSources(List<FeedSpec> f, String section) {
+        f.add(new FeedSpec("L'actualité — Politique", gnews("site:lactualite.com Québec politique", "fr-CA", "CA", "CA:fr"), section));
+        f.add(new FeedSpec("Le Droit — Politique", gnews("site:ledroit.com Québec politique", "fr-CA", "CA", "CA:fr"), section));
+        f.add(new FeedSpec("La Presse — Politique", gnews("site:lapresse.ca Québec politique", "fr-CA", "CA", "CA:fr"), section));
+        f.add(new FeedSpec("Le Soleil — Politique", gnews("site:lesoleil.com Québec politique", "fr-CA", "CA", "CA:fr"), section));
+        f.add(new FeedSpec("Le Nouvelliste — Politique", gnews("site:lenouvelliste.ca Québec politique", "fr-CA", "CA", "CA:fr"), section));
+        f.add(new FeedSpec("La Tribune — Politique", gnews("site:latribune.ca Québec politique", "fr-CA", "CA", "CA:fr"), section));
+        f.add(new FeedSpec("Le Quotidien — Politique", gnews("site:lequotidien.com Québec politique", "fr-CA", "CA", "CA:fr"), section));
+        f.add(new FeedSpec("La Voix de l'Est — Politique", gnews("site:lavoixdelest.ca Québec politique", "fr-CA", "CA", "CA:fr"), section));
+        f.add(new FeedSpec("Pivot — Politique", gnews("site:pivot.quebec politique Québec", "fr-CA", "CA", "CA:fr"), section));
+        f.add(new FeedSpec("Ricochet — Politique", gnews("site:ricochet.media Québec politique", "fr-CA", "CA", "CA:fr"), section));
+        f.add(new FeedSpec("L'aut'journal — Politique", gnews("site:lautjournal.info Québec politique", "fr-CA", "CA", "CA:fr"), section));
+        f.add(new FeedSpec("L'Action nationale — Idées et politique", gnews("site:action-nationale.qc.ca Québec politique indépendance", "fr-CA", "CA", "CA:fr"), section));
+    }
+
     private List<FeedSpec> feedsFor(String section) {
         List<FeedSpec> f = new ArrayList<>();
 
@@ -195,8 +210,9 @@ public class MainActivity extends Activity {
             f.add(new FeedSpec("Journal de Québec — Politique", "https://www.journaldequebec.com/actualite/politique/rss.xml", "Québec"));
             f.add(new FeedSpec("Le Devoir — Manchettes", "https://www.ledevoir.com/rss/manchettes.xml", "Québec"));
             f.add(new FeedSpec("Radio-Canada — Actualités", "https://ici.radio-canada.ca/rss/4159", "Québec"));
+            addQuebecPoliticalSources(f, "Québec");
             f.add(new FeedSpec("Google Actualités — Québec", gnews("Québec OR québécois OR politique Québec", "fr-CA", "CA", "CA:fr"), "Québec"));
-            f.add(new FeedSpec("Google Actualités — médias québécois", gnews("Québec (Radio-Canada OR TVA OR Le Devoir OR La Presse OR Journal de Montréal OR Journal de Québec OR Noovo)", "fr-CA", "CA", "CA:fr"), "Québec"));
+            f.add(new FeedSpec("Google Actualités — médias québécois", gnews("Québec (Radio-Canada OR TVA OR Le Devoir OR La Presse OR Journal de Montréal OR Journal de Québec OR Noovo OR L'actualité OR Le Droit OR Le Soleil)", "fr-CA", "CA", "CA:fr"), "Québec"));
         } else if ("CANADA".equals(section)) {
             f.add(new FeedSpec("CBC — Top Stories", "https://www.cbc.ca/cmlink/rss-topstories", "Canada"));
             f.add(new FeedSpec("CBC — Canada", "https://www.cbc.ca/cmlink/rss-canada", "Canada"));
@@ -218,6 +234,7 @@ public class MainActivity extends Activity {
             f.add(new FeedSpec("JDM — Politique", "https://www.journaldemontreal.com/actualite/politique/rss.xml", "Politique"));
             f.add(new FeedSpec("JDQ — Politique", "https://www.journaldequebec.com/actualite/politique/rss.xml", "Politique"));
             f.add(new FeedSpec("Le Devoir — Politique québécoise", gnews("politique Québec Parti québécois CAQ PLQ QS", "fr-CA", "CA", "CA:fr"), "Politique"));
+            addQuebecPoliticalSources(f, "Politique");
             f.add(new FeedSpec("Politique Québec — Tous médias", gnews("politique Québec", "fr-CA", "CA", "CA:fr"), "Politique"));
         } else if ("VEILLE".equals(section)) {
             String q = "francophone OR Québec OR québécois OR indépendantiste OR indépendance OR souverainiste OR séparatiste OR nationaliste OR \"Parti québécois\" OR \"Paul St-Pierre Plamondon\" OR PSPP";
@@ -225,6 +242,7 @@ public class MainActivity extends Activity {
             f.add(new FeedSpec("JDM — Politique", "https://www.journaldemontreal.com/actualite/politique/rss.xml", "Veille"));
             f.add(new FeedSpec("JDQ — Politique", "https://www.journaldequebec.com/actualite/politique/rss.xml", "Veille"));
             f.add(new FeedSpec("Le Devoir — Manchettes", "https://www.ledevoir.com/rss/manchettes.xml", "Veille"));
+            addQuebecPoliticalSources(f, "Veille");
         } else {
             return feedsFor("QUEBEC");
         }

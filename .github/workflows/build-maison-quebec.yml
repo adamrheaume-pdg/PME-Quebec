@@ -23,12 +23,12 @@ jobs:
           p = Path('MaisonQuebec/app/build.gradle')
           s = p.read_text()
           s, n1 = re.subn(r'applicationId\s+["\'][^"\']+["\']', 'applicationId "quebec.reseau.wifiquebec"', s, count=1)
-          s, n2 = re.subn(r'versionCode\s+\d+', 'versionCode 15', s, count=1)
-          s, n3 = re.subn(r'versionName\s+["\'][^"\']+["\']', 'versionName "1.15.0"', s, count=1)
+          s, n2 = re.subn(r'versionCode\s+\d+', 'versionCode 16', s, count=1)
+          s, n3 = re.subn(r'versionName\s+["\'][^"\']+["\']', 'versionName "1.16.0"', s, count=1)
           if n1 != 1 or n2 != 1 or n3 != 1:
               raise SystemExit('Identité Android incomplète dans app/build.gradle')
           p.write_text(s)
-          print('Identité Android: quebec.reseau.wifiquebec v1.15.0 (15)')
+          print('Identité Android: quebec.reseau.wifiquebec v1.16.0 (16)')
           PY
 
       - name: Activer analyse Wi-Fi et domotique dans l'accueil
@@ -46,6 +46,47 @@ jobs:
               if anchor not in s: raise SystemExit('Point insertion domotique introuvable')
               s=s.replace(anchor,anchor+'\n        findViewById(R.id.btnDomotique).setOnClickListener(v->startActivity(new Intent(this,DomotiqueActivity.class)));',1)
           p.write_text(s)
+          PY
+
+      - name: Corriger logo et zones écran dans les modules
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          p=Path('MaisonQuebec/app/src/main/java/quebec/maison/universelle/WifiAnalyzerActivity.java')
+          s=p.read_text()
+          old='@Override public void onCreate(Bundle b){super.onCreate(b);wm=(WifiManager)getApplicationContext().getSystemService(WIFI_SERVICE);buildUi();requestNeeded();refresh();}'
+          new='@Override public void onCreate(Bundle b){super.onCreate(b);getWindow().setStatusBarColor(Color.rgb(16,20,24));getWindow().setNavigationBarColor(Color.rgb(16,20,24));wm=(WifiManager)getApplicationContext().getSystemService(WIFI_SERVICE);buildUi();requestNeeded();refresh();}'
+          if old in s: s=s.replace(old,new,1)
+
+          old='LinearLayout root=new LinearLayout(this);root.setOrientation(LinearLayout.VERTICAL);root.setBackgroundColor(Color.rgb(10,18,15));root.setPadding(12,12,12,0);'
+          new='LinearLayout root=new LinearLayout(this);root.setOrientation(LinearLayout.VERTICAL);root.setBackgroundColor(Color.rgb(10,18,15));root.setPadding(12,12,12,0);root.setOnApplyWindowInsetsListener((v,insets)->{v.setPadding(12,insets.getSystemWindowInsetTop()+12,12,insets.getSystemWindowInsetBottom());return insets;});'
+          if old in s: s=s.replace(old,new,1)
+
+          old='Button back=btn("‹");back.setTextSize(30);back.setOnClickListener(v->finish());top.addView(back,new LinearLayout.LayoutParams(70,70));\n        title=txt("Access Points",22,true);'
+          new='Button back=btn("‹");back.setTextSize(30);back.setOnClickListener(v->finish());top.addView(back,new LinearLayout.LayoutParams(70,70));\n        ImageView logo=new ImageView(this);logo.setImageResource(R.drawable.ic_launcher);logo.setScaleType(ImageView.ScaleType.CENTER_INSIDE);top.addView(logo,new LinearLayout.LayoutParams(64,64));\n        title=txt("Access Points",22,true);'
+          if old in s: s=s.replace(old,new,1)
+
+          old='root.addView(nav);setContentView(root);'
+          new='nav.setBackgroundColor(Color.rgb(16,20,24));root.addView(nav);View footer=new View(this);footer.setBackgroundColor(Color.rgb(16,20,24));root.addView(footer,new LinearLayout.LayoutParams(-1,24));setContentView(root);'
+          if old in s: s=s.replace(old,new,1)
+          p.write_text(s)
+
+          d=Path('MaisonQuebec/app/src/main/java/quebec/maison/universelle/DomotiqueActivity.java')
+          q=d.read_text()
+          old='getWindow().setStatusBarColor(Color.rgb(245,249,255));'
+          new='getWindow().setStatusBarColor(Color.rgb(16,20,24));getWindow().setNavigationBarColor(Color.rgb(16,20,24));'
+          if old in q: q=q.replace(old,new,1)
+          old='LinearLayout root=new LinearLayout(this);root.setOrientation(LinearLayout.VERTICAL);root.setBackgroundColor(Color.rgb(245,249,255));root.setPadding(16,16,16,12);'
+          new='LinearLayout root=new LinearLayout(this);root.setOrientation(LinearLayout.VERTICAL);root.setBackgroundColor(Color.rgb(245,249,255));root.setPadding(16,16,16,12);root.setOnApplyWindowInsetsListener((v,insets)->{v.setPadding(16,insets.getSystemWindowInsetTop()+12,16,insets.getSystemWindowInsetBottom()+12);return insets;});'
+          if old in q: q=q.replace(old,new,1)
+          old='TextView title=t("🏠 Domotique — WiFi Québec",25,true);title.setTextColor(Color.rgb(0,67,160));root.addView(title);'
+          new='LinearLayout head=new LinearLayout(this);head.setGravity(Gravity.CENTER_VERTICAL);ImageView logo=new ImageView(this);logo.setImageResource(R.drawable.ic_launcher);logo.setScaleType(ImageView.ScaleType.CENTER_INSIDE);head.addView(logo,new LinearLayout.LayoutParams(64,64));TextView title=t("🏠 Domotique — WiFi Québec",25,true);title.setTextColor(Color.rgb(0,67,160));head.addView(title,new LinearLayout.LayoutParams(0,-2,1));root.addView(head);'
+          if old in q: q=q.replace(old,new,1)
+          old='sv.addView(devices);root.addView(sv,new LinearLayout.LayoutParams(-1,0,1));setContentView(root);'
+          new='sv.addView(devices);root.addView(sv,new LinearLayout.LayoutParams(-1,0,1));View footer=new View(this);footer.setBackgroundColor(Color.rgb(16,20,24));root.addView(footer,new LinearLayout.LayoutParams(-1,24));setContentView(root);'
+          if old in q: q=q.replace(old,new,1)
+          d.write_text(q)
           PY
 
       - name: Restaurer le vrai logo WiFi Québec
@@ -89,18 +130,18 @@ jobs:
       - name: Compiler APK debug
         run: gradle -p MaisonQuebec :app:assembleDebug --stacktrace
 
-      - name: Vérifier APK, logo et modules
+      - name: Vérifier APK, logo, radar et zones écran
         run: |
           $ANDROID_HOME/build-tools/35.0.0/apksigner verify --verbose MaisonQuebec/app/build/outputs/apk/debug/app-debug.apk
-          $ANDROID_HOME/build-tools/35.0.0/aapt dump badging MaisonQuebec/app/build/outputs/apk/debug/app-debug.apk | head -8
-          unzip -l MaisonQuebec/app/build/outputs/apk/debug/app-debug.apk | grep -E 'ic_launcher|WifiAnalyzerActivity|DomotiqueActivity|AutomationReceiver' | head -50
+          $ANDROID_HOME/build-tools/35.0.0/aapt dump badging MaisonQuebec/app/build/outputs/apk/debug/app-debug.apk | head -10
+          unzip -l MaisonQuebec/app/build/outputs/apk/debug/app-debug.apk | grep -E 'ic_launcher|WifiAnalyzerActivity|DomotiqueActivity|AutomationReceiver' | head -60
 
       - name: Renommer APK
-        run: cp MaisonQuebec/app/build/outputs/apk/debug/app-debug.apk WiFi-Quebec-v1.15.apk
+        run: cp MaisonQuebec/app/build/outputs/apk/debug/app-debug.apk WiFi-Quebec-v1.16.apk
 
       - name: Publier APK
         uses: actions/upload-artifact@v4
         with:
-          name: WiFi-Quebec-v1.15-APK
-          path: WiFi-Quebec-v1.15.apk
+          name: WiFi-Quebec-v1.16-APK
+          path: WiFi-Quebec-v1.16.apk
           if-no-files-found: error

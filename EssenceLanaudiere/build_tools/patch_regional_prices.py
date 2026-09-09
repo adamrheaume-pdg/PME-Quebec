@@ -10,11 +10,11 @@ if 'PRIX MOYENS AUTOUR DU QUÉBEC' not in s:
         regionalTitle.setGravity(Gravity.CENTER);
         regionalTitle.setPadding(dp(6),dp(7),dp(6),0);
         mapCard.addView(regionalTitle,new LinearLayout.LayoutParams(-1,-2));
-        TextView regionalPrices=text("Ontario ≈ 182,0 ¢/L   •   Vermont ≈ 4,30 $US/gal   •   N.-B. ≈ 190,3 ¢/L",11,true,ink);
+        TextView regionalPrices=text("Ontario ≈ 182,0 ¢/L   •   Vermont ≈ 156,9 ¢CA/L   •   New York ≈ 157,7 ¢CA/L   •   Maine ≈ 154,4 ¢CA/L   •   New Hampshire ≈ 152,4 ¢CA/L   •   N.-B. ≈ 190,3 ¢/L",10,true,ink);
         regionalPrices.setGravity(Gravity.CENTER);
         regionalPrices.setPadding(dp(6),dp(3),dp(6),dp(2));
         mapCard.addView(regionalPrices,new LinearLayout.LayoutParams(-1,-2));
-        TextView regionalSource=text("Repères récents • essence ordinaire • CAA / AAA / données régionales",9,false,Color.GRAY);
+        TextView regionalSource=text("USA converti en $CA/L • AAA 09-09-2026 • USD/CAD 1,3784 Banque du Canada (08-09)",8,false,Color.GRAY);
         regionalSource.setGravity(Gravity.CENTER);
         regionalSource.setPadding(dp(6),0,dp(6),dp(6));
         mapCard.addView(regionalSource,new LinearLayout.LayoutParams(-1,-2));'''
@@ -25,7 +25,10 @@ if 'PRIX MOYENS AUTOUR DU QUÉBEC' not in s:
 required = [
     'PRIX MOYENS AUTOUR DU QUÉBEC',
     'Ontario ≈ 182,0 ¢/L',
-    'Vermont ≈ 4,30 $US/gal',
+    'Vermont ≈ 156,9 ¢CA/L',
+    'New York ≈ 157,7 ¢CA/L',
+    'Maine ≈ 154,4 ¢CA/L',
+    'New Hampshire ≈ 152,4 ¢CA/L',
     'N.-B. ≈ 190,3 ¢/L'
 ]
 missing=[x for x in required if x not in s]

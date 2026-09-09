@@ -18,24 +18,59 @@ jobs:
       - name: Récupérer le dépôt
         uses: actions/checkout@v4
 
-      - name: Corriger contraste et barres système
+      - name: Ajouter détection météo visuelle
         shell: python
         run: |
           from pathlib import Path
           p = Path('apps/quebec360data/app/src/main/java/quebec/donnees/q360/MainActivity.kt')
           s = p.read_text(encoding='utf-8')
-          s = s.replace('CardDefaults.cardColors(containerColor = Color(0xB30A1D4E))', 'CardDefaults.cardColors(containerColor = Color(0xB30A1D4E), contentColor = Color.White)')
-          s = s.replace('CardDefaults.cardColors(containerColor = Color(0xC6071B49))', 'CardDefaults.cardColors(containerColor = Color(0xC6071B49), contentColor = Color.White)')
-          s = s.replace('CardDefaults.cardColors(containerColor = Color(0x553F5F8F))', 'CardDefaults.cardColors(containerColor = Color(0x553F5F8F), contentColor = Color.White)')
-          s = s.replace('CardDefaults.cardColors(containerColor = Color(0xAA061A4A))', 'CardDefaults.cardColors(containerColor = Color(0xAA061A4A), contentColor = Color.White)')
-          s = s.replace('Text("QUÉBEC 360", fontSize = 27.sp, fontWeight = FontWeight.Black, letterSpacing = 1.sp)', 'Text("QUÉBEC 360", fontSize = 27.sp, fontWeight = FontWeight.Black, letterSpacing = 1.sp, color = Color.White)')
-          s = s.replace('Text(title, fontSize = 16.sp, fontWeight = FontWeight.Black, letterSpacing = 1.sp)', 'Text(title, fontSize = 16.sp, fontWeight = FontWeight.Black, letterSpacing = 1.sp, color = Color.White)')
-          s = s.replace('Text("Région affichée", fontWeight = FontWeight.Bold)', 'Text("Région affichée", fontWeight = FontWeight.Bold, color = Color.White)')
-          s = s.replace('Text(title, fontWeight = FontWeight.Bold)', 'Text(title, fontWeight = FontWeight.Bold, color = Color.White)')
-          s = s.replace('Text(if (loading) "…" else value, fontSize = 28.sp, fontWeight = FontWeight.Black)', 'Text(if (loading) "…" else value, fontSize = 28.sp, fontWeight = FontWeight.Black, color = Color.White)')
-          s = s.replace('Text(module.title, fontWeight = FontWeight.Black, fontSize = 16.sp)', 'Text(module.title, fontWeight = FontWeight.Black, fontSize = 16.sp, color = Color.White)')
-          s = s.replace('Text("Québec 360 – Données", fontSize = 20.sp, fontWeight = FontWeight.Black)', 'Text("Québec 360 – Données", fontSize = 20.sp, fontWeight = FontWeight.Black, color = Color.White)')
-          s = s.replace('modifier = Modifier.fillMaxSize(),\n                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 20.dp, bottom = 90.dp),', 'modifier = Modifier.fillMaxSize().systemBarsPadding(),\n                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 24.dp),')
+
+          if 'import androidx.compose.animation.core.*' not in s:
+              s = s.replace('import android.os.Bundle\n', 'import android.os.Bundle\nimport androidx.compose.animation.core.*\n')
+          if 'import androidx.compose.ui.draw.alpha' not in s:
+              s = s.replace('import androidx.compose.ui.graphics.vector.ImageVector\n', 'import androidx.compose.ui.graphics.vector.ImageVector\nimport androidx.compose.ui.draw.alpha\n')
+
+          s = s.replace(
+              '    val precipitation: String = "—",\n',
+              '    val precipitation: String = "—",\n    val precipitationProbability: String = "—",\n    val weatherCode: Int = -1,\n'
+          )
+
+          old = '''                item { SectionTitle("TABLEAU TEMPS RÉEL", "Mesures disponibles et utiles dans un seul tableau") }\n\n                item {\n                    RealtimeTable('''
+          new = '''                item { SectionTitle("TABLEAU TEMPS RÉEL", "Mesures disponibles et utiles dans un seul tableau") }\n\n                item { WeatherAlertBanner(state) }\n\n                item {\n                    RealtimeTable('''
+          s = s.replace(old, new)
+
+          marker = '@Composable\nprivate fun RealtimeTable('
+          if 'private fun WeatherAlertBanner' not in s:
+              weather_banner = '''@Composable\nprivate fun WeatherAlertBanner(state: LiveDataState) {\n    val signal = weatherSignal(state)\n    val transition = rememberInfiniteTransition(label = "weather-warning")\n    val blinkAlpha by transition.animateFloat(\n        initialValue = 1f,\n        targetValue = 0.42f,\n        animationSpec = infiniteRepeatable(\n            animation = tween(durationMillis = 650),\n            repeatMode = RepeatMode.Reverse\n        ),\n        label = "warning-alpha"\n    )\n\n    val modifier = if (signal.active) Modifier.fillMaxWidth().alpha(blinkAlpha) else Modifier.fillMaxWidth()\n    val background = if (signal.active) Color(0xFF8A1C14) else Color(0xFF0B3267)\n    Card(\n        modifier = modifier,\n        shape = RoundedCornerShape(18.dp),\n        colors = CardDefaults.cardColors(containerColor = background, contentColor = Color.White)\n    ) {\n        Column(Modifier.padding(14.dp)) {\n            Row(verticalAlignment = Alignment.CenterVertically) {\n                Icon(if (signal.active) Icons.Default.Warning else Icons.Default.Verified, null, tint = if (signal.active) Color(0xFFFFD36B) else Color(0xFF7FFFD4))\n                Spacer(Modifier.width(8.dp))\n                Text(signal.title, fontWeight = FontWeight.Black, fontSize = 15.sp, color = Color.White)\n            }\n            Spacer(Modifier.height(5.dp))\n            Text(signal.details, fontSize = 12.sp, color = Color(0xFFF1F5FF), lineHeight = 17.sp)\n            Spacer(Modifier.height(5.dp))\n            Text(\n                "Important : ce module signale des conditions météo; une tornade ne peut pas être confirmée avec ces mesures seules. Une alerte officielle demeure la référence.",\n                fontSize = 10.sp,\n                color = Color(0xFFFFE7A6),\n                lineHeight = 14.sp\n            )\n        }\n    }\n}\n\ndata class WeatherSignal(val active: Boolean, val title: String, val details: String)\n\nprivate fun weatherSignal(s: LiveDataState): WeatherSignal {\n    fun n(v: String): Double = v.replace(',', '.').toDoubleOrNull() ?: Double.NaN\n    val probability = n(s.precipitationProbability)\n    val gusts = n(s.gusts)\n    val pressure = n(s.pressure)\n    val thunderstorm = s.weatherCode in setOf(95, 96, 99)\n    val heavyWind = !gusts.isNaN() && gusts >= 70.0\n    val stormPattern = heavyWind || (probability >= 60.0 && gusts >= 50.0) || (!pressure.isNaN() && pressure < 990.0 && gusts >= 50.0)\n    val precipHigh = !probability.isNaN() && probability >= 60.0\n    val violentPattern = thunderstorm && gusts >= 90.0\n\n    val labels = mutableListOf<String>()\n    if (thunderstorm) labels.add("ORAGE")\n    if (stormPattern) labels.add("TEMPÊTE / VENTS FORTS")\n    if (precipHigh) labels.add("PRÉCIPITATIONS ${s.precipitationProbability}%")\n    if (violentPattern) labels.add("CONDITIONS TRÈS VIOLENTES — VÉRIFIER ALERTES TORNADE")\n\n    if (labels.isEmpty()) {\n        return WeatherSignal(\n            false,\n            "Aucun signal météo important détecté",\n            "Le module surveille les orages, les vents forts et une probabilité de précipitations de 60 % ou plus."\n        )\n    }\n    return WeatherSignal(\n        true,\n        "⚠ ${labels.joinToString(" • ")}",\n        "Rafales ${s.gusts} km/h • Pression ${s.pressure} hPa • Probabilité de précipitations ${s.precipitationProbability}% • Code météo ${s.weatherCode}."\n    )\n}\n\n'''
+              s = s.replace(marker, weather_banner + marker)
+
+          s = s.replace(
+              '    RealtimeRow("Précipitations", s.precipitation, "mm", "Quantité totale récente de précipitations, incluant pluie et neige équivalente selon la source."),\n',
+              '    RealtimeRow("Probabilité précipitations", s.precipitationProbability, "%", "Probabilité de précipitations prévue pour l’heure courante. À 60 % ou plus, le bandeau météo clignote."),\n    RealtimeRow("Précipitations", s.precipitation, "mm", "Quantité totale récente de précipitations, incluant pluie et neige équivalente selon la source."),\n'
+          )
+
+          s = s.replace(
+              '    var pressure = "—"; var precip = "—"; var rain = "—"; var snow = "—"; var clouds = "—"\n',
+              '    var pressure = "—"; var precip = "—"; var precipProbability = "—"; var weatherCode = -1; var rain = "—"; var snow = "—"; var clouds = "—"\n'
+          )
+
+          s = s.replace(
+              'val weatherUrl = "https://api.open-meteo.com/v1/forecast?latitude=${region.latitude}&longitude=${region.longitude}&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,wind_gusts_10m,surface_pressure,precipitation,rain,snowfall,cloud_cover&timezone=America%2FToronto"\n        val current = JSONObject(httpGet(weatherUrl)).getJSONObject("current")',
+              'val weatherUrl = "https://api.open-meteo.com/v1/forecast?latitude=${region.latitude}&longitude=${region.longitude}&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,wind_gusts_10m,surface_pressure,precipitation,rain,snowfall,cloud_cover,weather_code&hourly=precipitation_probability&forecast_days=1&timezone=America%2FToronto"\n        val weatherJson = JSONObject(httpGet(weatherUrl))\n        val current = weatherJson.getJSONObject("current")'
+          )
+
+          s = s.replace(
+              '        clouds = current.optInt("cloud_cover").toString()\n',
+              '''        clouds = current.optInt("cloud_cover").toString()\n        weatherCode = current.optInt("weather_code", -1)\n        val currentTime = current.optString("time")\n        val hourly = weatherJson.optJSONObject("hourly")\n        val times = hourly?.optJSONArray("time")\n        val probs = hourly?.optJSONArray("precipitation_probability")\n        if (times != null && probs != null) {\n            var idx = -1\n            for (i in 0 until times.length()) {\n                if (times.optString(i) == currentTime) { idx = i; break }\n            }\n            if (idx < 0) {\n                val hourPrefix = if (currentTime.length >= 13) currentTime.substring(0, 13) else currentTime\n                for (i in 0 until times.length()) {\n                    if (times.optString(i).startsWith(hourPrefix)) { idx = i; break }\n                }\n            }\n            if (idx >= 0) precipProbability = probs.optInt(idx).toString()\n        }\n'''
+          )
+
+          s = s.replace(
+              '        precipitation = precip,\n',
+              '        precipitation = precip,\n        precipitationProbability = precipProbability,\n        weatherCode = weatherCode,\n'
+          )
+
+          s = s.replace('Quebec360Data/1.2', 'Quebec360Data/1.3')
+
           p.write_text(s, encoding='utf-8')
 
       - name: Java 17
@@ -59,11 +94,11 @@ jobs:
         run: gradle -p apps/quebec360data :app:assembleDebug --stacktrace
 
       - name: Renommer APK
-        run: cp apps/quebec360data/app/build/outputs/apk/debug/app-debug.apk Quebec-360-Donnees-v1.2-Barres-Systeme.apk
+        run: cp apps/quebec360data/app/build/outputs/apk/debug/app-debug.apk Quebec-360-Donnees-v1.3-Alertes-Meteo.apk
 
       - name: Publier APK
         uses: actions/upload-artifact@v4
         with:
-          name: Quebec-360-Donnees-v1.2-Barres-Systeme
-          path: Quebec-360-Donnees-v1.2-Barres-Systeme.apk
+          name: Quebec-360-Donnees-v1.3-Alertes-Meteo
+          path: Quebec-360-Donnees-v1.3-Alertes-Meteo.apk
           retention-days: 30

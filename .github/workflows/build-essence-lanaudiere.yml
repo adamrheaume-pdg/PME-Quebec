@@ -14,43 +14,31 @@ jobs:
     steps:
       - name: Recuperer le depot
         uses: actions/checkout@v4
-
       - name: Java 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
-
       - name: Android SDK
         uses: android-actions/setup-android@v3
-
       - name: Installer Android 35
         run: sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
-
       - name: Integrer carte logos position et zones securitaires
         run: python3 EssenceLanaudiere/build_tools/patch_map.py
-
       - name: Integrer alertes prix et corriger villes doubles
         run: python3 EssenceLanaudiere/build_tools/patch_alerts.py
-
-      - name: Ajouter prix moyens Ontario Vermont Nouveau-Brunswick
+      - name: Ajouter prix moyens Canada USA convertis par litre
         run: python3 EssenceLanaudiere/build_tools/patch_regional_prices.py
-
       - name: Appliquer theme premium bleu natif
         run: python3 EssenceLanaudiere/build_tools/patch_premium_theme.py
-
       - name: Ajouter caméras Québec 511
         run: python3 EssenceLanaudiere/build_tools/patch_mtq_cameras.py
-
       - name: Ajouter alerte radar photo securitaire 1 km
         run: python3 EssenceLanaudiere/build_tools/patch_radar_safety.py
-
       - name: Afficher stations individuellement et POI restaurants
         run: python3 EssenceLanaudiere/build_tools/patch_uncluster_poi.py
-
       - name: Ajouter bouton de fermeture complete
         run: python3 EssenceLanaudiere/build_tools/patch_shutdown.py
-
       - name: Verifier les fonctions demandees
         shell: bash
         run: |
@@ -68,7 +56,10 @@ jobs:
           grep -F 'rememberStationPrice(x)' "$FILE"
           grep -F 'PRIX MOYENS AUTOUR DU QUÉBEC' "$FILE"
           grep -F 'Ontario ≈ 182,0 ¢/L' "$FILE"
-          grep -F 'Vermont ≈ 4,30 $US/gal' "$FILE"
+          grep -F 'Vermont ≈ 156,9 ¢CA/L' "$FILE"
+          grep -F 'New York ≈ 157,7 ¢CA/L' "$FILE"
+          grep -F 'Maine ≈ 154,4 ¢CA/L' "$FILE"
+          grep -F 'New Hampshire ≈ 152,4 ¢CA/L' "$FILE"
           grep -F 'N.-B. ≈ 190,3 ¢/L' "$FILE"
           grep -F 'SIMPLE  •  PUISSANTE  •  QUÉBÉCOISE' "$FILE"
           grep -F 'premiumCard()' "$FILE"
@@ -89,7 +80,6 @@ jobs:
           grep -F 'NUCLEAR_SHUTDOWN_ARMED' "$FILE"
           grep -F 'startNuclearIconBlink' "$FILE"
           grep -F 'finishAndRemoveTask()' "$FILE"
-
       - name: Verifier et deployer le logo Essence Quebec
         shell: bash
         run: |
@@ -100,17 +90,14 @@ jobs:
           file "$LOGO" | grep -F 'PNG image data, 48 x 48'
           for d in mipmap-mdpi mipmap-hdpi mipmap-xhdpi mipmap-xxhdpi mipmap-xxxhdpi; do
             mkdir -p "$RES/$d"
-            cp "$LOGO" "$RES/$d/ic_launcher.png"
+            cp "$LOGO" "$RES/$d/ic_launcher.png
           done
-
       - name: Installer Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.10.2'
-
       - name: Compiler APK debug
         run: gradle -p EssenceLanaudiere :app:assembleDebug --stacktrace
-
       - name: Verifier APK et logo embarque
         shell: bash
         run: |
@@ -119,10 +106,8 @@ jobs:
           unzip -t "$APK" >/dev/null
           unzip -p "$APK" res/drawable/essence_quebec_logo.png > /tmp/logo-apk.png
           echo '3e99fff8892de7c56f773ad5d20fa70f8562c6668b3b60f059d6d114a97e5e98  /tmp/logo-apk.png' | sha256sum -c -
-
       - name: Renommer APK
         run: cp EssenceLanaudiere/app/build/outputs/apk/debug/app-debug.apk Essence-Quebec.apk
-
       - name: Publier APK
         uses: actions/upload-artifact@v4
         with:

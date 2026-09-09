@@ -45,6 +45,9 @@ jobs:
       - name: Ajouter alerte radar photo securitaire 1 km
         run: python3 EssenceLanaudiere/build_tools/patch_radar_safety.py
 
+      - name: Afficher stations individuellement et POI restaurants
+        run: python3 EssenceLanaudiere/build_tools/patch_uncluster_poi.py
+
       - name: Ajouter bouton de fermeture complete
         run: python3 EssenceLanaudiere/build_tools/patch_shutdown.py
 
@@ -76,6 +79,13 @@ jobs:
           grep -F 'RADAR_ALERT_METERS=1000' "$FILE"
           grep -F 'RADAR PHOTO À PROXIMITÉ' "$FILE"
           grep -F 'radarBlink' "$FILE"
+          grep -F 'FOOD_POI_OVERPASS' "$FILE"
+          grep -F 'foodPoiJavascript' "$FILE"
+          grep -F "McDonald's" "$FILE"
+          grep -F 'Tim Hortons' "$FILE"
+          grep -F '🍔' "$FILE"
+          grep -F '☕' "$FILE"
+          if grep -Fq 'markerClusterGroup' "$FILE"; then echo 'ERREUR: regroupement des stations encore present'; exit 1; fi
           grep -F 'NUCLEAR_SHUTDOWN_ARMED' "$FILE"
           grep -F 'startNuclearIconBlink' "$FILE"
           grep -F 'finishAndRemoveTask()' "$FILE"

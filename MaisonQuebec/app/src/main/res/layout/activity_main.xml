@@ -15,7 +15,7 @@
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
                 android:text="WiFi Québec" android:textSize="28sp" android:textStyle="bold" android:textColor="@color/mq_blue"/>
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:text="Contrôle du réseau local et des appareils connectés" android:textSize="14sp" android:textColor="@color/mq_text"/>
+                android:text="Réseau, analyse Wi-Fi et domotique locale" android:textSize="14sp" android:textColor="@color/mq_text"/>
         </LinearLayout>
     </LinearLayout>
 
@@ -23,6 +23,7 @@
         <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal" android:padding="12dp">
             <Button android:id="@+id/btnScan" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Scanner le réseau" android:textColor="#FFFFFF" android:background="@drawable/button_primary"/>
             <Button android:id="@+id/btnAnalyzer" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="8dp" android:text="Analyse Wi-Fi"/>
+            <Button android:id="@+id/btnDomotique" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="8dp" android:text="Domotique"/>
             <Button android:id="@+id/btnAdd" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="8dp" android:text="Ajouter IP"/>
             <Button android:id="@+id/btnBell" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="8dp" android:text="Borne Giga directe"/>
         </LinearLayout>

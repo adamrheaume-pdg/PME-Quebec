@@ -1,9 +1,11 @@
 import json
 import threading
+import socket
 from pathlib import Path
 
 _tv = None
 _lock = threading.RLock()
+FIXED_MAC = "e0:3e:cb:ea:88:08"
 
 def discover():
     from vidaa.discovery import discover_all
@@ -24,12 +26,11 @@ def _make_client(ip, files_dir):
             mac = d.mac
     except Exception:
         pass
+    if not mac:
+        mac = FIXED_MAC
     storage = TokenStorage(Path(files_dir) / "vidaa_tokens.json")
     kwargs = dict(host=ip, enable_persistence=True, storage=storage)
-    if mac:
-        kwargs.update(mac_address=mac, use_dynamic_auth=True, brand="his")
-    else:
-        kwargs.update(use_dynamic_auth=False)
+    kwargs.update(mac_address=mac, use_dynamic_auth=True, brand="his")
     return VidaaTV(**kwargs)
 
 def connect(ip, files_dir):
@@ -82,3 +83,17 @@ def source(name):
             return bool(_tv.set_source(name))
         except Exception:
             return False
+
+def wake(mac=FIXED_MAC):
+    try:
+        clean = mac.replace(":", "").replace("-", "")
+        if len(clean) != 12:
+            return False
+        packet = bytes.fromhex("FF" * 6 + clean * 16)
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+        s.sendto(packet, ("255.255.255.255", 9))
+        s.close()
+        return True
+    except Exception:
+        return False

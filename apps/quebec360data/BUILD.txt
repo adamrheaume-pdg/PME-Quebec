@@ -1,0 +1,1 @@
+Déclencheur de compilation GitHub Actions pour Québec 360 Données.

@@ -1,0 +1,53 @@
+name: Compiler Médias Québec APK
+
+on:
+  push:
+    branches:
+      - medias-quebec-app
+    paths:
+      - 'medias-quebec/**'
+      - '.github/workflows/medias-quebec-apk.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Récupérer le dépôt
+        uses: actions/checkout@v4
+
+      - name: Installer Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Installer Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.10.2'
+
+      - name: Compiler l'APK debug
+        working-directory: medias-quebec
+        run: gradle --no-daemon --stacktrace :app:assembleDebug
+
+      - name: Préparer l'APK
+        run: |
+          mkdir -p out
+          cp medias-quebec/app/build/outputs/apk/debug/*.apk out/Medias-Quebec.apk
+          sha256sum out/Medias-Quebec.apk > out/Medias-Quebec.sha256.txt
+
+      - name: Publier l'APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Medias-Quebec-APK
+          path: |
+            out/Medias-Quebec.apk
+            out/Medias-Quebec.sha256.txt
+          if-no-files-found: error
+          retention-days: 30

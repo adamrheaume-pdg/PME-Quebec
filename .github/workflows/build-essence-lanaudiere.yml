@@ -39,6 +39,9 @@ jobs:
       - name: Appliquer theme premium bleu natif
         run: python3 EssenceLanaudiere/build_tools/patch_premium_theme.py
 
+      - name: Ajouter bouton de fermeture complete
+        run: python3 EssenceLanaudiere/build_tools/patch_shutdown.py
+
       - name: Verifier les fonctions demandees
         shell: bash
         run: |
@@ -61,6 +64,8 @@ jobs:
           grep -F 'SIMPLE  •  PUISSANTE  •  QUÉBÉCOISE' "$FILE"
           grep -F 'premiumCard()' "$FILE"
           grep -F 'blueBackdrop()' "$FILE"
+          grep -F 'FERMER COMPLÈTEMENT L’APPLICATION' "$FILE"
+          grep -F 'finishAndRemoveTask()' "$FILE"
 
       - name: Verifier et deployer le logo Essence Quebec
         shell: bash

@@ -32,26 +32,45 @@ jobs:
       - name: Installer Android 35
         run: sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
 
-      - name: Corriger zones systeme Android
+      - name: Appliquer interface v2
         run: python3 Detecteur360Quebec/build_tools/fix_safe_insets.py
+
+      - name: Finaliser logo et signature v3
+        run: python3 Detecteur360Quebec/build_tools/finalize_v3.py
+
+      - name: Verifier ressources critiques
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s Detecteur360Quebec/app/src/main/res/drawable/detecteur_logo.webp
+          test -s Detecteur360Quebec/d360-release.jks
+          grep -F 'android:icon="@drawable/detecteur_logo"' Detecteur360Quebec/app/src/main/AndroidManifest.xml
+          grep -F "applicationId 'quebec.detecteur360.qc'" Detecteur360Quebec/app/build.gradle
+          file Detecteur360Quebec/app/src/main/res/drawable/detecteur_logo.webp | grep -Ei 'Web/P|WebP'
 
       - name: Installer Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.10.2'
 
-      - name: Compiler APK
+      - name: Compiler APK signee
         run: gradle -p Detecteur360Quebec :app:assembleDebug --stacktrace
 
       - name: Verifier APK
-        run: unzip -t Detecteur360Quebec/app/build/outputs/apk/debug/app-debug.apk >/dev/null
+        shell: bash
+        run: |
+          set -euo pipefail
+          APK=Detecteur360Quebec/app/build/outputs/apk/debug/app-debug.apk
+          unzip -t "$APK" >/dev/null
+          unzip -l "$APK" | grep -E 'detecteur_logo.*webp'
+          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose --print-certs "$APK"
 
       - name: Renommer APK
-        run: cp Detecteur360Quebec/app/build/outputs/apk/debug/app-debug.apk 'Detecteur-360-Quebec.apk'
+        run: cp Detecteur360Quebec/app/build/outputs/apk/debug/app-debug.apk 'Detecteur-360-Quebec-v3.apk'
 
       - name: Publier APK
         uses: actions/upload-artifact@v4
         with:
-          name: Detecteur-360-Quebec-APK
-          path: Detecteur-360-Quebec.apk
+          name: Detecteur-360-Quebec-v3-APK
+          path: Detecteur-360-Quebec-v3.apk
           retention-days: 30

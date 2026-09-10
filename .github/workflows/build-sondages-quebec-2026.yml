@@ -34,6 +34,10 @@ jobs:
       - name: Add Qc125 live section
         run: python3 .github/scripts/patch_sondages_qc125_live.py
 
+      - name: Respect Android system bars
+        working-directory: SondagesQuebec2026
+        run: python3 patch_system_insets.py
+
       - name: Build release APK
         working-directory: SondagesQuebec2026
         run: gradle --no-daemon assembleRelease

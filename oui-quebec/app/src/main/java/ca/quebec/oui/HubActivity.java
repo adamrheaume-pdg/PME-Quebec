@@ -18,7 +18,7 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 
 public class HubActivity extends Activity {
-    private static final int BLUE=Color.rgb(0,61,165), BLUE2=Color.rgb(0,81,196), DARK=Color.rgb(0,31,91), INK=Color.rgb(20,33,61), MUTED=Color.rgb(82,98,125), SOFT=Color.rgb(244,247,252), WHITE=Color.WHITE, GREEN=Color.rgb(18,126,72), ORANGE=Color.rgb(194,104,16), PURPLE=Color.rgb(111,70,160);
+    private static final int BLUE=Color.rgb(0,61,165), BLUE2=Color.rgb(0,81,196), DARK=Color.rgb(0,31,91), INK=Color.rgb(20,33,61), MUTED=Color.rgb(82,98,125), SOFT=Color.rgb(244,247,252), WHITE=Color.WHITE, GREEN=Color.rgb(18,126,72), ORANGE=Color.rgb(194,104,16);
     private MediaPlayer player; private Button playButton; private TextView radioStatus;
 
     @Override public void onCreate(Bundle b){super.onCreate(b);getWindow().setStatusBarColor(DARK);getWindow().setNavigationBarColor(DARK);build();}
@@ -37,7 +37,7 @@ public class HubActivity extends Activity {
     private void build(){
         LinearLayout outer=new LinearLayout(this);outer.setOrientation(LinearLayout.VERTICAL);outer.setBackgroundColor(WHITE);outer.setOnApplyWindowInsetsListener((v,insets)->{int top=0,bottom=0,left=0,right=0;if(android.os.Build.VERSION.SDK_INT>=30){android.graphics.Insets i=insets.getInsets(WindowInsets.Type.systemBars()|WindowInsets.Type.displayCutout());top=i.top;bottom=i.bottom;left=i.left;right=i.right;}else{top=insets.getSystemWindowInsetTop();bottom=insets.getSystemWindowInsetBottom();}v.setPadding(left,top,right,bottom);return insets;});
 
-        LinearLayout head=new LinearLayout(this);head.setOrientation(LinearLayout.VERTICAL);head.setGravity(Gravity.CENTER_HORIZONTAL);head.setPadding(dp(18),dp(10),dp(18),dp(16));head.setBackgroundColor(DARK);head.addView(logo(96));TextView title=tx("OUI QUÉBEC",28,WHITE,true);title.setGravity(Gravity.CENTER);title.setPadding(0,dp(3),0,0);head.addView(title);TextView version=tx("Centre documentaire • V4.7",13,Color.rgb(210,225,250),false);version.setGravity(Gravity.CENTER);head.addView(version);outer.addView(head);
+        LinearLayout head=new LinearLayout(this);head.setOrientation(LinearLayout.VERTICAL);head.setGravity(Gravity.CENTER_HORIZONTAL);head.setPadding(dp(18),dp(10),dp(18),dp(16));head.setBackgroundColor(DARK);head.addView(logo(96));TextView title=tx("OUI QUÉBEC",28,WHITE,true);title.setGravity(Gravity.CENTER);title.setPadding(0,dp(3),0,0);head.addView(title);TextView version=tx("Centre documentaire • V4.8",13,Color.rgb(210,225,250),false);version.setGravity(Gravity.CENTER);head.addView(version);outer.addView(head);
 
         ScrollView scroll=new ScrollView(this);scroll.setClipToPadding(false);LinearLayout root=new LinearLayout(this);root.setOrientation(LinearLayout.VERTICAL);root.setPadding(dp(15),dp(14),dp(15),dp(30));
 
@@ -46,6 +46,7 @@ public class HubActivity extends Activity {
 
         sectionTitle(root,"Navigation rapide","Accès direct aux principaux modules de l’application.");
         Button app=button("📊 Données, Livre bleu et simulateur");app.setOnClickListener(v->startActivity(new Intent(this,MainActivity.class)));root.addView(app);
+        Button polls=button("📈 Sondages — indépendance depuis 1976 + médias");polls.setOnClickListener(v->startActivity(new Intent(this,PollsActivity.class)));root.addView(polls);
         Button library=button("📚 Bibliothèque — indépendance du Québec");library.setOnClickListener(v->startActivity(new Intent(this,LiteratureActivity.class)));root.addView(library);
         Button history=button("🕰 Histoire politique — 1534 à aujourd’hui");history.setOnClickListener(v->startActivity(new Intent(this,HistoryActivity.class)));root.addView(history);
 
@@ -64,7 +65,7 @@ public class HubActivity extends Activity {
         radioStatus=tx("Prêt à écouter",14,INK,true);radioStatus.setPadding(0,dp(4),0,dp(4));root.addView(radioStatus);playButton=button("▶ Écouter QUB en direct");playButton.setOnClickListener(v->toggleRadio());root.addView(playButton);Button my=button("🌐 Ouvrir QUB sur myTuner");my.setOnClickListener(v->open("https://mytuner-radio.com/fr/radio/qub-radio-458512/"));root.addView(my);
 
         infoCard(root,"Méthode documentaire","Les contenus militants, partisans, éditoriaux, scientifiques, historiques et gouvernementaux sont séparés. La chronologie distingue conflit militaire, affrontement armé, crise politique, conflit constitutionnel et friction linguistique. Une estimation n’est jamais présentée comme une donnée officielle.");
-        TextView footer=tx("OUI Québec • V4.7 • Base stable : V4.6.1",11,MUTED,true);footer.setGravity(Gravity.CENTER);footer.setPadding(0,dp(8),0,dp(8));root.addView(footer);
+        TextView footer=tx("OUI Québec • V4.8 • Base stable conservée : V4.6.1",11,MUTED,true);footer.setGravity(Gravity.CENTER);footer.setPadding(0,dp(8),0,dp(8));root.addView(footer);
 
         scroll.addView(root);outer.addView(scroll,new LinearLayout.LayoutParams(-1,0,1));setContentView(outer);outer.requestApplyInsets();
     }

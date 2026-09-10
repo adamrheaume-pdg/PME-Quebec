@@ -20,3 +20,5 @@ else:
 
 # Toujours appliquer ensuite le module Sécurité réseau et permissions étendues.
 runpy.run_path(str(Path('.github/scripts/patch_security_network_scanner.py')), run_name='__main__')
+# Puis stabiliser le retour au WebView après les boîtes de permissions Android.
+runpy.run_path(str(Path('.github/scripts/patch_permission_flow_stability.py')), run_name='__main__')

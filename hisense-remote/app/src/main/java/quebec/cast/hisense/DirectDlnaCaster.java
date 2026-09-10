@@ -10,7 +10,6 @@ import java.io.*;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.concurrent.*;
 import java.util.regex.*;
 
 public class DirectDlnaCaster {
@@ -55,23 +54,12 @@ public class DirectDlnaCaster {
         status("Lecture directe sur la Hisense — sans Google Cast.");
     }
 
-    public void pause() throws Exception {
-        String ctl = ensureControl();
-        soap(ctl, "Pause", "<InstanceID>0</InstanceID>");
-        status("Pause.");
-    }
-
-    public void play() throws Exception {
-        String ctl = ensureControl();
-        soap(ctl, "Play", "<InstanceID>0</InstanceID><Speed>1</Speed>");
-        status("Lecture.");
-    }
-
+    public void pause() throws Exception { soap(ensureControl(), "Pause", "<InstanceID>0</InstanceID>"); status("Pause."); }
+    public void play() throws Exception { soap(ensureControl(), "Play", "<InstanceID>0</InstanceID><Speed>1</Speed>"); status("Lecture."); }
     public void stopPlayback() throws Exception {
         String ctl = ensureControl();
-        try { soap(ctl, "Stop", "<InstanceID>0</InstanceID>"); } finally {
-            if (server != null) { server.stop(); server = null; }
-        }
+        try { soap(ctl, "Stop", "<InstanceID>0</InstanceID>"); }
+        finally { if (server != null) { server.stop(); server = null; } }
         status("Cast direct arrêté.");
     }
 
@@ -81,31 +69,96 @@ public class DirectDlnaCaster {
     }
 
     private String findAvTransportControlUrl() throws Exception {
-        List<String> candidates = Arrays.asList(
-                "http://" + tvIp + ":38400/MediaRenderer/rendererdevicedesc.xml",
-                "http://" + tvIp + ":38400/MediaServer/rendererdevicedesc.xml",
-                "http://" + tvIp + ":38400/rendererdevicedesc.xml"
-        );
+        // 1) Méthode correcte UPnP : demander au téléviseur son URL LOCATION via SSDP.
+        List<String> locations = discoverLocationsBySsdp();
         Exception last = null;
-        for (String url : candidates) {
+        for (String location : locations) {
             try {
-                String xml = httpGet(url);
-                String control = parseControlUrl(xml, "AVTransport");
-                if (control != null) return absolutize(url, control);
+                String desc = httpGet(location);
+                String control = parseControlUrl(desc, "AVTransport");
+                if (control != null) {
+                    String abs = absolutize(location, control);
+                    soap(abs, "GetTransportInfo", "<InstanceID>0</InstanceID>");
+                    status("Récepteur DLNA trouvé automatiquement.");
+                    return abs;
+                }
             } catch (Exception e) { last = e; }
         }
-        // Common Hisense/VIDAA fallback.
-        String[] fallback = {
-                "http://" + tvIp + ":38400/MediaRenderer/AVTransport/control",
-                "http://" + tvIp + ":38400/AVTransport/control"
+
+        // 2) Certains VIDAA n'annoncent le renderer que via plusieurs ST.
+        String[] sts = {
+                "urn:schemas-upnp-org:device:MediaRenderer:1",
+                "urn:schemas-upnp-org:service:AVTransport:1",
+                "ssdp:all"
         };
-        for (String f : fallback) {
+        for (String st : sts) {
             try {
-                soap(f, "GetTransportInfo", "<InstanceID>0</InstanceID>");
-                return f;
+                String loc = discoverSingleLocation(st);
+                if (loc != null) {
+                    String desc = httpGet(loc);
+                    String control = parseControlUrl(desc, "AVTransport");
+                    if (control != null) {
+                        String abs = absolutize(loc, control);
+                        soap(abs, "GetTransportInfo", "<InstanceID>0</InstanceID>");
+                        return abs;
+                    }
+                }
             } catch (Exception e) { last = e; }
         }
-        throw new IOException("Service DLNA/AVTransport introuvable sur la télé" + (last != null ? " : " + last.getMessage() : ""));
+
+        throw new IOException("Aucun récepteur DLNA/AVTransport n’est annoncé par la Hisense sur le réseau local" +
+                (last != null && last.getMessage() != null ? " : " + last.getMessage() : ""));
+    }
+
+    private List<String> discoverLocationsBySsdp() throws Exception {
+        LinkedHashSet<String> out = new LinkedHashSet<>();
+        String[] sts = {
+                "urn:schemas-upnp-org:device:MediaRenderer:1",
+                "urn:schemas-upnp-org:service:AVTransport:1",
+                "ssdp:all"
+        };
+        for (String st : sts) {
+            out.addAll(discoverLocations(st, 1800));
+        }
+        return new ArrayList<>(out);
+    }
+
+    private String discoverSingleLocation(String st) throws Exception {
+        List<String> a = discoverLocations(st, 2200);
+        return a.isEmpty() ? null : a.get(0);
+    }
+
+    private List<String> discoverLocations(String st, int timeoutMs) throws Exception {
+        List<String> out = new ArrayList<>();
+        DatagramSocket sock = new DatagramSocket();
+        try {
+            sock.setReuseAddress(true);
+            sock.setSoTimeout(350);
+            String req = "M-SEARCH * HTTP/1.1\r\n" +
+                    "HOST: 239.255.255.250:1900\r\n" +
+                    "MAN: \"ssdp:discover\"\r\n" +
+                    "MX: 2\r\n" +
+                    "ST: " + st + "\r\n\r\n";
+            byte[] data = req.getBytes(StandardCharsets.ISO_8859_1);
+            InetAddress group = InetAddress.getByName("239.255.255.250");
+            sock.send(new DatagramPacket(data, data.length, group, 1900));
+            long end = System.currentTimeMillis() + timeoutMs;
+            byte[] buf = new byte[8192];
+            while (System.currentTimeMillis() < end) {
+                try {
+                    DatagramPacket p = new DatagramPacket(buf, buf.length);
+                    sock.receive(p);
+                    if (!tvIp.equals(p.getAddress().getHostAddress())) continue;
+                    String resp = new String(p.getData(), 0, p.getLength(), StandardCharsets.ISO_8859_1);
+                    Matcher m = Pattern.compile("(?im)^LOCATION\\s*:\\s*(.+?)\\s*$").matcher(resp);
+                    if (m.find()) {
+                        String loc = m.group(1).trim();
+                        if (!out.contains(loc)) out.add(loc);
+                    }
+                } catch (SocketTimeoutException ignored) {}
+            }
+        } finally { sock.close(); }
+        return out;
     }
 
     private static String parseControlUrl(String xml, String serviceName) {
@@ -117,13 +170,13 @@ public class DirectDlnaCaster {
     private static String absolutize(String descriptorUrl, String control) throws Exception {
         URL base = new URL(descriptorUrl);
         if (control.startsWith("http://") || control.startsWith("https://")) return control;
-        if (!control.startsWith("/")) control = "/" + control;
-        return base.getProtocol() + "://" + base.getHost() + ":" + base.getPort() + control;
+        URI resolved = base.toURI().resolve(control);
+        return resolved.toString();
     }
 
     private static String httpGet(String s) throws Exception {
         HttpURLConnection c = (HttpURLConnection)new URL(s).openConnection();
-        c.setConnectTimeout(2500); c.setReadTimeout(3500); c.setRequestMethod("GET");
+        c.setConnectTimeout(3000); c.setReadTimeout(4000); c.setRequestMethod("GET");
         int code = c.getResponseCode();
         if (code < 200 || code >= 300) throw new IOException("HTTP " + code);
         try (InputStream in = c.getInputStream()) { return readAll(in); }
@@ -139,7 +192,7 @@ public class DirectDlnaCaster {
         HttpURLConnection c = (HttpURLConnection)new URL(controlUrl).openConnection();
         c.setConnectTimeout(3000); c.setReadTimeout(5000); c.setRequestMethod("POST"); c.setDoOutput(true);
         c.setRequestProperty("Content-Type", "text/xml; charset=\"utf-8\"");
-        c.setRequestProperty("SOAPAction", "\"" + service + "#" + action + "\"");
+        c.setRequestProperty("SOAPACTION", "\"" + service + "#" + action + "\"");
         c.setFixedLengthStreamingMode(bytes.length);
         try (OutputStream out = c.getOutputStream()) { out.write(bytes); }
         int code = c.getResponseCode();

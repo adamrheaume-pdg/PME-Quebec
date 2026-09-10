@@ -29,6 +29,9 @@ jobs:
         with:
           gradle-version: '8.10.2'
 
+      - name: Installer yt-dlp
+        run: python3 -m pip install --disable-pip-version-check --quiet yt-dlp
+
       - name: Restaurer playlists et zone sûre Android
         run: python3 .github/scripts/patch_musique_presets.py
 
@@ -47,11 +50,11 @@ jobs:
         run: gradle --no-daemon assembleRelease
 
       - name: Préparer le fichier final
-        run: cp musique-quebec/app/build/outputs/apk/release/app-release.apk Musique-Quebec-PLAYLISTS.apk
+        run: cp musique-quebec/app/build/outputs/apk/release/app-release.apk Musique-Quebec-2.2.0.apk
 
       - name: Publier l'APK
         uses: actions/upload-artifact@v4
         with:
-          name: Musique-Quebec-PLAYLISTS
-          path: Musique-Quebec-PLAYLISTS.apk
+          name: Musique-Quebec-2.2.0
+          path: Musique-Quebec-2.2.0.apk
           if-no-files-found: error

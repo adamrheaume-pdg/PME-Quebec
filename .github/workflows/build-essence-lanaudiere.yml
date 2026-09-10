@@ -41,6 +41,10 @@ jobs:
         run: python3 EssenceLanaudiere/build_tools/patch_navigation_map.py
       - name: Appliquer finition visuelle punchée
         run: python3 EssenceLanaudiere/build_tools/patch_visual_punch.py
+      - name: Appliquer interface neon conduite
+        run: python3 EssenceLanaudiere/build_tools/patch_neon_drive_ui.py
+      - name: Relier notifications a Google Maps
+        run: python3 EssenceLanaudiere/build_tools/patch_notification_maps.py
       - name: Ajouter bouton de fermeture complete
         run: python3 EssenceLanaudiere/build_tools/patch_shutdown.py
       - name: Verifier les fonctions demandees
@@ -50,9 +54,9 @@ jobs:
           FILE="EssenceLanaudiere/app/src/main/java/quebec/lanaudiere/essence/MainActivity.java"
           grep -F '60 km' "$FILE"
           grep -F 'VOUS ÊTES ICI' "$FILE"
-          grep -F 'CARTE 360° • PRIX • SERVICES' "$FILE"
+          grep -F 'CARTE • LISTE • FAVORIS' "$FILE"
           grep -F 'ESSENCE QUÉBEC' "$FILE"
-          grep -F 'COMPARE • ÉCONOMISE • ROULE' "$FILE"
+          grep -F 'LES BONS PRIX • TOUJOURS PLUS LOIN' "$FILE"
           grep -F 'loadBrandLogo(brand,x.name)' "$FILE"
           grep -F 'applySafeInsets(page,18,18,18,26)' "$FILE"
           grep -F 'PRIX LE MOINS CHER DANS LA ZONE' "$FILE"
@@ -77,6 +81,11 @@ jobs:
           grep -F 'id=meBtn' "$FILE"
           grep -F 'id=allBtn' "$FILE"
           grep -F 'backdrop-filter:blur(8px)' "$FILE"
+          grep -F 'neonGlassPanel()' "$FILE"
+          grep -F 'neonPricePanel()' "$FILE"
+          grep -F 'NAV • ACCUEIL' "$FILE"
+          grep -F 'setContentIntent(go)' "$FILE"
+          grep -F 'com.google.android.apps.maps' "$FILE"
           if grep -Fq 'markerClusterGroup' "$FILE"; then echo 'ERREUR: regroupement des stations encore present'; exit 1; fi
           grep -F 'NUCLEAR_SHUTDOWN_ARMED' "$FILE"
           grep -F 'finishAndRemoveTask()' "$FILE"

@@ -47,6 +47,8 @@ jobs:
         run: python3 EssenceLanaudiere/build_tools/patch_notification_maps.py
       - name: Ajouter bouton de fermeture complete
         run: python3 EssenceLanaudiere/build_tools/patch_shutdown.py
+      - name: Appliquer interface finale selon la reference
+        run: python3 EssenceLanaudiere/build_tools/patch_reference_ui.py
       - name: Verifier les fonctions demandees
         shell: bash
         run: |
@@ -58,7 +60,6 @@ jobs:
           grep -F 'ESSENCE QUÉBEC' "$FILE"
           grep -F 'LES BONS PRIX • TOUJOURS PLUS LOIN' "$FILE"
           grep -F 'loadBrandLogo(brand,x.name)' "$FILE"
-          grep -F 'applySafeInsets(page,18,18,18,26)' "$FILE"
           grep -F 'PRIX LE MOINS CHER DANS LA ZONE' "$FILE"
           grep -F 'PRIX LE PLUS ÉLEVÉ DANS LA ZONE' "$FILE"
           grep -F 'BAISSE DE PRIX' "$FILE"
@@ -69,7 +70,6 @@ jobs:
           grep -F 'New York ≈ 157,7 ¢CA/L' "$FILE"
           grep -F 'Maine ≈ 154,4 ¢CA/L' "$FILE"
           grep -F 'New Hampshire ≈ 152,4 ¢CA/L' "$FILE"
-          grep -F 'SIMPLE  •  PUISSANTE  •  QUÉBÉCOISE' "$FILE"
           grep -F 'MTQ_CAMERA_WFS' "$FILE"
           grep -F 'RADAR_PHOTO_GEOJSON' "$FILE"
           grep -F 'FOOD_POI_OVERPASS' "$FILE"
@@ -80,12 +80,13 @@ jobs:
           grep -F 'L.control.layers' "$FILE"
           grep -F 'id=meBtn' "$FILE"
           grep -F 'id=allBtn' "$FILE"
-          grep -F 'backdrop-filter:blur(8px)' "$FILE"
-          grep -F 'neonGlassPanel()' "$FILE"
-          grep -F 'neonPricePanel()' "$FILE"
-          grep -F 'NAV • ACCUEIL' "$FILE"
           grep -F 'setContentIntent(go)' "$FILE"
           grep -F 'com.google.android.apps.maps' "$FILE"
+          grep -F 'private void showStationReference(Station s)' "$FILE"
+          grep -F 'private void showStatsReference()' "$FILE"
+          grep -F 'private void showMissionsReference()' "$FILE"
+          grep -F 'referenceSunset()' "$FILE"
+          grep -F 'ITINÉRAIRE' "$FILE"
           if grep -Fq 'markerClusterGroup' "$FILE"; then echo 'ERREUR: regroupement des stations encore present'; exit 1; fi
           grep -F 'NUCLEAR_SHUTDOWN_ARMED' "$FILE"
           grep -F 'finishAndRemoveTask()' "$FILE"

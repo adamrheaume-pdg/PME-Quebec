@@ -47,6 +47,8 @@ jobs:
         run: python3 EssenceLanaudiere/build_tools/patch_notification_maps.py
       - name: Appliquer interface finale selon la reference
         run: python3 EssenceLanaudiere/build_tools/patch_reference_ui.py
+      - name: Appliquer carte immersive reference v2
+        run: python3 EssenceLanaudiere/build_tools/patch_reference_map_v2.py
       - name: Ajouter bouton de fermeture complete
         run: python3 EssenceLanaudiere/build_tools/patch_shutdown.py
       - name: Verifier la refonte active
@@ -78,6 +80,8 @@ jobs:
           grep -F 'referenceSunset()' "$FILE"
           grep -F 'ITINÉRAIRE' "$FILE"
           grep -F 'private GradientDrawable shutdownSafeBg()' "$FILE"
+          grep -F 'pricePin' "$FILE"
+          grep -F 'dp(620)' "$FILE"
           if grep -Fq 'markerClusterGroup' "$FILE"; then echo 'ERREUR: regroupement des stations encore present'; exit 1; fi
       - name: Verifier et deployer le logo Essence Quebec
         shell: bash

@@ -36,7 +36,7 @@ jobs:
         run: python3 Detecteur360Quebec/build_tools/fix_safe_insets.py
 
       - name: Finaliser logo et signature v3
-        run: python3 Detecteur360Quebec/build_tools/finalize_v3.py
+        run: python3 Detecteur360Quebec/build_tools/finalize_v3_small.py
 
       - name: Verifier ressources critiques
         shell: bash

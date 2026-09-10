@@ -20,7 +20,6 @@ import android.widget.TextView;
 public class HubActivity extends Activity {
     private static final int BLUE=Color.rgb(0,61,165), BLUE2=Color.rgb(0,81,196), DARK=Color.rgb(0,31,91), INK=Color.rgb(20,33,61), MUTED=Color.rgb(82,98,125), SOFT=Color.rgb(244,247,252), WHITE=Color.WHITE, GREEN=Color.rgb(18,126,72), ORANGE=Color.rgb(194,104,16);
     private MediaPlayer player; private Button playButton; private TextView radioStatus;
-
     @Override public void onCreate(Bundle b){super.onCreate(b);getWindow().setStatusBarColor(DARK);getWindow().setNavigationBarColor(DARK);build();}
     private int dp(int v){return Math.round(v*getResources().getDisplayMetrics().density);}
     private GradientDrawable bg(int color,int radius){GradientDrawable g=new GradientDrawable();g.setColor(color);g.setCornerRadius(dp(radius));return g;}
@@ -36,40 +35,30 @@ public class HubActivity extends Activity {
 
     private void build(){
         LinearLayout outer=new LinearLayout(this);outer.setOrientation(LinearLayout.VERTICAL);outer.setBackgroundColor(WHITE);outer.setOnApplyWindowInsetsListener((v,insets)->{int top=0,bottom=0,left=0,right=0;if(android.os.Build.VERSION.SDK_INT>=30){android.graphics.Insets i=insets.getInsets(WindowInsets.Type.systemBars()|WindowInsets.Type.displayCutout());top=i.top;bottom=i.bottom;left=i.left;right=i.right;}else{top=insets.getSystemWindowInsetTop();bottom=insets.getSystemWindowInsetBottom();}v.setPadding(left,top,right,bottom);return insets;});
-
-        LinearLayout head=new LinearLayout(this);head.setOrientation(LinearLayout.VERTICAL);head.setGravity(Gravity.CENTER_HORIZONTAL);head.setPadding(dp(18),dp(10),dp(18),dp(16));head.setBackgroundColor(DARK);head.addView(logo(96));TextView title=tx("OUI QUÉBEC",28,WHITE,true);title.setGravity(Gravity.CENTER);title.setPadding(0,dp(3),0,0);head.addView(title);TextView version=tx("Centre documentaire • V4.8",13,Color.rgb(210,225,250),false);version.setGravity(Gravity.CENTER);head.addView(version);outer.addView(head);
-
+        LinearLayout head=new LinearLayout(this);head.setOrientation(LinearLayout.VERTICAL);head.setGravity(Gravity.CENTER_HORIZONTAL);head.setPadding(dp(18),dp(10),dp(18),dp(16));head.setBackgroundColor(DARK);head.addView(logo(96));TextView title=tx("OUI QUÉBEC",28,WHITE,true);title.setGravity(Gravity.CENTER);title.setPadding(0,dp(3),0,0);head.addView(title);TextView version=tx("Centre documentaire • V4.9",13,Color.rgb(210,225,250),false);version.setGravity(Gravity.CENTER);head.addView(version);outer.addView(head);
         ScrollView scroll=new ScrollView(this);scroll.setClipToPadding(false);LinearLayout root=new LinearLayout(this);root.setOrientation(LinearLayout.VERTICAL);root.setPadding(dp(15),dp(14),dp(15),dp(30));
-
         infoCard(root,"Repères de fiabilité","L’application sépare les faits officiels, les calculs dérivés, les estimations, les propositions politiques et les documents historiques. Les sources partisanes sont identifiées comme telles.");
         LinearLayout chips=new LinearLayout(this);chips.setOrientation(LinearLayout.HORIZONTAL);chips.setPadding(0,0,0,dp(8));chips.addView(chip("● OFFICIEL",GREEN));chips.addView(chip("● CALCUL",BLUE2));chips.addView(chip("● ESTIMATION",ORANGE));root.addView(chips);
-
         sectionTitle(root,"Navigation rapide","Accès direct aux principaux modules de l’application.");
         Button app=button("📊 Données, Livre bleu et simulateur");app.setOnClickListener(v->startActivity(new Intent(this,MainActivity.class)));root.addView(app);
-        Button polls=button("📈 Sondages — indépendance depuis 1976 + médias");polls.setOnClickListener(v->startActivity(new Intent(this,PollsActivity.class)));root.addView(polls);
+        Button polls=button("📈 Sondages — historique + données et médias en direct");polls.setOnClickListener(v->startActivity(new Intent(this,PollsActivity.class)));root.addView(polls);
         Button library=button("📚 Bibliothèque — indépendance du Québec");library.setOnClickListener(v->startActivity(new Intent(this,LiteratureActivity.class)));root.addView(library);
         Button history=button("🕰 Histoire politique — 1534 à aujourd’hui");history.setOnClickListener(v->startActivity(new Intent(this,HistoryActivity.class)));root.addView(history);
-
         sectionTitle(root,"Partis politiques indépendantistes","Liens directs vers les partis et leurs positions ou programmes. Cette section présente les sources partisanes comme telles.");
         card(root,"Parti Québécois","Parti indépendantiste. Sa section officielle sur l’indépendance présente son projet de Québec pays, ses arguments et ses documents politiques.","https://pq.org/independance/");
         card(root,"Québec solidaire","Parti qui inscrit l’indépendance du Québec dans son projet politique. Accès à sa plateforme électorale et à ses propositions officielles.","https://quebecsolidaire.net/");
         card(root,"Climat Québec","Parti indépendantiste dont la plateforme présente son projet politique et ses orientations pour le Québec.","https://climat.quebec/");
         card(root,"Archives des programmes — Assemblée nationale","Guide non partisan de la Bibliothèque de l’Assemblée nationale recensant les programmes et slogans politiques québécois, y compris des formations indépendantistes historiques.","https://www.bibliotheque.assnat.qc.ca/guides/fr/3748-programmes-et-slogans-politiques");
-
         sectionTitle(root,"Mouvement, recherche et idées","Organisations, revue et institut de recherche liés au débat sur l’indépendance.");
         card(root,"Rassemblement pour un Pays Souverain (RPS)","Mouvement de la société civile qui promeut l’indépendance du Québec, la langue française et la connaissance de l’histoire nationale.","https://www.rps.quebec/");
         card(root,"L’Action nationale","Revue publiée par la Ligue d’action nationale. Carrefour souverainiste de réflexion critique sur les aspirations de la nation québécoise.","https://action-nationale.qc.ca/");
         card(root,"IRAI","Institut indépendant et non partisan consacré à la recherche scientifique, comparative et internationale sur l’autodétermination et l’indépendance.","https://irai.quebec/");
-
         sectionTitle(root,"QUB radio • 99,5 FM Montréal","Lecteur intégré du flux numérique QUB. La programmation QUB est aussi diffusée au 99,5 FM Montréal durant certaines plages.");
         radioStatus=tx("Prêt à écouter",14,INK,true);radioStatus.setPadding(0,dp(4),0,dp(4));root.addView(radioStatus);playButton=button("▶ Écouter QUB en direct");playButton.setOnClickListener(v->toggleRadio());root.addView(playButton);Button my=button("🌐 Ouvrir QUB sur myTuner");my.setOnClickListener(v->open("https://mytuner-radio.com/fr/radio/qub-radio-458512/"));root.addView(my);
-
-        infoCard(root,"Méthode documentaire","Les contenus militants, partisans, éditoriaux, scientifiques, historiques et gouvernementaux sont séparés. La chronologie distingue conflit militaire, affrontement armé, crise politique, conflit constitutionnel et friction linguistique. Une estimation n’est jamais présentée comme une donnée officielle.");
-        TextView footer=tx("OUI Québec • V4.8 • Base stable conservée : V4.6.1",11,MUTED,true);footer.setGravity(Gravity.CENTER);footer.setPadding(0,dp(8),0,dp(8));root.addView(footer);
-
+        infoCard(root,"Méthode documentaire","Les contenus militants, partisans, éditoriaux, scientifiques, historiques et gouvernementaux sont séparés. La chronologie distingue conflit militaire, affrontement armé, crise politique, conflit constitutionnel et friction linguistique. Les sondages récents peuvent maintenant être actualisés depuis leur source et conservés hors ligne.");
+        TextView footer=tx("OUI Québec • V4.9 • Base stable conservée : V4.6.1",11,MUTED,true);footer.setGravity(Gravity.CENTER);footer.setPadding(0,dp(8),0,dp(8));root.addView(footer);
         scroll.addView(root);outer.addView(scroll,new LinearLayout.LayoutParams(-1,0,1));setContentView(outer);outer.requestApplyInsets();
     }
-
     private void toggleRadio(){if(player!=null&&player.isPlaying()){player.pause();playButton.setText("▶ Reprendre QUB");radioStatus.setText("En pause");return;}if(player!=null){player.start();playButton.setText("⏸ Pause");radioStatus.setText("QUB en direct");return;}radioStatus.setText("Connexion au direct…");playButton.setEnabled(false);player=new MediaPlayer();player.setAudioAttributes(new AudioAttributes.Builder().setContentType(AudioAttributes.CONTENT_TYPE_MUSIC).setUsage(AudioAttributes.USAGE_MEDIA).build());try{player.setDataSource("https://playerservices.streamtheworld.com/api/livestream-redirect/QUB_RADIO_SC");player.setOnPreparedListener(p->{playButton.setEnabled(true);p.start();playButton.setText("⏸ Pause");radioStatus.setText("QUB en direct");});player.setOnErrorListener((p,w,e)->{radioStatus.setText("Flux temporairement indisponible");playButton.setEnabled(true);playButton.setText("↻ Réessayer");releasePlayer();return true;});player.prepareAsync();}catch(Exception e){radioStatus.setText("Flux temporairement indisponible");playButton.setEnabled(true);playButton.setText("↻ Réessayer");releasePlayer();}}
     private void releasePlayer(){if(player!=null){try{player.release();}catch(Exception ignored){}player=null;}}
     @Override protected void onDestroy(){releasePlayer();super.onDestroy();}

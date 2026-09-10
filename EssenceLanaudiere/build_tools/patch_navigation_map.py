@@ -24,14 +24,17 @@ dialog_touch=dialog_anchor+' w.setOverScrollMode(View.OVER_SCROLL_NEVER); w.setV
 if dialog_anchor in s and 'w.setOnTouchListener' not in s:
     s=s.replace(dialog_anchor,dialog_touch,1)
 
-# Carte : 3 fonds, recentrage, vue globale et échelle.
+# Remplace aussi la base WebView CARTO afin qu'aucune ressource CARTO ne soit appelée.
+s=s.replace('https://carto.com/','https://www.openstreetmap.org/')
+
+# Carte : OpenStreetMap par défaut (aucune clé API), satellite Esri en option,
+# recentrage, vue globale et échelle.
 old = r'''          "<script>const map=L.map('map',{zoomControl:true}).setView(["+centerLat+","+centerLng+"],12);L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{subdomains:'abcd',maxZoom:20,attribution:'© OpenStreetMap contributors © CARTO'}).addTo(map);"+js+radarSafetyJavascript(centerLat,centerLng)+foodPoiJavascript(centerLat,centerLng)+"</script></body></html>";'''
 
 new = r'''          "<script>const map=L.map('map',{zoomControl:true,preferCanvas:true,touchZoom:true,doubleClickZoom:true,dragging:true,tapTolerance:22}).setView(["+centerLat+","+centerLng+"],12);"+
-          "const clean=L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{subdomains:'abcd',maxZoom:20,attribution:'© OpenStreetMap contributors © CARTO'}).addTo(map);"+
-          "const streets=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:20,attribution:'© OpenStreetMap contributors'});"+
+          "const streets=L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap contributors'}).addTo(map);"+
           "const satellite=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19,attribution:'Tiles © Esri'});"+
-          "L.control.layers({'Clair':clean,'Rues':streets,'Satellite':satellite},null,{position:'topright',collapsed:true}).addTo(map);"+
+          "L.control.layers({'Rues':streets,'Satellite':satellite},null,{position:'topright',collapsed:true}).addTo(map);"+
           "L.control.scale({metric:true,imperial:false,position:'bottomleft'}).addTo(map);"+
           js+radarSafetyJavascript(centerLat,centerLng)+foodPoiJavascript(centerLat,centerLng)+
           "const Nav=L.Control.extend({options:{position:'bottomright'},onAdd:function(){const d=L.DomUtil.create('div','navBox leaflet-bar');d.innerHTML='<button id=meBtn title=\"Ma position\">⌖</button><button id=allBtn title=\"Voir les stations\">⛽</button>';L.DomEvent.disableClickPropagation(d);L.DomEvent.disableScrollPropagation(d);return d;}});new Nav().addTo(map);"+
@@ -50,10 +53,10 @@ css_add=".you{background:#1677ff;color:#fff;font:bold 12px sans-serif;border-rad
 if css_anchor in s and '.navBox{' not in s:
     s=s.replace(css_anchor,css_add,1)
 
-required=['Compare les prix près de toi','CARTE INTERACTIVE','dp(420)','dp(650)','const streets=L.tileLayer','const satellite=L.tileLayer','L.control.layers','L.control.scale','id=meBtn','id=allBtn','.navBox{','stationMap.setOnTouchListener','w.setOnTouchListener','touch-action:none','tapTolerance:22','width:58px','width:54px']
+required=['Compare les prix près de toi','CARTE INTERACTIVE','dp(420)','dp(650)','tile.openstreetmap.org','const satellite=L.tileLayer','L.control.layers','L.control.scale','id=meBtn','id=allBtn','.navBox{','stationMap.setOnTouchListener','w.setOnTouchListener','touch-action:none','tapTolerance:22','width:58px','width:54px']
 missing=[x for x in required if x not in s]
 if missing:
     raise SystemExit('navigation/carte incomplète: '+repr(missing))
 
 p.write_text(s,encoding='utf-8')
-print('Navigation tactile optimisée: glisser/pincer sans conflit avec la page, contrôles agrandis et carte stable')
+print('Carte sans clé API: OpenStreetMap par défaut, satellite Esri, navigation tactile conservée')

@@ -12,23 +12,9 @@ android {
         versionName '3.0.0'
     }
 
-    signingConfigs {
-        stable {
-            storeFile rootProject.file('d360-release.jks')
-            storePassword 'D360Quebec2026!'
-            keyAlias 'd360'
-            keyPassword 'D360Quebec2026!'
-        }
-    }
-
     buildTypes {
-        debug {
-            signingConfig signingConfigs.stable
-        }
-        release {
-            minifyEnabled false
-            signingConfig signingConfigs.stable
-        }
+        debug { }
+        release { minifyEnabled false }
     }
 
     compileOptions {

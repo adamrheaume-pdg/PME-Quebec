@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.view.Window;
 import android.webkit.WebChromeClient;
+import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -16,6 +17,7 @@ import java.nio.charset.StandardCharsets;
 public class MainActivity extends Activity {
     private WebView webView;
     private static final String APP_ORIGIN = "https://musique-quebec.local/";
+    private boolean initialPageLoaded = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,16 +42,48 @@ public class MainActivity extends Activity {
             s.setSupportZoom(false);
 
             webView.setWebChromeClient(new WebChromeClient());
-            webView.setWebViewClient(new WebViewClient());
+            webView.setWebViewClient(new WebViewClient() {
+                @Override
+                public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+                    if (request.isForMainFrame()) {
+                        String url = String.valueOf(request.getUrl());
+                        if (initialPageLoaded && (APP_ORIGIN.equals(url) || (APP_ORIGIN + "/").equals(url))) {
+                            return true;
+                        }
+                    }
+                    return false;
+                }
+
+                @Override
+                public void onPageFinished(WebView view, String url) {
+                    super.onPageFinished(view, url);
+                    if (url != null && url.startsWith(APP_ORIGIN)) initialPageLoaded = true;
+                }
+            });
             setContentView(webView);
 
-            String html = readAsset("index.html");
-            html = html.replace("<div class=\"logo\">⚜️</div>",
-                    "<img class=\"logo\" src=\"file:///android_res/drawable/musique_quebec.webp\" alt=\"Musique Québec\">");
-            webView.loadDataWithBaseURL(APP_ORIGIN, html, "text/html", "UTF-8", null);
+            boolean restored = false;
+            if (savedInstanceState != null) {
+                try { restored = webView.restoreState(savedInstanceState) != null; } catch (Throwable ignored) { }
+            }
+
+            if (!restored) {
+                String html = readAsset("index.html");
+                html = html.replace("<div class=\"logo\">⚜️</div>",
+                        "<img class=\"logo\" src=\"file:///android_res/drawable/musique_quebec.webp\" alt=\"Musique Québec\">");
+                webView.loadDataWithBaseURL(APP_ORIGIN, html, "text/html", "UTF-8", null);
+            } else {
+                initialPageLoaded = true;
+            }
         } catch (Throwable e) {
             showFallback(e);
         }
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        try { if (webView != null) webView.saveState(outState); } catch (Throwable ignored) { }
+        super.onSaveInstanceState(outState);
     }
 
     private void showFallback(Throwable error) {

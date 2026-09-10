@@ -11,7 +11,12 @@ tasks.register('generateOuiLogo') {
         def out = generatedLogoResDir.get().file('drawable/oui_logo.webp').asFile
         out.parentFile.mkdirs()
         def encoded = file('logo/oui_logo.b64').text.replaceAll('[^A-Za-z0-9+/=]', '')
-        out.bytes = java.util.Base64.decoder.decode(encoded)
+        def decoded = java.util.Base64.decoder.decode(encoded)
+        if (decoded.length < 10000 || new String(decoded, 0, 4, 'ISO-8859-1') != 'RIFF' || new String(decoded, 8, 4, 'ISO-8859-1') != 'WEBP') {
+            throw new GradleException('Le logo OUI Québec généré est invalide')
+        }
+        out.bytes = decoded
+        println "Logo OUI Québec valide: ${decoded.length} octets"
     }
 }
 
@@ -23,8 +28,8 @@ android {
         applicationId 'ca.quebec.oui'
         minSdk 26
         targetSdk 35
-        versionCode 10
-        versionName '4.5.2'
+        versionCode 11
+        versionName '4.6.0'
     }
 
     sourceSets {

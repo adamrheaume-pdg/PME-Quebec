@@ -22,3 +22,5 @@ else:
 runpy.run_path(str(Path('.github/scripts/patch_security_network_scanner.py')), run_name='__main__')
 # Puis stabiliser le retour au WebView après les boîtes de permissions Android.
 runpy.run_path(str(Path('.github/scripts/patch_permission_flow_stability.py')), run_name='__main__')
+# Enfin appliquer le branding INC Québec et un accès appareil local fiable.
+runpy.run_path(str(Path('.github/scripts/patch_inc_quebec_brand_login.py')), run_name='__main__')

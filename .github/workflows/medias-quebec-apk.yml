@@ -6,6 +6,8 @@ on:
       - medias-quebec-app
     paths:
       - 'medias-quebec/**'
+      - '.github/scripts/patch_medias_ticker.py'
+      - '.github/scripts/patch_medias_favorites_qub.py'
       - '.github/workflows/medias-quebec-apk.yml'
   workflow_dispatch:
 
@@ -34,6 +36,9 @@ jobs:
 
       - name: Appliquer le ticker Monde 24/7
         run: python3 .github/scripts/patch_medias_ticker.py
+
+      - name: Corriger Favoris et ajouter QUB
+        run: python3 .github/scripts/patch_medias_favorites_qub.py
 
       - name: Compiler l'APK debug
         working-directory: medias-quebec

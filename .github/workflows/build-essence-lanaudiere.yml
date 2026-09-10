@@ -37,6 +37,8 @@ jobs:
         run: python3 EssenceLanaudiere/build_tools/patch_radar_safety.py
       - name: Afficher stations individuellement et POI restaurants
         run: python3 EssenceLanaudiere/build_tools/patch_uncluster_poi.py
+      - name: Ameliorer navigation et carte interactive
+        run: python3 EssenceLanaudiere/build_tools/patch_navigation_map.py
       - name: Ajouter bouton de fermeture complete
         run: python3 EssenceLanaudiere/build_tools/patch_shutdown.py
       - name: Verifier les fonctions demandees
@@ -46,7 +48,7 @@ jobs:
           FILE="EssenceLanaudiere/app/src/main/java/quebec/lanaudiere/essence/MainActivity.java"
           grep -F '60 km' "$FILE"
           grep -F 'VOUS ÊTES ICI' "$FILE"
-          grep -F 'CARTE DES STATIONS • ● VOUS' "$FILE"
+          grep -F 'CARTE INTERACTIVE' "$FILE"
           grep -F 'loadBrandLogo(brand,x.name)' "$FILE"
           grep -F 'applySafeInsets(page,18,18,18,26)' "$FILE"
           grep -F 'PRIX LE MOINS CHER DANS LA ZONE' "$FILE"
@@ -76,6 +78,11 @@ jobs:
           grep -F 'Tim Hortons' "$FILE"
           grep -F '🍔' "$FILE"
           grep -F '☕' "$FILE"
+          grep -F 'const streets=L.tileLayer' "$FILE"
+          grep -F 'const satellite=L.tileLayer' "$FILE"
+          grep -F 'L.control.layers' "$FILE"
+          grep -F 'id=meBtn' "$FILE"
+          grep -F 'id=allBtn' "$FILE"
           if grep -Fq 'markerClusterGroup' "$FILE"; then echo 'ERREUR: regroupement des stations encore present'; exit 1; fi
           grep -F 'NUCLEAR_SHUTDOWN_ARMED' "$FILE"
           grep -F 'startNuclearIconBlink' "$FILE"

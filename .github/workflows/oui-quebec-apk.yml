@@ -25,6 +25,52 @@ jobs:
         with:
           gradle-version: '8.10.2'
 
+      - name: Nettoyer le fond noir du logo
+        run: |
+          python -m pip install --quiet pillow
+          python - <<'PY'
+          from PIL import Image
+          from collections import deque
+          import base64, io
+          from pathlib import Path
+
+          p = Path('oui-quebec/app/logo/oui_logo.b64')
+          raw = base64.b64decode(''.join(p.read_text().split()))
+          im = Image.open(io.BytesIO(raw)).convert('RGBA')
+          px = im.load()
+          w, h = im.size
+          seen = set()
+          q = deque()
+
+          def dark(x, y):
+              r, g, b, a = px[x, y]
+              return a > 0 and max(r, g, b) <= 42
+
+          for x in range(w):
+              if dark(x, 0): q.append((x, 0)); seen.add((x, 0))
+              if dark(x, h-1): q.append((x, h-1)); seen.add((x, h-1))
+          for y in range(h):
+              if dark(0, y): q.append((0, y)); seen.add((0, y))
+              if dark(w-1, y): q.append((w-1, y)); seen.add((w-1, y))
+
+          while q:
+              x, y = q.popleft()
+              for nx, ny in ((x+1,y),(x-1,y),(x,y+1),(x,y-1)):
+                  if 0 <= nx < w and 0 <= ny < h and (nx,ny) not in seen and dark(nx,ny):
+                      seen.add((nx,ny)); q.append((nx,ny))
+
+          for x, y in seen:
+              r, g, b, a = px[x, y]
+              px[x, y] = (r, g, b, 0)
+
+          out = io.BytesIO()
+          im.save(out, 'WEBP', quality=92, method=6)
+          data = out.getvalue()
+          assert data[:4] == b'RIFF' and data[8:12] == b'WEBP'
+          p.write_text(base64.b64encode(data).decode('ascii'))
+          print(f'Logo transparent préparé: {len(data)} octets, {len(seen)} pixels de fond retirés')
+          PY
+
       - name: Compiler OUI Quebec
         run: |
           cd oui-quebec

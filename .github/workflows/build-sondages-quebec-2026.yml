@@ -38,6 +38,10 @@ jobs:
         working-directory: SondagesQuebec2026
         run: python3 patch_system_insets.py
 
+      - name: Add AdamMimi footer
+        working-directory: SondagesQuebec2026
+        run: python3 patch_footer.py
+
       - name: Build release APK
         working-directory: SondagesQuebec2026
         run: gradle --no-daemon assembleRelease

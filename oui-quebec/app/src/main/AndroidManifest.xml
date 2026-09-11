@@ -8,6 +8,7 @@
         android:roundIcon="@drawable/oui_logo"
         android:logo="@drawable/oui_logo"
         android:theme="@style/Theme.OuiQuebec">
+        <activity android:name=".CivilSocietyActivity" android:exported="false" />
         <activity android:name=".TransitionActivity" android:exported="false" />
         <activity android:name=".PollsActivity" android:exported="false" />
         <activity android:name=".HistoryActivity" android:exported="false" />

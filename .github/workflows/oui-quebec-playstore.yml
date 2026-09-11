@@ -1,0 +1,97 @@
+name: Compiler OUI Quebec Play Store
+
+on:
+  push:
+    branches:
+      - oui-quebec-playstore
+    paths:
+      - 'oui-quebec/**'
+      - '.github/workflows/oui-quebec-playstore.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: APK + AAB API 36
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Recuperer le depot
+        uses: actions/checkout@v4
+
+      - name: Configurer Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Configurer Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Installer Android API 36
+        run: |
+          yes | sdkmanager --licenses >/dev/null || true
+          sdkmanager 'platform-tools' 'platforms;android-36' 'build-tools;35.0.0'
+
+      - name: Configurer Gradle 8.11.1
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.11.1'
+
+      - name: Compiler APK de test et bundle release
+        working-directory: oui-quebec
+        run: |
+          gradle clean assembleDebug bundleRelease --stacktrace
+
+      - name: Creer la cle upload Play Store et signer le AAB
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p playstore-output
+          KEY_PASS="$(openssl rand -hex 18)"
+          KEYSTORE="playstore-output/OUI-Quebec-upload-key.jks"
+          keytool -genkeypair \
+            -v \
+            -keystore "$KEYSTORE" \
+            -storepass "$KEY_PASS" \
+            -keypass "$KEY_PASS" \
+            -alias upload \
+            -keyalg RSA \
+            -keysize 4096 \
+            -validity 10000 \
+            -dname 'CN=OUI Quebec, OU=Android, O=OUI Quebec, L=Quebec, ST=Quebec, C=CA'
+
+          cp oui-quebec/app/build/outputs/bundle/release/app-release.aab playstore-output/OUI-Quebec-5.3.0-PlayStore.aab
+          jarsigner \
+            -keystore "$KEYSTORE" \
+            -storepass "$KEY_PASS" \
+            -keypass "$KEY_PASS" \
+            -sigalg SHA256withRSA \
+            -digestalg SHA-256 \
+            playstore-output/OUI-Quebec-5.3.0-PlayStore.aab upload
+          jarsigner -verify -verbose -certs playstore-output/OUI-Quebec-5.3.0-PlayStore.aab
+
+          cp oui-quebec/app/build/outputs/apk/debug/app-debug.apk playstore-output/OUI-Quebec-5.3.0-test.apk
+
+          cat > playstore-output/SIGNING-INFO.txt <<EOF
+          OUI Quebec - cle d'upload Google Play
+          Alias: upload
+          Mot de passe du keystore: $KEY_PASS
+          Mot de passe de la cle: $KEY_PASS
+          Fichier: OUI-Quebec-upload-key.jks
+
+          IMPORTANT: conserver ce fichier et le keystore en lieu sur. Ils servent aux mises a jour Play Store.
+          EOF
+
+          (cd playstore-output && sha256sum OUI-Quebec-5.3.0-test.apk OUI-Quebec-5.3.0-PlayStore.aab OUI-Quebec-upload-key.jks > SHA256SUMS.txt)
+
+      - name: Publier les fichiers compiles
+        uses: actions/upload-artifact@v4
+        with:
+          name: OUI-Quebec-5.3.0-PlayStore
+          path: playstore-output/
+          if-no-files-found: error
+          retention-days: 30

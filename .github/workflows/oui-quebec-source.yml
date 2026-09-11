@@ -1,0 +1,46 @@
+name: Exporter source OUI Quebec
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/oui-quebec-source.yml'
+
+jobs:
+  source:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Recuperer le depot
+        uses: actions/checkout@v4
+
+      - name: Preparer le projet source Android
+        run: |
+          rm -rf export-source
+          mkdir -p export-source/OUI-Quebec-Android
+          cp -R oui-quebec/. export-source/OUI-Quebec-Android/
+          find export-source/OUI-Quebec-Android -type d \( -name build -o -name .gradle -o -name .idea \) -prune -exec rm -rf {} + || true
+          find export-source/OUI-Quebec-Android -type f \( -name '*.apk' -o -name '*.aab' -o -name '*.jks' -o -name '*.keystore' \) -delete || true
+          cat > export-source/OUI-Quebec-Android/README_SOURCE.txt <<'EOF'
+          OUI Quebec - projet source Android
+
+          Contenu principal:
+          - build.gradle
+          - settings.gradle
+          - app/build.gradle
+          - app/src/main/AndroidManifest.xml
+          - app/src/main/java/ca/quebec/oui/*.java
+          - app/src/main/res/
+          - app/logo/
+
+          Le dossier est un projet Android Studio/Gradle complet correspondant a la branche main au moment de l'export.
+          Les sorties de build et fichiers de signature sont exclus.
+          EOF
+          cd export-source
+          zip -r ../OUI-Quebec-Android-Source.zip OUI-Quebec-Android
+
+      - name: Publier le projet source
+        uses: actions/upload-artifact@v4
+        with:
+          name: OUI-Quebec-Android-Source
+          path: OUI-Quebec-Android-Source.zip
+          if-no-files-found: error

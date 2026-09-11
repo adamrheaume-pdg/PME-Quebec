@@ -2,7 +2,9 @@ package com.pmequebec.app;
 
 import android.app.Activity;
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.graphics.Color;
 import android.view.View;
@@ -11,8 +13,10 @@ import android.view.WindowManager;
 import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyProperties;
 import android.util.Base64;
+import android.webkit.GeolocationPermissions;
 import android.webkit.JavascriptInterface;
 import android.webkit.PermissionRequest;
+import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -49,13 +53,17 @@ public class MainActivity extends Activity {
     private volatile String engineState = "initialisation";
     private volatile String engineLastLog = "";
     private static final int REQ_CAMERA = 4104;
+    private static final int REQ_LOCATION = 4105;
+    private static final int REQ_FILE = 4107;
     private PermissionRequest pendingCameraRequest;
+    private GeolocationPermissions.Callback pendingGeoCallback;
+    private String pendingGeoOrigin;
+    private ValueCallback<Uri[]> pendingFileChooser;
+    // PME_ANDROID_PERMISSIONS_6000 — aucune permission sensible n'est demandée au lancement.
 
     @Override public void onCreate(Bundle b) {
         super.onCreate(b);
 
-        // Keep the WebView inside Android system bars. This avoids Android 15+
-        // edge-to-edge overlap on the login screen and floating controls.
         Window window = getWindow();
         window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
         window.setStatusBarColor(Color.rgb(10, 12, 18));
@@ -73,6 +81,7 @@ public class MainActivity extends Activity {
         WebSettings s = webView.getSettings();
         s.setJavaScriptEnabled(true);
         s.setDomStorageEnabled(true);
+        s.setGeolocationEnabled(true);
         s.setMediaPlaybackRequiresUserGesture(false);
         s.setAllowFileAccess(true);
         s.setAllowContentAccess(true);
@@ -86,11 +95,44 @@ public class MainActivity extends Activity {
             @Override public void onPermissionRequest(final PermissionRequest request) {
                 runOnUiThread(() -> handleWebPermissionRequest(request));
             }
+
+            @Override public void onGeolocationPermissionsShowPrompt(String origin, GeolocationPermissions.Callback callback) {
+                runOnUiThread(() -> handleGeolocationPermission(origin, callback));
+            }
+
+            @Override public boolean onShowFileChooser(WebView view, ValueCallback<Uri[]> callback, FileChooserParams params) {
+                if (pendingFileChooser != null) pendingFileChooser.onReceiveValue(null);
+                pendingFileChooser = callback;
+                try {
+                    Intent intent = params != null ? params.createIntent() : new Intent(Intent.ACTION_OPEN_DOCUMENT);
+                    if (params == null) {
+                        intent.setType("*/*");
+                        intent.addCategory(Intent.CATEGORY_OPENABLE);
+                    }
+                    startActivityForResult(intent, REQ_FILE);
+                    return true;
+                } catch (Exception e) {
+                    pendingFileChooser = null;
+                    return false;
+                }
+            }
         });
         webView.addJavascriptInterface(new WyzeBridge(), "WyzeNative");
         setContentView(webView);
         startGo2RtcIfBundled();
         webView.loadUrl("file:///android_asset/index.html");
+    }
+
+    private void handleGeolocationPermission(String origin, GeolocationPermissions.Callback callback) {
+        if (android.os.Build.VERSION.SDK_INT < 23 ||
+                checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ||
+                checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            callback.invoke(origin, true, false);
+            return;
+        }
+        pendingGeoOrigin = origin;
+        pendingGeoCallback = callback;
+        requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, REQ_LOCATION);
     }
 
     private void handleWebPermissionRequest(PermissionRequest request) {
@@ -117,17 +159,46 @@ public class MainActivity extends Activity {
 
     @Override public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode != REQ_CAMERA) return;
-
-        PermissionRequest request = pendingCameraRequest;
-        pendingCameraRequest = null;
-        if (request == null) return;
-
-        if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            request.grant(new String[]{PermissionRequest.RESOURCE_VIDEO_CAPTURE});
-        } else {
-            request.deny();
+        if (requestCode == REQ_CAMERA) {
+            PermissionRequest request = pendingCameraRequest;
+            pendingCameraRequest = null;
+            if (request != null) {
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    request.grant(new String[]{PermissionRequest.RESOURCE_VIDEO_CAPTURE});
+                } else {
+                    request.deny();
+                }
+            }
+            return;
         }
+        if (requestCode == REQ_LOCATION) {
+            boolean ok = checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ||
+                    checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED;
+            GeolocationPermissions.Callback cb = pendingGeoCallback;
+            String origin = pendingGeoOrigin;
+            pendingGeoCallback = null;
+            pendingGeoOrigin = null;
+            if (cb != null) cb.invoke(origin, ok, false);
+        }
+    }
+
+    @Override protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode != REQ_FILE) return;
+        ValueCallback<Uri[]> cb = pendingFileChooser;
+        pendingFileChooser = null;
+        if (cb == null) return;
+        Uri[] result = null;
+        if (resultCode == RESULT_OK && data != null) {
+            if (data.getClipData() != null) {
+                int n = data.getClipData().getItemCount();
+                result = new Uri[n];
+                for (int i = 0; i < n; i++) result[i] = data.getClipData().getItemAt(i).getUri();
+            } else if (data.getData() != null) {
+                result = new Uri[]{data.getData()};
+            }
+        }
+        cb.onReceiveValue(result);
     }
 
     private void startGo2RtcIfBundled() {

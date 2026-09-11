@@ -36,3 +36,9 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 if 'pme-login-runtime-5110' not in s:s=s.replace('</body>',js+'\n</body>',1)
 html.write_text(s,encoding='utf-8')
 print('Correctif connexion Android 5.11.0 appliqué')
+
+# Apply the company-master / employee-access layer immediately after the
+# base Android login patch so every normal APK build includes it.
+company_patch = Path(__file__).with_name('patch_company_access.py')
+if company_patch.exists():
+    exec(compile(company_patch.read_text(encoding='utf-8'), str(company_patch), 'exec'), {'__name__':'__main__', '__file__':str(company_patch)})

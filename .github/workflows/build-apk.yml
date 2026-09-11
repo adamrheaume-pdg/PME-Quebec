@@ -80,9 +80,11 @@ jobs:
         run: python3 .github/scripts/patch_erp_visual_quebec.py
       - name: Corriger dossier employés et création employés
         run: python3 .github/scripts/patch_employee_files_fix.py
+      - name: Activer portail entreprise maître et accès employés
+        run: python3 .github/scripts/patch_company_access.py
       - name: Diagnostic complet APK
         run: python3 .github/scripts/full_apk_diagnostic.py
-      - name: Vérifier scanner connexion GPS ERP et interface mobile
+      - name: Vérifier scanner connexion GPS ERP accès entreprise et interface mobile
         run: |
           HTML="$GRADLE_DIR/app/src/main/assets/index.html"
           JAVA="$GRADLE_DIR/app/src/main/java/com/pmequebec/app/MainActivity.java"
@@ -96,6 +98,15 @@ jobs:
           grep -q 'pme-auth-closed' "$HTML"
           grep -q 'function closeGate' "$HTML"
           grep -q 'setTimeout(closeGate,250)' "$HTML"
+          grep -q 'pme-company-access-5120' "$HTML"
+          grep -q 'pme-company-access-runtime-5120' "$HTML"
+          grep -q 'Administration maître' "$HTML"
+          grep -q 'Connexion employé' "$HTML"
+          grep -q 'Code entreprise' "$HTML"
+          grep -q 'Code employé' "$HTML"
+          grep -q 'admin-provision-employee' "$HTML"
+          grep -q 'employee-login' "$HTML"
+          grep -q 'pme-local-first-v1' "$HTML"
           grep -q 'pme-admin-fleur-header-5140' "$HTML"
           grep -q 'pme-admin-fleur-runtime-5140' "$HTML"
           grep -q 'pmeAdminFleurLauncher' "$HTML"
@@ -135,7 +146,7 @@ jobs:
           p=Path(os.environ['GRADLE_DIR'])/'app/src/main/assets/index.html'
           s=p.read_text(encoding='utf-8')
           lower=s.lower()
-          for token in ['pme-admin-fleur-runtime-5140','pme-admin-fleur-header-5140','pme-erp-suite-runtime-6000','pme-erp-suite-6000','pme-erp-mobile-runtime-fix-6100','pme-erp-mobile-fix-6100','pme-quebec-visual-runtime-7000','pme-quebec-visual-7000','pme-employee-files-runtime-fix-6200','pme-employee-files-fix-6200']:
+          for token in ['pme-admin-fleur-runtime-5140','pme-admin-fleur-header-5140','pme-erp-suite-runtime-6000','pme-erp-suite-6000','pme-erp-mobile-runtime-fix-6100','pme-erp-mobile-fix-6100','pme-quebec-visual-runtime-7000','pme-quebec-visual-7000','pme-employee-files-runtime-fix-6200','pme-employee-files-fix-6200','pme-company-access-runtime-5120','pme-company-access-5120']:
               assert s.rfind(token) < lower.rfind('</body>') if 'runtime' in token else s.rfind(token) < lower.rfind('</head>')
           a=s.find('function godPreviewDocument(htmlCode,cssCode)')
           b=s.find('function renderGodHtmlPreview()',a+1)

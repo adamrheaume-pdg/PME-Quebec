@@ -28,8 +28,8 @@ android {
         applicationId 'ca.quebec.oui'
         minSdk 26
         targetSdk 35
-        versionCode 17
-        versionName '5.1.0'
+        versionCode 18
+        versionName '5.2.0'
     }
 
     sourceSets {

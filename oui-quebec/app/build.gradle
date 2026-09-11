@@ -22,14 +22,14 @@ tasks.register('generateOuiLogo') {
 
 android {
     namespace 'ca.quebec.oui'
-    compileSdk 35
+    compileSdk 36
 
     defaultConfig {
         applicationId 'ca.quebec.oui'
         minSdk 26
-        targetSdk 35
-        versionCode 18
-        versionName '5.2.0'
+        targetSdk 36
+        versionCode 19
+        versionName '5.3.0'
     }
 
     sourceSets {

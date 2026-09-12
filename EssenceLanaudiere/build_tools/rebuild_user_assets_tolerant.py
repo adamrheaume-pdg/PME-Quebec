@@ -11,7 +11,8 @@ missing=[str(p) for p in parts if not p.exists()]
 if missing:
     raise SystemExit('Missing chunks: '+', '.join(missing))
 encoded=''.join(p.read_text(encoding='utf-8').strip() for p in parts)
-raw=base64.b64decode(encoded, validate=True)
+encoded += '=' * ((4 - len(encoded) % 4) % 4)
+raw=base64.b64decode(encoded, validate=False)
 out=root/'user_assets.zip'
 out.write_bytes(raw)
 with zipfile.ZipFile(out,'r') as z:

@@ -8,8 +8,8 @@ new="window.eqMoveUser=(la,lo,heading)=>{const ll=[Number(la),Number(lo)];window
 if old in s:
     s=s.replace(old,new,1)
 
-old2="document.getElementById('meBtn').onclick=()=>{eqFollowUser=true;map.setView(["+centerLat+","+centerLng+"],15,{animate:true});};"
-new2="document.getElementById('meBtn').onclick=()=>{eqFollowUser=true;const ll=window.eqLastUser||["+centerLat+","+centerLng+"];map.setView(ll,15,{animate:true});};"
+old2='''document.getElementById('meBtn').onclick=()=>{eqFollowUser=true;map.setView(["+centerLat+","+centerLng+"],15,{animate:true});};'''
+new2='''document.getElementById('meBtn').onclick=()=>{eqFollowUser=true;const ll=window.eqLastUser||["+centerLat+","+centerLng+"];map.setView(ll,15,{animate:true});};'''
 if old2 in s:
     s=s.replace(old2,new2,1)
 

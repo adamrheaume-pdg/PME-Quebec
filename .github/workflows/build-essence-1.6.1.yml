@@ -46,13 +46,14 @@ jobs:
         run: python3 EssenceLanaudiere/build_tools/patch_user_requests.py
       - name: Mettre la navigation GPS dynamique sur la carte d accueil
         run: python3 EssenceLanaudiere/build_tools/patch_home_map_final.py
-      - name: Appliquer les fonctions Essence Quebec 1.7.0
-        run: python3 EssenceLanaudiere/build_tools/patch_v170.py
-      - name: Ajouter QUB et fermeture
+      - name: Ajouter QUB et fermeture avant le profil 1.7.0
         shell: bash
         run: |
+          set -euo pipefail
           python3 EssenceLanaudiere/build_tools/patch_qub_radio.py
           python3 EssenceLanaudiere/build_tools/patch_shutdown.py
+      - name: Appliquer les fonctions Essence Quebec 1.7.0
+        run: python3 EssenceLanaudiere/build_tools/patch_v170.py
       - name: Verifier les icones utilisateur avant compilation
         shell: bash
         run: |

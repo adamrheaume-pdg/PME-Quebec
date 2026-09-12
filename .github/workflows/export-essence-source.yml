@@ -1,0 +1,57 @@
+name: Exporter source Essence Quebec 1.8.0
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+    paths:
+      - '.github/workflows/export-essence-source.yml'
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Recuperer le depot
+        uses: actions/checkout@v4
+
+      - name: Preparer le paquet source complet
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="Essence-Quebec-1.8.0-Source-Complet"
+          rm -rf "$OUT"
+          mkdir -p "$OUT/.github/workflows"
+          cp -a EssenceLanaudiere "$OUT/"
+          cp .github/workflows/build-essence-1.6.1.yml "$OUT/.github/workflows/build-essence-1.8.0.yml"
+          cp .github/workflows/export-essence-source.yml "$OUT/.github/workflows/"
+          cat > "$OUT/README-BUILD.txt" <<'EOF'
+Essence Quebec 1.8.0 - paquet source complet
+
+Contenu:
+- EssenceLanaudiere/ : projet Android complet
+- EssenceLanaudiere/app/ : code source et ressources Android
+- EssenceLanaudiere/build_tools/ : scripts utilises pour appliquer les corrections et construire les ressources
+- .github/workflows/build-essence-1.8.0.yml : compilation automatique GitHub Actions
+- .github/workflows/export-essence-source.yml : export du paquet source
+
+Compilation locale:
+1. Installer Java 17 et Android SDK 35.
+2. Installer Gradle 8.10.2 ou utiliser un environnement equivalent.
+3. Depuis la racine du paquet, executer les scripts Python dans le meme ordre que le workflow build-essence-1.8.0.yml.
+4. Compiler avec:
+   gradle -p EssenceLanaudiere :app:assembleDebug --stacktrace
+5. APK genere:
+   EssenceLanaudiere/app/build/outputs/apk/debug/app-debug.apk
+
+La version Android declaree est 1.8.0. Le paquet conserve les scripts de transformation afin de pouvoir reconstruire la meme logique que GitHub Actions.
+EOF
+          zip -r -9 Essence-Quebec-1.8.0-Source-Complet.zip "$OUT"
+          unzip -t Essence-Quebec-1.8.0-Source-Complet.zip >/dev/null
+
+      - name: Publier le paquet source
+        uses: actions/upload-artifact@v4
+        with:
+          name: Essence-Quebec-1.8.0-Source-Complet
+          path: Essence-Quebec-1.8.0-Source-Complet.zip
+          retention-days: 30
+          if-no-files-found: error

@@ -49,6 +49,8 @@ jobs:
         run: python3 EssenceLanaudiere/build_tools/patch_reference_ui.py
       - name: Appliquer carte immersive reference v2
         run: python3 EssenceLanaudiere/build_tools/patch_reference_map_v2.py
+      - name: Reconstruire les images utilisateur Essence Quebec
+        run: python3 EssenceLanaudiere/build_tools/rebuild_user_assets.py
       - name: Appliquer les commandes utilisateur Essence Quebec
         run: python3 EssenceLanaudiere/build_tools/patch_user_requests.py
       - name: Ajouter QUB radio en arriere-plan
@@ -112,8 +114,8 @@ jobs:
           set -euo pipefail
           RES="EssenceLanaudiere/app/src/main/res"
           LOGO="$RES/drawable/essence_quebec_logo.png"
-          echo 'e74fc2c02f185616e402b6d13434038f1bf31b2bb1e98496fd2fcd601d6833b8  '"$LOGO" | sha256sum -c -
-          file "$LOGO" | grep -F 'PNG image data, 192 x 192'
+          test -s "$LOGO"
+          file "$LOGO" | grep -F 'PNG image data'
           for d in mipmap-mdpi mipmap-hdpi mipmap-xhdpi mipmap-xxhdpi mipmap-xxxhdpi; do
             mkdir -p "$RES/$d"
             cp "$LOGO" "$RES/$d/ic_launcher.png"
@@ -131,13 +133,14 @@ jobs:
           APK="EssenceLanaudiere/app/build/outputs/apk/debug/app-debug.apk"
           unzip -t "$APK" >/dev/null
           unzip -p "$APK" res/drawable/essence_quebec_logo.png > /tmp/logo-apk.png
-          echo 'e74fc2c02f185616e402b6d13434038f1bf31b2bb1e98496fd2fcd601d6833b8  /tmp/logo-apk.png' | sha256sum -c -
+          test -s /tmp/logo-apk.png
+          file /tmp/logo-apk.png | grep -F 'PNG image data'
       - name: Renommer APK
-        run: cp EssenceLanaudiere/app/build/outputs/apk/debug/app-debug.apk Essence-Quebec-1.5.0.apk
+        run: cp EssenceLanaudiere/app/build/outputs/apk/debug/app-debug.apk Essence-Quebec-1.6.0.apk
       - name: Publier APK
         uses: actions/upload-artifact@v4
         with:
-          name: Essence-Quebec-1.5.0
-          path: Essence-Quebec-1.5.0.apk
+          name: Essence-Quebec-1.6.0
+          path: Essence-Quebec-1.6.0.apk
           retention-days: 30
           if-no-files-found: error

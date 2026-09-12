@@ -49,6 +49,8 @@ jobs:
         run: python3 EssenceLanaudiere/build_tools/patch_reference_ui.py
       - name: Appliquer carte immersive reference v2
         run: python3 EssenceLanaudiere/build_tools/patch_reference_map_v2.py
+      - name: Generer un paquet images valide
+        run: python3 EssenceLanaudiere/build_tools/generate_user_assets.py
       - name: Appliquer les commandes utilisateur Essence Quebec
         run: python3 EssenceLanaudiere/build_tools/patch_user_requests.py
       - name: Ajouter QUB radio en arriere-plan

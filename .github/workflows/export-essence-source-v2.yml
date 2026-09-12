@@ -1,0 +1,33 @@
+name: Exporter source Essence Quebec 1.8.0 v2
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - '.github/workflows/export-essence-source-v2.yml'
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Creer le ZIP source
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT=Essence-Quebec-1.8.0-Source-Complet
+          rm -rf "$OUT"
+          mkdir -p "$OUT/.github/workflows"
+          cp -a EssenceLanaudiere "$OUT/"
+          cp .github/workflows/build-essence-1.6.1.yml "$OUT/.github/workflows/build-essence-1.8.0.yml"
+          cp .github/workflows/export-essence-source-v2.yml "$OUT/.github/workflows/"
+          printf '%s\n' 'Essence Quebec 1.8.0 - source complet' '' 'Java 17' 'Android SDK 35' 'Gradle 8.10.2' '' 'Pour reconstruire exactement la version GitHub Actions, suivre les etapes du fichier .github/workflows/build-essence-1.8.0.yml.' '' 'Compilation finale: gradle -p EssenceLanaudiere :app:assembleDebug --stacktrace' > "$OUT/README-BUILD.txt"
+          zip -r -9 Essence-Quebec-1.8.0-Source-Complet.zip "$OUT"
+          unzip -t Essence-Quebec-1.8.0-Source-Complet.zip >/dev/null
+      - name: Publier le ZIP source
+        uses: actions/upload-artifact@v4
+        with:
+          name: Essence-Quebec-1.8.0-Source-Complet
+          path: Essence-Quebec-1.8.0-Source-Complet.zip
+          retention-days: 30
+          if-no-files-found: error

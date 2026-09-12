@@ -49,10 +49,12 @@ jobs:
         run: python3 EssenceLanaudiere/build_tools/patch_reference_ui.py
       - name: Appliquer carte immersive reference v2
         run: python3 EssenceLanaudiere/build_tools/patch_reference_map_v2.py
-      - name: Generer un paquet images valide
-        run: python3 EssenceLanaudiere/build_tools/generate_user_assets.py
+      - name: Reconstruire les vraies images utilisateur
+        run: python3 EssenceLanaudiere/build_tools/rebuild_user_assets.py
       - name: Appliquer les commandes utilisateur Essence Quebec
         run: python3 EssenceLanaudiere/build_tools/patch_user_requests.py
+      - name: Utiliser la carte GPS dynamique sur l accueil
+        run: python3 EssenceLanaudiere/build_tools/patch_home_map_final.py
       - name: Ajouter QUB radio en arriere-plan
         run: python3 EssenceLanaudiere/build_tools/patch_qub_radio.py
       - name: Ajouter bouton de fermeture complete
@@ -101,13 +103,27 @@ jobs:
           grep -F 'toggleStationFavorite(s)' "$FILE"
           grep -F 'shareStation(s)' "$FILE"
           grep -F 'startLiveMapTracking' "$FILE"
-          grep -F 'eqMoveUser' "$FILE"
+          grep -F 'window.eqLastUser' "$FILE"
           grep -F 'marker_mccafe.png' "$FILE"
           grep -F 'marker_tim.png' "$FILE"
           grep -F 'marker_atm.png' "$FILE"
           grep -F 'marker_radar.png' "$FILE"
           grep -F 'money_bundle' "$FILE"
           if grep -Fq 'markerClusterGroup' "$FILE"; then echo 'ERREUR: regroupement des stations encore present'; exit 1; fi
+      - name: Verifier les vraies ressources graphiques
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s EssenceLanaudiere/app/src/main/assets/marker_mccafe.png
+          test -s EssenceLanaudiere/app/src/main/assets/marker_tim.png
+          test -s EssenceLanaudiere/app/src/main/assets/marker_atm.png
+          test -s EssenceLanaudiere/app/src/main/assets/marker_radar.png
+          test -s EssenceLanaudiere/app/src/main/res/drawable/station_shell.jpg
+          test -s EssenceLanaudiere/app/src/main/res/drawable/station_irving.jpg
+          file EssenceLanaudiere/app/src/main/assets/marker_mccafe.png | grep -F 'PNG image data'
+          file EssenceLanaudiere/app/src/main/assets/marker_tim.png | grep -F 'PNG image data'
+          file EssenceLanaudiere/app/src/main/assets/marker_atm.png | grep -F 'PNG image data'
+          file EssenceLanaudiere/app/src/main/assets/marker_radar.png | grep -F 'PNG image data'
       - name: Verifier et deployer le logo Essence Quebec
         shell: bash
         run: |
@@ -126,21 +142,25 @@ jobs:
           gradle-version: '8.10.2'
       - name: Compiler APK debug
         run: gradle -p EssenceLanaudiere :app:assembleDebug --stacktrace
-      - name: Verifier APK et logo embarque
+      - name: Verifier APK et ressources embarquees
         shell: bash
         run: |
           set -euo pipefail
           APK="EssenceLanaudiere/app/build/outputs/apk/debug/app-debug.apk"
           unzip -t "$APK" >/dev/null
+          unzip -l "$APK" | grep -F 'assets/marker_mccafe.png'
+          unzip -l "$APK" | grep -F 'assets/marker_tim.png'
+          unzip -l "$APK" | grep -F 'assets/marker_atm.png'
+          unzip -l "$APK" | grep -F 'assets/marker_radar.png'
           unzip -p "$APK" res/drawable/essence_quebec_logo.png > /tmp/logo-apk.png
           test -s /tmp/logo-apk.png
           file /tmp/logo-apk.png | grep -F 'PNG image data'
       - name: Renommer APK
-        run: cp EssenceLanaudiere/app/build/outputs/apk/debug/app-debug.apk Essence-Quebec-1.6.0.apk
+        run: cp EssenceLanaudiere/app/build/outputs/apk/debug/app-debug.apk Essence-Quebec-1.6.1.apk
       - name: Publier APK
         uses: actions/upload-artifact@v4
         with:
-          name: Essence-Quebec-1.6.0
-          path: Essence-Quebec-1.6.0.apk
+          name: Essence-Quebec-1.6.1
+          path: Essence-Quebec-1.6.1.apk
           retention-days: 30
           if-no-files-found: error

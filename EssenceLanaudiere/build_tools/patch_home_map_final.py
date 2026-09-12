@@ -4,7 +4,7 @@ p=Path('EssenceLanaudiere/app/src/main/java/quebec/lanaudiere/essence/MainActivi
 s=p.read_text(encoding='utf-8')
 
 old="window.eqMoveUser=(la,lo,heading)=>{const ll=[Number(la),Number(lo)];if(window.eqUserDot)window.eqUserDot.setLatLng(ll);if(window.eqUserLabel)window.eqUserLabel.setLatLng(ll);if(eqFollowUser)map.panTo(ll,{animate:true,duration:.45});};"
-new="window.eqMoveUser=(la,lo,heading)=>{const ll=[Number(la),Number(lo)];window.eqLastUser=ll;if(!window.eqUserDot){window.eqUserDot=L.circleMarker(ll,{radius:10,color:'#fff',weight:3,fillColor:'#1677ff',fillOpacity:1}).addTo(map).bindPopup('<b>VOUS ÊTES ICI</b>');}else{window.eqUserDot.setLatLng(ll);}if(!window.eqUserLabel){window.eqUserLabel=L.marker(ll,{icon:L.divIcon({className:'',html:\"<div class='you'>VOUS</div>\",iconSize:[54,22],iconAnchor:[27,-12]})}).addTo(map);}else{window.eqUserLabel.setLatLng(ll);}if(eqFollowUser)map.panTo(ll,{animate:true,duration:.45});};"
+new="window.eqMoveUser=(la,lo,heading)=>{const ll=[Number(la),Number(lo)];window.eqLastUser=ll;if(!window.eqUserDot){window.eqUserDot=L.circleMarker(ll,{radius:10,color:'#fff',weight:3,fillColor:'#1677ff',fillOpacity:1}).addTo(map).bindPopup('<b>VOUS ÊTES ICI</b>');}else{window.eqUserDot.setLatLng(ll);}if(!window.eqUserLabel){window.eqUserLabel=L.marker(ll,{icon:L.divIcon({className:'',html:'<div class=you>VOUS</div>',iconSize:[54,22],iconAnchor:[27,-12]})}).addTo(map);}else{window.eqUserLabel.setLatLng(ll);}if(eqFollowUser)map.panTo(ll,{animate:true,duration:.45});};"
 if old in s:
     s=s.replace(old,new,1)
 
@@ -36,4 +36,4 @@ if old3 in s:
     s=s.replace(old3,new3,1)
 
 p.write_text(s,encoding='utf-8')
-print('Carte accueil: meme navigation dynamique que la carte detaillee, suivi GPS et marqueur VOUS assures')
+print('Carte accueil: navigation dynamique, suivi GPS et marqueur VOUS assures')

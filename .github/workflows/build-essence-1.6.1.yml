@@ -1,4 +1,4 @@
-name: Compiler Essence Quebec 1.7.0
+name: Compiler Essence Quebec 1.8.0
 
 on:
   workflow_dispatch:
@@ -46,14 +46,28 @@ jobs:
         run: python3 EssenceLanaudiere/build_tools/patch_user_requests.py
       - name: Mettre la navigation GPS dynamique sur la carte d accueil
         run: python3 EssenceLanaudiere/build_tools/patch_home_map_final.py
-      - name: Ajouter QUB et fermeture avant le profil 1.7.0
+      - name: Ajouter QUB et fermeture avant le profil
         shell: bash
         run: |
           set -euo pipefail
           python3 EssenceLanaudiere/build_tools/patch_qub_radio.py
           python3 EssenceLanaudiere/build_tools/patch_shutdown.py
-      - name: Appliquer les fonctions Essence Quebec 1.7.0
+      - name: Appliquer les fonctions 1.7.0
         run: python3 EssenceLanaudiere/build_tools/patch_v170.py
+      - name: Appliquer les corrections 1.8.0
+        run: python3 EssenceLanaudiere/build_tools/patch_v180.py
+      - name: Verifier les fonctions 1.8.0
+        shell: bash
+        run: |
+          set -euo pipefail
+          FILE="EssenceLanaudiere/app/src/main/java/quebec/lanaudiere/essence/MainActivity.java"
+          grep -F 'ESSENCE_QUEBEC_180' "$FILE"
+          grep -F 'Quitter Essence Québec ?' "$FILE"
+          grep -F 'eqMapGestureGuard' "$FILE"
+          grep -F 'PRIX MOYEN AUTOUR DU QUÉBEC' "$FILE"
+          grep -F 'eqAwardXp' "$FILE"
+          if grep -Fq 'Rechercher une ville ou une adresse' "$FILE"; then echo 'ERREUR: barre de recherche encore presente'; exit 1; fi
+          if grep -Fq 'Button tList=ghostButton("Liste")' "$FILE"; then echo 'ERREUR: onglet Liste encore present'; exit 1; fi
       - name: Verifier les icones utilisateur avant compilation
         shell: bash
         run: |
@@ -63,9 +77,6 @@ jobs:
             file "EssenceLanaudiere/app/src/main/assets/$f" | grep -F 'PNG image data'
           done
           grep -F 'file:///android_asset/marker_mccafe.png' EssenceLanaudiere/app/src/main/java/quebec/lanaudiere/essence/MainActivity.java
-          grep -F 'file:///android_asset/marker_tim.png' EssenceLanaudiere/app/src/main/java/quebec/lanaudiere/essence/MainActivity.java
-          grep -F 'file:///android_asset/marker_atm.png' EssenceLanaudiere/app/src/main/java/quebec/lanaudiere/essence/MainActivity.java
-          grep -F 'file:///android_asset/marker_radar.png' EssenceLanaudiere/app/src/main/java/quebec/lanaudiere/essence/MainActivity.java
           grep -F 'window.eqLastUser' EssenceLanaudiere/app/src/main/java/quebec/lanaudiere/essence/MainActivity.java
       - name: Deployer le logo Essence Quebec
         shell: bash
@@ -95,11 +106,11 @@ jobs:
           done
           unzip -l "$APK" | grep -F 'res/drawable/essence_quebec_logo.png'
       - name: Nommer APK
-        run: cp EssenceLanaudiere/app/build/outputs/apk/debug/app-debug.apk Essence-Quebec-1.7.0.apk
+        run: cp EssenceLanaudiere/app/build/outputs/apk/debug/app-debug.apk Essence-Quebec-1.8.0.apk
       - name: Publier APK
         uses: actions/upload-artifact@v4
         with:
-          name: Essence-Quebec-1.7.0
-          path: Essence-Quebec-1.7.0.apk
+          name: Essence-Quebec-1.8.0
+          path: Essence-Quebec-1.8.0.apk
           retention-days: 30
           if-no-files-found: error

@@ -1,4 +1,4 @@
-name: Compiler Essence Quebec 1.6.1
+name: Compiler Essence Quebec 1.7.0
 
 on:
   workflow_dispatch:
@@ -46,6 +46,8 @@ jobs:
         run: python3 EssenceLanaudiere/build_tools/patch_user_requests.py
       - name: Mettre la navigation GPS dynamique sur la carte d accueil
         run: python3 EssenceLanaudiere/build_tools/patch_home_map_final.py
+      - name: Appliquer les fonctions Essence Quebec 1.7.0
+        run: python3 EssenceLanaudiere/build_tools/patch_v170.py
       - name: Ajouter QUB et fermeture
         shell: bash
         run: |
@@ -92,11 +94,11 @@ jobs:
           done
           unzip -l "$APK" | grep -F 'res/drawable/essence_quebec_logo.png'
       - name: Nommer APK
-        run: cp EssenceLanaudiere/app/build/outputs/apk/debug/app-debug.apk Essence-Quebec-1.6.1.apk
+        run: cp EssenceLanaudiere/app/build/outputs/apk/debug/app-debug.apk Essence-Quebec-1.7.0.apk
       - name: Publier APK
         uses: actions/upload-artifact@v4
         with:
-          name: Essence-Quebec-1.6.1
-          path: Essence-Quebec-1.6.1.apk
+          name: Essence-Quebec-1.7.0
+          path: Essence-Quebec-1.7.0.apk
           retention-days: 30
           if-no-files-found: error

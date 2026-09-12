@@ -50,7 +50,9 @@ jobs:
       - name: Appliquer carte immersive reference v2
         run: python3 EssenceLanaudiere/build_tools/patch_reference_map_v2.py
       - name: Reconstruire les vraies images utilisateur
-        run: python3 EssenceLanaudiere/build_tools/rebuild_user_assets.py
+        run: python3 EssenceLanaudiere/build_tools/rebuild_user_assets_tolerant.py
+      - name: Reparer et verifier les vraies images
+        run: python3 EssenceLanaudiere/build_tools/repair_user_assets.py
       - name: Appliquer les commandes utilisateur Essence Quebec
         run: python3 EssenceLanaudiere/build_tools/patch_user_requests.py
       - name: Utiliser la carte GPS dynamique sur l accueil

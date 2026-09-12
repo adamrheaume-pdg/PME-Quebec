@@ -1,4 +1,4 @@
-name: Compiler Essence Lanaudiere APK
+name: Compiler Essence Quebec APK
 
 on:
   workflow_dispatch:
@@ -31,7 +31,7 @@ jobs:
         run: python3 EssenceLanaudiere/build_tools/patch_regional_prices.py
       - name: Appliquer theme premium bleu natif
         run: python3 EssenceLanaudiere/build_tools/patch_premium_theme.py
-      - name: Ajouter caméras Québec 511
+      - name: Ajouter cameras Quebec 511
         run: python3 EssenceLanaudiere/build_tools/patch_mtq_cameras.py
       - name: Ajouter alerte radar photo securitaire 1 km
         run: python3 EssenceLanaudiere/build_tools/patch_radar_safety.py
@@ -39,7 +39,7 @@ jobs:
         run: python3 EssenceLanaudiere/build_tools/patch_uncluster_poi.py
       - name: Ameliorer navigation et carte interactive
         run: python3 EssenceLanaudiere/build_tools/patch_navigation_map.py
-      - name: Appliquer finition visuelle punchée
+      - name: Appliquer finition visuelle punchee
         run: python3 EssenceLanaudiere/build_tools/patch_visual_punch.py
       - name: Appliquer interface neon conduite
         run: python3 EssenceLanaudiere/build_tools/patch_neon_drive_ui.py
@@ -49,6 +49,8 @@ jobs:
         run: python3 EssenceLanaudiere/build_tools/patch_reference_ui.py
       - name: Appliquer carte immersive reference v2
         run: python3 EssenceLanaudiere/build_tools/patch_reference_map_v2.py
+      - name: Appliquer les commandes utilisateur Essence Quebec
+        run: python3 EssenceLanaudiere/build_tools/patch_user_requests.py
       - name: Ajouter QUB radio en arriere-plan
         run: python3 EssenceLanaudiere/build_tools/patch_qub_radio.py
       - name: Ajouter bouton de fermeture complete
@@ -91,6 +93,18 @@ jobs:
           grep -F 'android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK' "$MANIFEST"
           grep -F 'android:foregroundServiceType="mediaPlayback"' "$MANIFEST"
           grep -F 'QUB_RADIOAAC.aac' "$SERVICE"
+          grep -F 'stationBannerResource' "$FILE"
+          grep -F 'showStationHours(s)' "$FILE"
+          grep -F 'showStationServices(s)' "$FILE"
+          grep -F 'toggleStationFavorite(s)' "$FILE"
+          grep -F 'shareStation(s)' "$FILE"
+          grep -F 'startLiveMapTracking' "$FILE"
+          grep -F 'eqMoveUser' "$FILE"
+          grep -F 'marker_mccafe.png' "$FILE"
+          grep -F 'marker_tim.png' "$FILE"
+          grep -F 'marker_atm.png' "$FILE"
+          grep -F 'marker_radar.png' "$FILE"
+          grep -F 'money_bundle' "$FILE"
           if grep -Fq 'markerClusterGroup' "$FILE"; then echo 'ERREUR: regroupement des stations encore present'; exit 1; fi
       - name: Verifier et deployer le logo Essence Quebec
         shell: bash
@@ -98,8 +112,8 @@ jobs:
           set -euo pipefail
           RES="EssenceLanaudiere/app/src/main/res"
           LOGO="$RES/drawable/essence_quebec_logo.png"
-          echo '3e99fff8892de7c56f773ad5d20fa70f8562c6668b3b60f059d6d114a97e5e98  '"$LOGO" | sha256sum -c -
-          file "$LOGO" | grep -F 'PNG image data, 48 x 48'
+          echo 'e74fc2c02f185616e402b6d13434038f1bf31b2bb1e98496fd2fcd601d6833b8  '"$LOGO" | sha256sum -c -
+          file "$LOGO" | grep -F 'PNG image data, 192 x 192'
           for d in mipmap-mdpi mipmap-hdpi mipmap-xhdpi mipmap-xxhdpi mipmap-xxxhdpi; do
             mkdir -p "$RES/$d"
             cp "$LOGO" "$RES/$d/ic_launcher.png"
@@ -117,12 +131,13 @@ jobs:
           APK="EssenceLanaudiere/app/build/outputs/apk/debug/app-debug.apk"
           unzip -t "$APK" >/dev/null
           unzip -p "$APK" res/drawable/essence_quebec_logo.png > /tmp/logo-apk.png
-          echo '3e99fff8892de7c56f773ad5d20fa70f8562c6668b3b60f059d6d114a97e5e98  /tmp/logo-apk.png' | sha256sum -c -
+          echo 'e74fc2c02f185616e402b6d13434038f1bf31b2bb1e98496fd2fcd601d6833b8  /tmp/logo-apk.png' | sha256sum -c -
       - name: Renommer APK
-        run: cp EssenceLanaudiere/app/build/outputs/apk/debug/app-debug.apk Essence-Quebec.apk
+        run: cp EssenceLanaudiere/app/build/outputs/apk/debug/app-debug.apk Essence-Quebec-1.5.0.apk
       - name: Publier APK
         uses: actions/upload-artifact@v4
         with:
-          name: Essence-Lanaudiere-APK
-          path: Essence-Quebec.apk
+          name: Essence-Quebec-1.5.0
+          path: Essence-Quebec-1.5.0.apk
           retention-days: 30
+          if-no-files-found: error

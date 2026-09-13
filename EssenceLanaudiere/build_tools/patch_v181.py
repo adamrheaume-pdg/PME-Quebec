@@ -6,8 +6,7 @@ s=p.read_text(encoding='utf-8')
 # Essence Quebec 1.8.1 - commandes utilisateur 2026-09-12
 js_enable='stationMap.getSettings().setJavaScriptEnabled(true);'
 bridge='''stationMap.getSettings().setJavaScriptEnabled(true); stationMap.addJavascriptInterface(new Object(){ @JavascriptInterface public void openStation(final int index){ runOnUiThread(()->{ if(index>=0&&index<lastStations.size()){ eqAwardXp(2); showStationReference(lastStations.get(index)); } }); } },"EQ");'''
-if 'addJavascriptInterface(new Object()' not in s:
-    s=s.replace(js_enable,bridge,1)
+if 'addJavascriptInterface(new Object()' not in s:s=s.replace(js_enable,bridge,1)
 
 old_loop='''        for(Station x:stations){\n            String price=String.format(Locale.CANADA_FRENCH,"%.1f",x.price);'''
 new_loop='''        int eqStationIndex=0;\n        for(Station x:stations){\n            final int stationIndex=eqStationIndex++;\n            String price=String.format(Locale.CANADA_FRENCH,"%.1f",x.price);'''
@@ -23,7 +22,7 @@ if old_price in s:s=s.replace(old_price,new_price,1)
 
 if 'private int localBrandLogoResource(String name)' not in s:
     marker='    private String brandLogoUrl(String name)'
-    methods='''    private int localBrandLogoResource(String name){\n        String n=name==null?"":name.toLowerCase(Locale.CANADA_FRENCH);\n        if(n.contains("ultramar"))return R.drawable.logo_ultramar;\n        boolean known=n.contains("petro")||n.contains("shell")||n.contains("esso")||n.contains("costco")||n.contains("irving")||n.contains("couche-tard")||n.contains("coupe-tard")||n.contains("circle k")||n.contains("harnois")||n.contains("sonic")||n.contains("canadian tire")||n.contains("gas+");\n        return known?0:R.drawable.station_generic_pump;\n    }\n\n'''
+    methods='''    private int localBrandLogoResource(String name){\n        String n=name==null?"":name.toLowerCase(Locale.CANADA_FRENCH);\n        if(n.contains("ultramar"))return R.drawable.station_ultramar;\n        boolean known=n.contains("petro")||n.contains("shell")||n.contains("esso")||n.contains("costco")||n.contains("irving")||n.contains("couche-tard")||n.contains("coupe-tard")||n.contains("circle k")||n.contains("harnois")||n.contains("sonic")||n.contains("canadian tire")||n.contains("gas+");\n        return known?0:R.drawable.station_generic_pump;\n    }\n\n'''
     s=s.replace(marker,methods+marker,1)
 
 old_load='''    private void loadBrandLogo(ImageView view,String name){\n        view.setContentDescription(name);\n        new Thread(()->{try{HttpURLConnection c=(HttpURLConnection)new URL(brandLogoUrl(name)).openConnection();c.setConnectTimeout(5000);c.setReadTimeout(5000);Bitmap b=BitmapFactory.decodeStream(c.getInputStream());if(b!=null)runOnUiThread(()->view.setImageBitmap(b));}catch(Exception ignored){}}).start();\n    }'''
@@ -41,7 +40,7 @@ if start>=0:
     s=s[:start]+new_method+s[end:]
 
 if 'ESSENCE_QUEBEC_181' not in s:s=s.replace('private static final String ESSENCE_QUEBEC_180="1.8.0";','private static final String ESSENCE_QUEBEC_180="1.8.0";\n    private static final String ESSENCE_QUEBEC_181="1.8.1";',1)
-required=['ESSENCE_QUEBEC_181','addJavascriptInterface(new Object()','Double-tape pour ouvrir la station','stationMoney','logo_ultramar','station_generic_pump','184.9f,194.6f,157.9f,156.0f,160.6f,160.5f']
+required=['ESSENCE_QUEBEC_181','addJavascriptInterface(new Object()','Double-tape pour ouvrir la station','stationMoney','station_ultramar','station_generic_pump','184.9f,194.6f,157.9f,156.0f,160.6f,160.5f']
 missing=[x for x in required if x not in s]
 if missing:raise SystemExit('patch_v181 incomplet: '+repr(missing))
 p.write_text(s,encoding='utf-8')

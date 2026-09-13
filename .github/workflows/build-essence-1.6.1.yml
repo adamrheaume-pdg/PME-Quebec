@@ -1,4 +1,4 @@
-name: Compiler Essence Quebec 1.8.5
+name: Compiler Essence Quebec 1.8.6
 
 on:
   workflow_dispatch:
@@ -61,18 +61,19 @@ jobs:
           python3 EssenceLanaudiere/build_tools/patch_v183.py
           python3 EssenceLanaudiere/build_tools/patch_v184.py
           python3 EssenceLanaudiere/build_tools/patch_v185.py
-      - name: Verifier 1.8.5
+          python3 EssenceLanaudiere/build_tools/patch_v186.py
+      - name: Verifier 1.8.6
         shell: bash
         run: |
           set -euo pipefail
           FILE='EssenceLanaudiere/app/src/main/java/quebec/lanaudiere/essence/MainActivity.java'
-          grep -F 'ESSENCE_QUEBEC_185' "$FILE"
-          grep -F 'apiSort=radius>=60?"distance":sort' "$FILE"
+          grep -F 'ESSENCE_QUEBEC_186' "$FILE"
+          grep -F 'marker_safety.png' "$FILE"
+          grep -F 'iconSize:[28,28],iconAnchor:[14,14]' "$FILE"
+          grep -F 'width:28px!important' "$FILE"
           grep -F 'apiLimit=radius>=60?250:50' "$FILE"
-          grep -F 'limit=%d&sort=%s' "$FILE"
           grep -F 'iconSize:[48,64],iconAnchor:[24,64]' "$FILE"
-          grep -F 'setLatLng(ll)' "$FILE"
-          grep -F "versionName '1.8.5'" EssenceLanaudiere/app/build.gradle
+          grep -F "versionName '1.8.6'" EssenceLanaudiere/app/build.gradle
       - name: Deployer logo Essence Quebec
         shell: bash
         run: |
@@ -96,16 +97,17 @@ jobs:
           set -euo pipefail
           APK='EssenceLanaudiere/app/build/outputs/apk/debug/app-debug.apk'
           unzip -t "$APK" >/dev/null
+          unzip -l "$APK" | grep -F 'assets/marker_safety.png'
           unzip -l "$APK" | grep -F 'assets/marker_user_stationary.png'
           unzip -l "$APK" | grep -F 'assets/marker_user_moving.png'
           unzip -l "$APK" | grep -F 'essence_quebec_logo.png'
           unzip -l "$APK" | grep -F 'money_bundle.png'
       - name: Nommer APK
-        run: cp EssenceLanaudiere/app/build/outputs/apk/debug/app-debug.apk Essence-Quebec-1.8.5.apk
+        run: cp EssenceLanaudiere/app/build/outputs/apk/debug/app-debug.apk Essence-Quebec-1.8.6.apk
       - name: Publier APK
         uses: actions/upload-artifact@v4
         with:
-          name: Essence-Quebec-1.8.5
-          path: Essence-Quebec-1.8.5.apk
+          name: Essence-Quebec-1.8.6
+          path: Essence-Quebec-1.8.6.apk
           retention-days: 30
           if-no-files-found: error

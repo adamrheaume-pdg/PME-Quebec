@@ -105,7 +105,8 @@ public class StandardizationCenterActivity extends Activity {
         };
         for(String c:checks){CheckBox cb=new CheckBox(this);cb.setText(c);cb.setTextColor(Color.rgb(35,55,75));cb.setTextSize(14);p.addView(cb);}
         Button budget=primary("Ouvrir le calculateur budgétaire");budget.setOnClickListener(v->startActivity(new Intent(this,BudgetActivity.class)));p.addView(budget);
-        p.addView(text("Le calculateur vérifie les plafonds simples de formation, administration et contingence, le taux d’aide, le cumul public et la contribution minimale. Le gabarit XLSM officiel reste la référence pour le dépôt.",12,Color.DKGRAY,false));
+        Button dossier=secondary("Ouvrir la liste de contrôle du dossier");dossier.setOnClickListener(v->startActivity(new Intent(this,ApplicationChecklistActivity.class)));p.addView(dossier);
+        p.addView(text("Le calculateur vérifie les plafonds simples de formation, administration et contingence, le taux d’aide, le cumul public et la contribution minimale. La liste du dossier conserve localement l’état des pièces à préparer. Les gabarits officiels restent la référence pour le dépôt.",12,Color.DKGRAY,false));
         root.addView(p,mb());
     }
 

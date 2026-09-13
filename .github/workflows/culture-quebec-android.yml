@@ -27,5 +27,5 @@ jobs:
       - name: Archive APK
         uses: actions/upload-artifact@v4
         with:
-          name: Culture-du-Quebec-1.5.0
+          name: Culture-du-Quebec-1.6.0
           path: CultureQuebec/app/build/outputs/apk/debug/app-debug.apk

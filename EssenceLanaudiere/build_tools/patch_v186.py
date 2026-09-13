@@ -5,16 +5,17 @@ p=Path('EssenceLanaudiere/app/src/main/java/quebec/lanaudiere/essence/MainActivi
 s=p.read_text(encoding='utf-8')
 
 # 1.8.6 — marqueur caméra/radar/sécurité uniforme, compact et de taille fixe.
-# L'image utilisateur marker_safety.png est déjà installée dans les assets par patch_v182.
-s=s.replace(".radarCam img{width:40px;height:40px;object-fit:contain}",
-            ".radarCam{width:28px!important;height:28px!important;background:transparent!important;border:0!important;box-shadow:none!important}.radarCam img{display:block!important;width:28px!important;height:28px!important;max-width:none!important;max-height:none!important;object-fit:contain!important;transform:none!important}")
-
-# Toutes les fonctions de marqueur sécurité connues utilisent la même icône fournie.
 s=s.replace("file:///android_asset/marker_radar.png", "file:///android_asset/marker_safety.png")
-
-# MTQ et radars : boîte Leaflet 28x28, ancrée au centre et indépendante du zoom.
 s=re.sub(r"iconSize:\[44,44\],iconAnchor:\[22,22\]", "iconSize:[28,28],iconAnchor:[14,14]", s)
 s=re.sub(r"iconSize:\[38,38\],iconAnchor:\[19,19\]", "iconSize:[28,28],iconAnchor:[14,14]", s)
+
+# Normaliser la taille interne de l'image quelle que soit la version CSS produite par les patchs précédents.
+s=re.sub(r"\.radarCam img\{[^}]*\}",
+         ".radarCam img{display:block!important;width:28px!important;height:28px!important;max-width:none!important;max-height:none!important;object-fit:contain!important;transform:none!important}",
+         s,count=1)
+if 'width:28px!important' not in s:
+    s=s.replace('</style></head><body>',
+                ".radarCam{width:28px!important;height:28px!important;background:transparent!important;border:0!important;box-shadow:none!important}.radarCam img{display:block!important;width:28px!important;height:28px!important;max-width:none!important;max-height:none!important;object-fit:contain!important;transform:none!important}</style></head><body>",1)
 
 if 'ESSENCE_QUEBEC_186' not in s:
     s=s.replace('private static final String ESSENCE_QUEBEC_185="1.8.5";',

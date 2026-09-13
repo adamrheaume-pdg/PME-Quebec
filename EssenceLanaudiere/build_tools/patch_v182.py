@@ -23,7 +23,6 @@ decode_parts('logo',5,draw/'essence_quebec_logo.png')
 mbxml=draw/'money_bundle.xml'
 if mbxml.exists(): mbxml.unlink()
 decode_parts('money',3,draw/'money_bundle.png')
-# aliases for older map code
 (assets/'marker_radar.png').write_bytes((assets/'marker_safety.png').read_bytes())
 (assets/'marker_atm.png').write_bytes((assets/'marker_finance.png').read_bytes())
 
@@ -36,9 +35,8 @@ if '[amenity=\\\"bank\\\"]' not in s:
     s=s.replace('"nwr(around:50000,"+userLat+","+userLng+")[amenity=\\\"atm\\\"];"+', '"nwr(around:50000,"+userLat+","+userLng+")[amenity=\\\"atm\\\"];"+\n            "nwr(around:50000,"+userLat+","+userLng+")[amenity=\\\"bank\\\"];"+',1)
 s=s.replace("const kind=(t.amenity==='atm')?'atm':","const kind=(t.amenity==='atm'||t.amenity==='bank')?'atm':")
 s=s.replace("const label=kind==='atm'?(name||'Guichet automatique'):name;","const label=kind==='atm'?(name||(t.amenity==='bank'?'Institution financière':'Guichet automatique')):name;")
-# add distance to finance popup when possible
 s=s.replace("L.marker([la,lo],{icon:poiIcon(kind)}).addTo(foodLayer).bindPopup('<b>'+escPoi(label)+'</b>'+(addr?'<br>'+escPoi(addr):''));", "const dist=Math.round(window.mtqDistance?window.mtqDistance(userLat,userLng,la,lo):0);L.marker([la,lo],{icon:poiIcon(kind)}).addTo(foodLayer).bindPopup('<b>'+escPoi(label)+'</b>'+(addr?'<br>'+escPoi(addr):'')+(kind==='atm'&&dist?'<br>'+((dist/1000).toFixed(1))+' km':''));")
-# replace user marker updater with speed-aware images
+
 pat=re.compile(r"window\.eqMoveUser=\(la,lo,heading(?:,speed)?\)=>\{.*?\};",re.S)
 new=("window.eqMoveUser=(la,lo,heading,speed)=>{const ll=[Number(la),Number(lo)],sp=Number(speed||0),moving=sp>1.2;window.eqLastUser=ll;"
      "const src=moving?'file:///android_asset/marker_user_moving.png':'file:///android_asset/marker_user_stationary.png';"
@@ -49,12 +47,18 @@ s,n=pat.subn(new,s,count=1)
 if n==0: raise SystemExit('eqMoveUser introuvable')
 if '.eqUserPin img{' not in s:
     s=s.replace('</style></head><body>',".eqUserPin{background:transparent!important;border:0!important}.eqUserPin img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 4px 7px #0009)}</style></head><body>",1)
+
+# Live tracking: la vitesse doit être définie dans chaque portée Java qui l'utilise.
 if 'final float sp=l.hasSpeed()?l.getSpeed():0f;' not in s:
-    s=s.replace('final double la=l.getLatitude(),lo=l.getLongitude(); final float br=l.hasBearing()?l.getBearing():0f;','final double la=l.getLatitude(),lo=l.getLongitude(); final float br=l.hasBearing()?l.getBearing():0f; final float sp=l.hasSpeed()?l.getSpeed():0f;')
+    s=s.replace('final double la=l.getLatitude(),lo=l.getLongitude(); final float br=l.hasBearing()?l.getBearing():0f;',
+                'final double la=l.getLatitude(),lo=l.getLongitude(); final float br=l.hasBearing()?l.getBearing():0f; final float sp=l.hasSpeed()?l.getSpeed():0f;')
 s=s.replace('window.eqMoveUser("+la+","+lo+","+br+");','window.eqMoveUser("+la+","+lo+","+br+","+sp+");')
-# money bundle on station price row: real PNG, roughly same visual height as digits
+# onPageFinished utilise lastLocation et a sa propre portée: définir sp ici aussi.
+onpage_old='double la=lastLocation.getLatitude(),lo=lastLocation.getLongitude();\n                    float br=lastLocation.hasBearing()?lastLocation.getBearing():0f;'
+onpage_new='double la=lastLocation.getLatitude(),lo=lastLocation.getLongitude();\n                    float br=lastLocation.hasBearing()?lastLocation.getBearing():0f;\n                    float sp=lastLocation.hasSpeed()?lastLocation.getSpeed():0f;'
+s=s.replace(onpage_old,onpage_new)
+
 s=s.replace('stationMoney.setImageResource(R.drawable.money_bundle);','stationMoney.setImageResource(R.drawable.money_bundle); stationMoney.setBackgroundColor(Color.TRANSPARENT);')
-# safety icon also used for MTQ and radar layers
 s=s.replace("📹 QUÉBEC 511","QUÉBEC 511")
 if 'ESSENCE_QUEBEC_182' not in s:
     anchor='private static final String ESSENCE_QUEBEC_181="1.8.1";'

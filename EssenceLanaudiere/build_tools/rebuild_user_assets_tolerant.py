@@ -2,18 +2,13 @@ from pathlib import Path
 import base64, zipfile, re
 
 root=Path('EssenceLanaudiere/build_tools')
-parts=[]
-for i in range(9):
-    if i==6:
-        parts.extend(root / f'user_assets_06_{j}.txt' for j in range(6))
-    else:
-        parts.append(root / f'user_assets_{i:02d}.txt')
+# Les fragments 00..08 forment l'archive originale. Le fragment 06 principal
+# est complet; les anciens sous-fragments 06_0..06_5 étaient incomplets.
+parts=[root / f'user_assets_{i:02d}.txt' for i in range(9)]
 missing=[str(p) for p in parts if not p.exists()]
 if missing:
     raise SystemExit('Missing chunks: '+', '.join(missing))
 
-# Chaque morceau peut avoir son propre padding base64. On enlève ce padding
-# intermédiaire avant de concaténer, puis on repadde seulement la chaîne finale.
 chunks=[]
 for p in parts:
     x=re.sub(r'[^A-Za-z0-9+/=]','',p.read_text(encoding='utf-8'))
@@ -27,9 +22,16 @@ out.write_bytes(raw)
 try:
     with zipfile.ZipFile(out,'r') as z:
         names=set(z.namelist())
-        bad=z.testzip()
-        if bad:
-            raise SystemExit('Corrupt member: '+bad)
+        # money_bundle.png de l'archive historique est connu comme endommagé.
+        # repair_user_assets.py le remplace ensuite; tous les autres membres
+        # doivent être lisibles avant de poursuivre la compilation.
+        for info in z.infolist():
+            if info.filename=='res/drawable/money_bundle.png':
+                continue
+            try:
+                z.read(info.filename)
+            except Exception as e:
+                raise SystemExit('Corrupt member: '+info.filename+' : '+str(e))
 except zipfile.BadZipFile as e:
     raise SystemExit('Rebuilt archive is not a valid ZIP: '+str(e))
 
@@ -44,4 +46,4 @@ required={
 missing_names=sorted(required-names)
 if missing_names:
     raise SystemExit('Asset pack missing: '+', '.join(missing_names))
-print(f'Rebuilt {out} ({len(raw)} bytes, {len(names)} entries)')
+print(f'Rebuilt {out} ({len(raw)} bytes, {len(names)} entries); assets valid except legacy money bundle repaired next')

@@ -29,4 +29,4 @@ jobs:
         with:
           name: Culture-du-Quebec-2.0.0
           path: CultureQuebec/app/build/outputs/apk/debug/app-debug.apk
-# retry map renderer build
+# retry 2 - map renderer build

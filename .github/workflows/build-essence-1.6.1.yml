@@ -1,4 +1,4 @@
-name: Compiler Essence Quebec 1.8.2
+name: Compiler Essence Quebec 1.8.3
 
 on:
   workflow_dispatch:
@@ -58,26 +58,29 @@ jobs:
           python3 EssenceLanaudiere/build_tools/patch_v180.py
           python3 EssenceLanaudiere/build_tools/patch_v181.py
           python3 EssenceLanaudiere/build_tools/patch_v182.py
-      - name: Verifier 1.8.2
+          python3 EssenceLanaudiere/build_tools/patch_v183.py
+      - name: Verifier 1.8.3
         shell: bash
         run: |
           set -euo pipefail
           FILE='EssenceLanaudiere/app/src/main/java/quebec/lanaudiere/essence/MainActivity.java'
-          grep -F 'ESSENCE_QUEBEC_182' "$FILE"
+          grep -F 'ESSENCE_QUEBEC_183' "$FILE"
           grep -F 'marker_user_stationary.png' "$FILE"
           grep -F 'marker_user_moving.png' "$FILE"
+          grep -F 'mtqCameraJavascript(centerLat,centerLng)' "$FILE"
           grep -F 'marker_safety.png' "$FILE"
           grep -F 'marker_finance.png' "$FILE"
           grep -F 'around:50000' "$FILE"
           grep -F 'amenity=\"bank\"' "$FILE"
-          grep -F 'Double-tape pour ouvrir la station' "$FILE"
+          grep -F 'delta>12' "$FILE"
+          grep -F 'sp>0.8' "$FILE"
           test -s EssenceLanaudiere/app/src/main/assets/marker_user_stationary.png
           test -s EssenceLanaudiere/app/src/main/assets/marker_user_moving.png
           test -s EssenceLanaudiere/app/src/main/assets/marker_safety.png
           test -s EssenceLanaudiere/app/src/main/assets/marker_finance.png
           test -s EssenceLanaudiere/app/src/main/res/drawable/money_bundle.png
           test -s EssenceLanaudiere/app/src/main/res/drawable/essence_quebec_logo.png
-          grep -F "versionName '1.8.2'" EssenceLanaudiere/app/build.gradle
+          grep -F "versionName '1.8.3'" EssenceLanaudiere/app/build.gradle
       - name: Deployer logo Essence Quebec
         shell: bash
         run: |
@@ -106,11 +109,11 @@ jobs:
           unzip -l "$APK" | grep -F 'money_bundle.png'
           unzip -l "$APK" | grep -F 'ic_launcher_round.png'
       - name: Nommer APK
-        run: cp EssenceLanaudiere/app/build/outputs/apk/debug/app-debug.apk Essence-Quebec-1.8.2.apk
+        run: cp EssenceLanaudiere/app/build/outputs/apk/debug/app-debug.apk Essence-Quebec-1.8.3.apk
       - name: Publier APK
         uses: actions/upload-artifact@v4
         with:
-          name: Essence-Quebec-1.8.2
-          path: Essence-Quebec-1.8.2.apk
+          name: Essence-Quebec-1.8.3
+          path: Essence-Quebec-1.8.3.apk
           retention-days: 30
           if-no-files-found: error

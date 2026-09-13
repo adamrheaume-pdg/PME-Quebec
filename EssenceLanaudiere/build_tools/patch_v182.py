@@ -40,7 +40,7 @@ s=s.replace("L.marker([la,lo],{icon:poiIcon(kind)}).addTo(foodLayer).bindPopup('
 pat=re.compile(r"window\.eqMoveUser=\(la,lo,heading(?:,speed)?\)=>\{.*?\};",re.S)
 new=("window.eqMoveUser=(la,lo,heading,speed)=>{const ll=[Number(la),Number(lo)],sp=Number(speed||0),moving=sp>1.2;window.eqLastUser=ll;"
      "const src=moving?'file:///android_asset/marker_user_moving.png':'file:///android_asset/marker_user_stationary.png';"
-     "const ico=L.divIcon({className:'',html:\"<div class='eqUserPin'><img src='\"+src+\"'></div>\",iconSize:moving?[58,58]:[48,64],iconAnchor:moving?[29,29]:[24,58]});"
+     "const ico=L.divIcon({className:'',html:'<div class=eqUserPin><img src='+src+'></div>',iconSize:moving?[58,58]:[48,64],iconAnchor:moving?[29,29]:[24,58]});"
      "if(window.eqUserDot&&window.eqUserDot.remove)window.eqUserDot.remove();if(window.eqUserLabel&&window.eqUserLabel.remove){window.eqUserLabel.remove();window.eqUserLabel=null;}"
      "window.eqUserDot=L.marker(ll,{icon:ico,zIndexOffset:5000}).addTo(map).bindPopup(moving?'<b>EN MOUVEMENT</b>':'<b>VOUS ÊTES ICI</b>');if(eqFollowUser)map.panTo(ll,{animate:true,duration:.45});};")
 s,n=pat.subn(new,s,count=1)
@@ -48,12 +48,10 @@ if n==0: raise SystemExit('eqMoveUser introuvable')
 if '.eqUserPin img{' not in s:
     s=s.replace('</style></head><body>',".eqUserPin{background:transparent!important;border:0!important}.eqUserPin img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 4px 7px #0009)}</style></head><body>",1)
 
-# Live tracking: la vitesse doit être définie dans chaque portée Java qui l'utilise.
 if 'final float sp=l.hasSpeed()?l.getSpeed():0f;' not in s:
     s=s.replace('final double la=l.getLatitude(),lo=l.getLongitude(); final float br=l.hasBearing()?l.getBearing():0f;',
                 'final double la=l.getLatitude(),lo=l.getLongitude(); final float br=l.hasBearing()?l.getBearing():0f; final float sp=l.hasSpeed()?l.getSpeed():0f;')
 s=s.replace('window.eqMoveUser("+la+","+lo+","+br+");','window.eqMoveUser("+la+","+lo+","+br+","+sp+");')
-# onPageFinished utilise lastLocation et a sa propre portée: définir sp ici aussi.
 onpage_old='double la=lastLocation.getLatitude(),lo=lastLocation.getLongitude();\n                    float br=lastLocation.hasBearing()?lastLocation.getBearing():0f;'
 onpage_new='double la=lastLocation.getLatitude(),lo=lastLocation.getLongitude();\n                    float br=lastLocation.hasBearing()?lastLocation.getBearing():0f;\n                    float sp=lastLocation.hasSpeed()?lastLocation.getSpeed():0f;'
 s=s.replace(onpage_old,onpage_new)

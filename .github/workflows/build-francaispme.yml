@@ -1,0 +1,29 @@
+name: Build FrancaisPME Quebec
+on:
+  push:
+    paths:
+      - 'FrancaisPME-Quebec/**'
+      - '.github/workflows/build-francaispme.yml'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: FrancaisPME-Quebec
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Build debug APK
+        run: gradle assembleDebug --stacktrace
+      - uses: actions/upload-artifact@v4
+        with:
+          name: FrancaisPME-Quebec-1.0.0-debug
+          path: FrancaisPME-Quebec/app/build/outputs/apk/debug/app-debug.apk

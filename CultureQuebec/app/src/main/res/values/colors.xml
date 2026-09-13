@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="cq_blue">#003B71</color>
+    <color name="cq_blue_dark">#00284D</color>
+    <color name="cq_accent">#63C5DA</color>
+    <color name="cq_bg">#F5F7FA</color>
+    <color name="cq_text">#152536</color>
+    <color name="cq_muted">#5C6B7A</color>
+    <color name="cq_good">#146C43</color>
+    <color name="cq_warn">#9A6700</color>
+    <color name="white">#FFFFFF</color>
+</resources>

@@ -17,7 +17,7 @@ pat=re.compile(r'window\.eqMoveUser=\(la,lo,heading,speed\)=>\{.*?\};"\+',re.S)
 m=pat.search(s)
 if not m:
     raise SystemExit('eqMoveUser v182 introuvable')
-new_js='''window.eqMoveUser=(la,lo,heading,speed)=>{const ll=[Number(la),Number(lo)],sp=Number(speed||0),now=Date.now();let delta=0;if(window.eqLastUser){const a=window.eqLastUser[0]*Math.PI/180,b=ll[0]*Math.PI/180,dp=(ll[0]-window.eqLastUser[0])*Math.PI/180,dl=(ll[1]-window.eqLastUser[1])*Math.PI/180,q=Math.sin(dp/2)**2+Math.cos(a)*Math.cos(b)*Math.sin(dl/2)**2;delta=2*6371000*Math.asin(Math.sqrt(q));}const recent=!window.eqLastUserTs||(now-window.eqLastUserTs)<20000;const moving=sp>0.8||(recent&&delta>12);window.eqLastUser=ll;window.eqLastUserTs=now;const src=moving?'file:///android_asset/marker_user_moving.png':'file:///android_asset/marker_user_stationary.png';const ico=L.divIcon({className:'',html:\"<div class='eqUserPin'><img src='\"+src+\"'></div>\",iconSize:moving?[58,58]:[48,64],iconAnchor:moving?[29,29]:[24,58]});if(window.eqUserDot&&window.eqUserDot.remove)window.eqUserDot.remove();if(window.eqUserLabel&&window.eqUserLabel.remove){window.eqUserLabel.remove();window.eqUserLabel=null;}window.eqUserDot=L.marker(ll,{icon:ico,zIndexOffset:5000}).addTo(map).bindPopup(moving?'<b>EN MOUVEMENT</b>':'<b>VOUS ÊTES ICI</b>');if(eqFollowUser)map.panTo(ll,{animate:true,duration:.45});};"+'''
+new_js=r'''window.eqMoveUser=(la,lo,heading,speed)=>{const ll=[Number(la),Number(lo)],sp=Number(speed||0),now=Date.now();let delta=0;if(window.eqLastUser){const a=window.eqLastUser[0]*Math.PI/180,b=ll[0]*Math.PI/180,dp=(ll[0]-window.eqLastUser[0])*Math.PI/180,dl=(ll[1]-window.eqLastUser[1])*Math.PI/180,q=Math.sin(dp/2)**2+Math.cos(a)*Math.cos(b)*Math.sin(dl/2)**2;delta=2*6371000*Math.asin(Math.sqrt(q));}const recent=!window.eqLastUserTs||(now-window.eqLastUserTs)<20000;const moving=sp>0.8||(recent&&delta>12);window.eqLastUser=ll;window.eqLastUserTs=now;const src=moving?'file:///android_asset/marker_user_moving.png':'file:///android_asset/marker_user_stationary.png';const ico=L.divIcon({className:'',html:\"<div class='eqUserPin'><img src='\"+src+\"'></div>\",iconSize:moving?[58,58]:[48,64],iconAnchor:moving?[29,29]:[24,58]});if(window.eqUserDot&&window.eqUserDot.remove)window.eqUserDot.remove();if(window.eqUserLabel&&window.eqUserLabel.remove){window.eqUserLabel.remove();window.eqUserLabel=null;}window.eqUserDot=L.marker(ll,{icon:ico,zIndexOffset:5000}).addTo(map).bindPopup(moving?'<b>EN MOUVEMENT</b>':'<b>VOUS ÊTES ICI</b>');if(eqFollowUser)map.panTo(ll,{animate:true,duration:.45});};"+'''
 s=s[:m.start()]+new_js+s[m.end():]
 
 # 3) ajouter une vraie couche caméras MTQ utilisant le même marqueur sécurité rouge
@@ -25,7 +25,7 @@ insert_before='    private String radarSafetyJavascript(double userLat,double us
 if insert_before not in s:
     raise SystemExit('radarSafetyJavascript introuvable')
 if 'private String mtqCameraJavascript' not in s:
-    method='''    private String mtqCameraJavascript(double userLat,double userLng){
+    method=r'''    private String mtqCameraJavascript(double userLat,double userLng){
         String url=JSONObject.quote(MTQ_CAMERA_WFS);
         return "const mtqCamUrl="+url+";"
             +"const mtqCamLayer=L.layerGroup().addTo(map);"
@@ -47,7 +47,7 @@ start=s.find('    private String foodPoiJavascript(double userLat,double userLng
 end=s.find('\n    private String mtqCameraJavascript',start)
 if start<0 or end<0:
     raise SystemExit('foodPoiJavascript bornes introuvables')
-new_food='''    private String foodPoiJavascript(double userLat,double userLng){
+new_food=r'''    private String foodPoiJavascript(double userLat,double userLng){
         String endpoint=JSONObject.quote(FOOD_POI_OVERPASS);
         String q="[out:json][timeout:25];("+
             "nwr(around:60000,"+userLat+","+userLng+")[brand=\"McDonald's\"];"+
@@ -77,7 +77,7 @@ gs=re.sub(r'versionCode\s+\d+','versionCode 32',gs,count=1)
 gs=re.sub(r"versionName\s+'[^']+'","versionName '1.8.3'",gs,count=1)
 g.write_text(gs,encoding='utf-8')
 
-required=['ESSENCE_QUEBEC_183','marker_user_stationary.png','marker_user_moving.png','mtqCameraJavascript(centerLat,centerLng)','marker_safety.png','around:50000','amenity=\"bank\"','marker_finance.png','delta>12','sp>0.8']
+required=['ESSENCE_QUEBEC_183','marker_user_stationary.png','marker_user_moving.png','mtqCameraJavascript(centerLat,centerLng)','marker_safety.png','around:50000','amenity=\\"bank\\"','marker_finance.png','delta>12','sp>0.8']
 missing=[x for x in required if x not in s]
 if missing: raise SystemExit('patch_v183 incomplet: '+repr(missing))
 print('Essence Quebec 1.8.3: marqueurs et couches carte corriges')

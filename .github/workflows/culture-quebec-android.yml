@@ -9,7 +9,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     defaults:
       run:
         working-directory: CultureQuebec
@@ -29,4 +29,3 @@ jobs:
         with:
           name: Culture-du-Quebec-2.0.0
           path: CultureQuebec/app/build/outputs/apk/debug/app-debug.apk
-# retry 2 - map renderer build

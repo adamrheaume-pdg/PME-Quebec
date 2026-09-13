@@ -1,0 +1,73 @@
+package com.pmequebec.francaispme;
+
+import android.Manifest;
+import android.app.*;
+import android.content.*;
+import android.content.pm.PackageManager;
+import android.graphics.Color;
+import android.net.Uri;
+import android.os.Build;
+import android.os.Bundle;
+import android.text.InputType;
+import android.view.*;
+import android.widget.*;
+import org.json.*;
+import java.text.SimpleDateFormat;
+import java.util.*;
+
+public class MainActivity extends Activity {
+    final int NAVY=Color.rgb(11,31,58), BLUE=Color.rgb(11,95,255), GREEN=Color.rgb(27,138,90), AMBER=Color.rgb(199,125,0), RED=Color.rgb(180,35,24), TEXT=Color.rgb(16,24,40), SURFACE=Color.rgb(246,248,251);
+    LinearLayout content; SharedPreferences prefs;
+
+    @Override public void onCreate(Bundle b){
+        super.onCreate(b); prefs=getSharedPreferences("francaispme",MODE_PRIVATE);
+        if(Build.VERSION.SDK_INT>=33 && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS)!=PackageManager.PERMISSION_GRANTED) requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS},10);
+        show("dashboard");
+    }
+
+    void show(String page){
+        LinearLayout root=new LinearLayout(this); root.setOrientation(LinearLayout.VERTICAL); root.setBackgroundColor(SURFACE); root.setFitsSystemWindows(true);
+        LinearLayout head=new LinearLayout(this); head.setOrientation(LinearLayout.VERTICAL); head.setPadding(dp(18),dp(14),dp(18),dp(12)); head.setBackgroundColor(NAVY);
+        head.addView(tv("FrancaisPME Québec",24,Color.WHITE,true)); head.addView(tv("Assistant de conformité linguistique pour PME",13,Color.LTGRAY,false)); root.addView(head);
+        HorizontalScrollView hs=new HorizontalScrollView(this); LinearLayout nav=new LinearLayout(this); nav.setPadding(dp(6),dp(6),dp(6),dp(6));
+        String[][] p={{"dashboard","Tableau"},{"employes","Personnel"},{"echeances","Échéances"},{"documents","Documents"},{"modeles","Modèles"},{"regles","Règles"},{"entreprise","Entreprise"}};
+        for(String[] x:p){Button b=btn(x[1]); b.setOnClickListener(v->show(x[0])); nav.addView(b);} hs.addView(nav); root.addView(hs);
+        ScrollView sv=new ScrollView(this); content=new LinearLayout(this); content.setOrientation(LinearLayout.VERTICAL); content.setPadding(dp(16),dp(16),dp(16),dp(28)); sv.addView(content); root.addView(sv,new LinearLayout.LayoutParams(-1,0,1)); setContentView(root);
+        switch(page){case "employes":employees();break;case "echeances":deadlines();break;case "documents":documents();break;case "modeles":templates();break;case "regles":rules();break;case "entreprise":company();break;default:dashboard();}
+    }
+
+    void dashboard(){
+        h1("Tableau de conformité"); int n=prefs.getInt("employeeCount",0);
+        if(n==0){card("Configuration requise","Indique le nombre de personnes employées au Québec pour activer le bon parcours.",AMBER);Button b=btn("Configurer l’entreprise");b.setOnClickListener(v->show("entreprise"));content.addView(b);return;}
+        String route=n>=25?"25+ employés — démarche de francisation OQLF":n>=5?"5–24 employés — déclaration au Registraire":"Moins de 5 employés — obligations générales";
+        card("Parcours détecté",route,BLUE); int score=score(n); card("Indice interne de préparation",score+" %\nIndicateur organisationnel seulement; ce n’est pas une décision de l’OQLF.",score>=80?GREEN:score>=50?AMBER:RED);
+        JSONArray a=arr("employees");int unable=0;for(int i=0;i<a.length();i++)if(!a.optJSONObject(i).optBoolean("canFrench",true))unable++;
+        String stats=a.length()+" réponse(s)";if(n>=5&&n<25)stats+=" • "+unable+" incapable(s) • "+String.format(Locale.CANADA_FRENCH,"%.1f",a.length()==0?0:100.0*unable/a.length())+" % des réponses";card("Questionnaire du personnel",stats,BLUE);
+        card("Prochaine action",next(n),GREEN);
+    }
+    int score(int n){int d=0,t=4;if(prefs.getBoolean("docsFrench",false))d++;if(prefs.getBoolean("workFrench",false))d++;if(arr("employees").length()>0||n<5)d++;if(n>=25?prefs.getBoolean("oqlfRegistered",false):n>=5?prefs.getBoolean("reqDeclared",false):true)d++;return d*100/t;}
+    String next(int n){if(n>=25&&!prefs.getBoolean("oqlfRegistered",false))return "Vérifier l’inscription et les documents valides au Portail OQLF.";if(n>=5&&n<25&&!prefs.getBoolean("reqDeclared",false))return "Préparer ou vérifier la déclaration de la proportion du personnel incapable de communiquer en français au travail.";if(!prefs.getBoolean("docsFrench",false))return "Vérifier les documents et communications destinés au personnel en français.";return "Maintenir les preuves, échéances et pratiques linguistiques à jour.";}
+
+    void employees(){h1("Questionnaire du personnel");card("Confidentialité","Les réponses restent sur cet appareil dans cette version. Utilise un identifiant interne plutôt qu’un nom si possible.",BLUE);Button b=btn("Nouvelle réponse");b.setOnClickListener(v->employeeDialog());content.addView(b);JSONArray a=arr("employees");if(a.length()==0)small("Aucune réponse enregistrée.");for(int i=0;i<a.length();i++){JSONObject o=a.optJSONObject(i);boolean can=o.optBoolean("canFrench",true);card(o.optString("label","Réponse "+(i+1)),can?"Peut communiquer en français au travail":"Déclare ne pas être en mesure de communiquer en français au travail",can?GREEN:AMBER);}if(a.length()>0){Button c=btn("Effacer les réponses");c.setOnClickListener(v->clear("employees","employes"));content.addView(c);}}
+    void employeeDialog(){LinearLayout box=box();EditText id=new EditText(this);id.setHint("Identifiant interne (facultatif)");box.addView(id);box.addView(tv("Cette personne est-elle en mesure de communiquer en français au travail?",16,TEXT,true));RadioGroup rg=new RadioGroup(this);RadioButton yes=new RadioButton(this);yes.setText("Oui");RadioButton no=new RadioButton(this);no.setText("Non");rg.addView(yes);rg.addView(no);yes.setChecked(true);box.addView(rg);new AlertDialog.Builder(this).setTitle("Réponse employé").setView(box).setPositiveButton("Enregistrer",(d,w)->{JSONArray a=arr("employees");JSONObject o=new JSONObject();try{o.put("label",id.getText().toString().trim().isEmpty()?"Réponse "+(a.length()+1):id.getText().toString().trim());o.put("canFrench",yes.isChecked());a.put(o);}catch(Exception ignored){}save("employees",a);show("employes");}).setNegativeButton("Annuler",null).show();}
+
+    void deadlines(){h1("Échéances et rappels");Button b=btn("Ajouter une échéance");b.setOnClickListener(v->deadlineDialog());content.addView(b);JSONArray a=arr("deadlines");if(a.length()==0)small("Aucune échéance enregistrée.");for(int i=0;i<a.length();i++){JSONObject o=a.optJSONObject(i);card(o.optString("title","Échéance"),o.optString("date","Date non définie")+(o.optBoolean("reminder")?" • rappel activé":""),BLUE);}if(a.length()>0){Button c=btn("Effacer les échéances");c.setOnClickListener(v->clear("deadlines","echeances"));content.addView(c);}}
+    void deadlineDialog(){LinearLayout box=box();EditText t=new EditText(this);t.setHint("Titre");box.addView(t);EditText date=new EditText(this);date.setHint("AAAA-MM-JJ");box.addView(date);CheckBox r=new CheckBox(this);r.setText("Rappel le matin de l’échéance");r.setChecked(true);box.addView(r);new AlertDialog.Builder(this).setTitle("Nouvelle échéance").setView(box).setPositiveButton("Enregistrer",(d,w)->{JSONArray a=arr("deadlines");JSONObject o=new JSONObject();try{o.put("title",t.getText().toString().trim().isEmpty()?"Échéance de conformité":t.getText().toString().trim());o.put("date",date.getText().toString().trim());o.put("reminder",r.isChecked());a.put(o);}catch(Exception ignored){}save("deadlines",a);if(r.isChecked())remind(o.optString("title"),o.optString("date"));show("echeances");}).setNegativeButton("Annuler",null).show();}
+    void remind(String title,String ds){try{Date dt=new SimpleDateFormat("yyyy-MM-dd",Locale.CANADA_FRENCH).parse(ds);Calendar c=Calendar.getInstance();c.setTime(dt);c.set(Calendar.HOUR_OF_DAY,9);c.set(Calendar.MINUTE,0);if(c.getTimeInMillis()<System.currentTimeMillis())return;Intent i=new Intent(this,ReminderReceiver.class);i.putExtra("title",title);PendingIntent pi=PendingIntent.getBroadcast(this,(int)(System.currentTimeMillis()%100000),i,PendingIntent.FLAG_UPDATE_CURRENT|PendingIntent.FLAG_IMMUTABLE);((AlarmManager)getSystemService(ALARM_SERVICE)).setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP,c.getTimeInMillis(),pi);}catch(Exception e){Toast.makeText(this,"Date invalide : AAAA-MM-JJ",Toast.LENGTH_LONG).show();}}
+
+    void documents(){h1("Documents et preuves");sw("docsFrench","Documents destinés au personnel disponibles en français");sw("workFrench","Réunions, formations et communications internes possibles en français");sw("reqDeclared","Déclaration 5–24 employés vérifiée / faite au Registraire");sw("oqlfRegistered","Inscription ou document valide OQLF vérifié (25+)");sw("analysisDone","Analyse de la situation linguistique documentée (si applicable)");card("Conseil","Ce MVP conserve l’état des preuves sans téléverser de PDF, afin de garder les données locales.",BLUE);}
+    void sw(String key,String label){Switch s=new Switch(this);s.setText(label);s.setTextSize(16);s.setTextColor(TEXT);s.setPadding(dp(8),dp(10),dp(8),dp(10));s.setChecked(prefs.getBoolean(key,false));s.setOnCheckedChangeListener((b,c)->prefs.edit().putBoolean(key,c).apply());content.addView(s);}
+
+    void templates(){h1("Modèles en français");template("Avis interne — langue de travail","Objet : utilisation du français au travail\n\nNotre entreprise favorise l’utilisation du français dans les communications, réunions, formations et documents de travail. Si un outil ou un document nécessaire n’est pas disponible en français, veuillez le signaler à la personne responsable.");template("Demande de document en français","Bonjour,\n\nAfin de soutenir nos obligations linguistiques au Québec, pourriez-vous nous transmettre une version française de ce document, manuel, formulaire ou matériel de formation?\n\nMerci.");template("Suivi de conformité","Objet : suivi de conformité linguistique\n\nNous effectuons une mise à jour de nos pratiques linguistiques. Merci de vérifier que les communications et documents destinés au personnel sont disponibles en français et de signaler toute lacune à corriger.");}
+    void template(String title,String text){LinearLayout c=cardBox();c.addView(tv(title,17,TEXT,true));TextView body=tv(text,14,TEXT,false);body.setTextIsSelectable(true);body.setPadding(0,dp(8),0,dp(8));c.addView(body);Button b=btn("Partager / copier");b.setOnClickListener(v->{Intent i=new Intent(Intent.ACTION_SEND);i.setType("text/plain");i.putExtra(Intent.EXTRA_TEXT,text);startActivity(Intent.createChooser(i,"Partager le modèle"));});c.addView(b);content.addView(c);}
+
+    void rules(){h1("Règles intégrées au MVP");card("5 à 24 personnes","Depuis le 1er juin 2025, les entreprises visées doivent déclarer au Registraire des entreprises du Québec la proportion de leur personnel qui n’est pas en mesure de communiquer en français au travail.",BLUE);card("25 personnes ou plus","Une entreprise qui emploie au Québec 25 personnes ou plus durant une période de 6 mois doit s’inscrire à l’OQLF afin d’entreprendre une démarche de francisation, selon les délais prévus.",BLUE);card("Contrats et subventions","Pour les entreprises visées, un document valide confirmant la conformité au processus peut être requis pour certains contrats, appels d’offres ou subventions de l’Administration.",AMBER);card("Important","FrancaisPME Québec n’est pas une application officielle de l’OQLF et ne remplace ni la Charte, ni les formulaires officiels, ni un avis juridique.",RED);Button b=btn("Ouvrir le site officiel de l’OQLF");b.setOnClickListener(v->startActivity(new Intent(Intent.ACTION_VIEW,Uri.parse("https://www.oqlf.gouv.qc.ca/francisation/entreprises/"))));content.addView(b);}
+
+    void company(){h1("Profil de l’entreprise");EditText name=new EditText(this);name.setHint("Nom de l’entreprise");name.setText(prefs.getString("companyName",""));content.addView(name);EditText n=new EditText(this);n.setHint("Nombre de personnes employées au Québec");n.setInputType(InputType.TYPE_CLASS_NUMBER);int cur=prefs.getInt("employeeCount",0);if(cur>0)n.setText(String.valueOf(cur));content.addView(n);Button b=btn("Enregistrer");b.setOnClickListener(v->{int c=0;try{c=Integer.parseInt(n.getText().toString().trim());}catch(Exception ignored){}prefs.edit().putString("companyName",name.getText().toString().trim()).putInt("employeeCount",Math.max(0,c)).apply();show("dashboard");});content.addView(b);card("Logique automatique","0–4 : obligations générales • 5–24 : parcours déclaration • 25+ : parcours francisation OQLF.",BLUE);}
+
+    JSONArray arr(String k){try{return new JSONArray(prefs.getString(k,"[]"));}catch(Exception e){return new JSONArray();}} void save(String k,JSONArray a){prefs.edit().putString(k,a.toString()).apply();}
+    void clear(String key,String page){new AlertDialog.Builder(this).setTitle("Confirmer").setMessage("Cette action est irréversible sur cet appareil.").setPositiveButton("Effacer",(d,w)->{prefs.edit().remove(key).apply();show(page);}).setNegativeButton("Annuler",null).show();}
+    void h1(String s){TextView t=tv(s,24,TEXT,true);t.setPadding(0,0,0,dp(12));content.addView(t);} void small(String s){TextView t=tv(s,14,Color.DKGRAY,false);t.setPadding(0,dp(8),0,dp(8));content.addView(t);}
+    void card(String title,String body,int accent){LinearLayout c=cardBox();c.addView(tv(title,17,accent,true));TextView b=tv(body,15,TEXT,false);b.setPadding(0,dp(7),0,0);c.addView(b);content.addView(c);} LinearLayout cardBox(){LinearLayout c=new LinearLayout(this);c.setOrientation(LinearLayout.VERTICAL);c.setPadding(dp(16),dp(14),dp(16),dp(14));c.setBackgroundColor(Color.WHITE);LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(-1,-2);lp.setMargins(0,0,0,dp(12));c.setLayoutParams(lp);c.setElevation(dp(2));return c;}
+    LinearLayout box(){LinearLayout l=new LinearLayout(this);l.setOrientation(LinearLayout.VERTICAL);l.setPadding(dp(22),dp(8),dp(22),0);return l;} TextView tv(String s,int sp,int color,boolean bold){TextView t=new TextView(this);t.setText(s);t.setTextSize(sp);t.setTextColor(color);if(bold)t.setTypeface(null,android.graphics.Typeface.BOLD);return t;} Button btn(String s){Button b=new Button(this);b.setText(s);b.setAllCaps(false);b.setTextColor(Color.WHITE);b.setBackgroundColor(BLUE);LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(-2,dp(48));lp.setMargins(dp(4),dp(3),dp(4),dp(3));b.setLayoutParams(lp);b.setPadding(dp(14),0,dp(14),0);return b;} int dp(int v){return(int)(v*getResources().getDisplayMetrics().density+.5f);}
+}

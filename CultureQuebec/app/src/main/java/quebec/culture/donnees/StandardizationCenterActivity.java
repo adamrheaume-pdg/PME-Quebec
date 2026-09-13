@@ -111,6 +111,7 @@ public class StandardizationCenterActivity extends Activity {
         LinearLayout p=panel();p.addView(text("6 · Reddition de comptes et données ouvertes",21,Color.rgb(21,37,54),true));
         p.addView(text("À conserver pendant le projet : dépenses et écarts, activités réalisées, problèmes rencontrés, nombre total de données adaptées, nouvelles données ajoutées, pourcentage adapté, modalités de partage et partenaires ayant accédé aux données.",14,Color.DKGRAY,false));
         p.addView(text("Objectif recommandé : prévoir un export de données descriptives ouvertes sur une base régulière lorsque les droits et licences le permettent. Le programme présenté par l’utilisateur prévoit un bonus de sélection pour les projets qui déposent régulièrement leurs données descriptives en données ouvertes.",13,Color.rgb(20,108,67),false));
+        Button evidence=primary("Ouvrir le suivi des preuves et résultats");evidence.setOnClickListener(v->startActivity(new Intent(this,ProjectEvidenceActivity.class)));p.addView(evidence);
         Button share=secondary("Préparer un résumé du projet");share.setOnClickListener(v->shareSummary());p.addView(share);
         root.addView(p,mb());
     }

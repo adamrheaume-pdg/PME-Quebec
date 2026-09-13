@@ -1,4 +1,4 @@
-name: Compiler Essence Quebec 1.8.0
+name: Compiler Essence Quebec 1.8.1
 
 on:
   workflow_dispatch:
@@ -40,8 +40,12 @@ jobs:
           python3 EssenceLanaudiere/build_tools/patch_notification_maps.py
           python3 EssenceLanaudiere/build_tools/patch_reference_ui.py
           python3 EssenceLanaudiere/build_tools/patch_reference_map_v2.py
-      - name: Construire le paquet de ressources en preservant les images utilisateur
-        run: python3 EssenceLanaudiere/build_tools/generate_user_assets.py
+      - name: Reconstruire et reparer les vraies ressources utilisateur
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 EssenceLanaudiere/build_tools/rebuild_user_assets_tolerant.py
+          python3 EssenceLanaudiere/build_tools/repair_user_assets.py
       - name: Appliquer les images et fonctions demandees
         run: python3 EssenceLanaudiere/build_tools/patch_user_requests.py
       - name: Mettre la navigation GPS dynamique sur la carte d accueil
@@ -56,26 +60,39 @@ jobs:
         run: python3 EssenceLanaudiere/build_tools/patch_v170.py
       - name: Appliquer les corrections 1.8.0
         run: python3 EssenceLanaudiere/build_tools/patch_v180.py
-      - name: Verifier les fonctions 1.8.0
+      - name: Appliquer les commandes 1.8.1
+        run: python3 EssenceLanaudiere/build_tools/patch_v181.py
+      - name: Verifier les fonctions 1.8.1
         shell: bash
         run: |
           set -euo pipefail
           FILE="EssenceLanaudiere/app/src/main/java/quebec/lanaudiere/essence/MainActivity.java"
-          grep -F 'ESSENCE_QUEBEC_180' "$FILE"
+          grep -F 'ESSENCE_QUEBEC_181' "$FILE"
           grep -F 'Quitter Essence Québec ?' "$FILE"
           grep -F 'eqMapGestureGuard' "$FILE"
           grep -F 'PRIX MOYEN AUTOUR DU QUÉBEC' "$FILE"
+          grep -F '184.9f,194.6f,157.9f,156.0f,160.6f,160.5f' "$FILE"
           grep -F 'eqAwardXp' "$FILE"
+          grep -F 'addJavascriptInterface(new Object()' "$FILE"
+          grep -F 'Double-tape pour ouvrir la station' "$FILE"
+          grep -F 'stationMoney' "$FILE"
+          grep -F 'R.drawable.station_ultramar' "$FILE"
+          grep -F 'R.drawable.station_generic_pump' "$FILE"
           if grep -Fq 'Rechercher une ville ou une adresse' "$FILE"; then echo 'ERREUR: barre de recherche encore presente'; exit 1; fi
           if grep -Fq 'Button tList=ghostButton("Liste")' "$FILE"; then echo 'ERREUR: onglet Liste encore present'; exit 1; fi
-      - name: Verifier les icones utilisateur avant compilation
+      - name: Verifier les ressources graphiques avant compilation
         shell: bash
         run: |
           set -euo pipefail
+          RES="EssenceLanaudiere/app/src/main/res/drawable"
           for f in marker_mccafe.png marker_tim.png marker_atm.png marker_radar.png; do
             test -s "EssenceLanaudiere/app/src/main/assets/$f"
             file "EssenceLanaudiere/app/src/main/assets/$f" | grep -F 'PNG image data'
           done
+          for f in station_shell.jpg station_harnois.jpg station_irving.jpg station_petro_canada.jpg station_esso.jpg station_ultramar.jpg station_canadian_tire.jpg station_costco.jpg station_generic_pump.png essence_quebec_logo.png; do
+            test -s "$RES/$f"
+          done
+          test -s "$RES/money_bundle.xml"
           grep -F 'file:///android_asset/marker_mccafe.png' EssenceLanaudiere/app/src/main/java/quebec/lanaudiere/essence/MainActivity.java
           grep -F 'window.eqLastUser' EssenceLanaudiere/app/src/main/java/quebec/lanaudiere/essence/MainActivity.java
       - name: Deployer le logo Essence Quebec
@@ -101,16 +118,17 @@ jobs:
           set -euo pipefail
           APK="EssenceLanaudiere/app/build/outputs/apk/debug/app-debug.apk"
           unzip -t "$APK" >/dev/null
-          for f in marker_mccafe.png marker_tim.png marker_atm.png marker_radar.png; do
-            unzip -l "$APK" | grep -F "assets/$f"
-          done
-          unzip -l "$APK" | grep -F 'res/drawable/essence_quebec_logo.png'
+          for f in marker_mccafe.png marker_tim.png marker_atm.png marker_radar.png; do unzip -l "$APK" | grep -F "assets/$f"; done
+          unzip -l "$APK" | grep -F 'essence_quebec_logo.png'
+          unzip -l "$APK" | grep -F 'station_ultramar'
+          unzip -l "$APK" | grep -F 'station_generic_pump'
+          unzip -l "$APK" | grep -F 'money_bundle'
       - name: Nommer APK
-        run: cp EssenceLanaudiere/app/build/outputs/apk/debug/app-debug.apk Essence-Quebec-1.8.0.apk
+        run: cp EssenceLanaudiere/app/build/outputs/apk/debug/app-debug.apk Essence-Quebec-1.8.1.apk
       - name: Publier APK
         uses: actions/upload-artifact@v4
         with:
-          name: Essence-Quebec-1.8.0
-          path: Essence-Quebec-1.8.0.apk
+          name: Essence-Quebec-1.8.1
+          path: Essence-Quebec-1.8.1.apk
           retention-days: 30
           if-no-files-found: error

@@ -1,4 +1,4 @@
-name: Compiler Essence Quebec 1.8.4
+name: Compiler Essence Quebec 1.8.5
 
 on:
   workflow_dispatch:
@@ -60,21 +60,19 @@ jobs:
           python3 EssenceLanaudiere/build_tools/patch_v182.py
           python3 EssenceLanaudiere/build_tools/patch_v183.py
           python3 EssenceLanaudiere/build_tools/patch_v184.py
-      - name: Verifier 1.8.4
+          python3 EssenceLanaudiere/build_tools/patch_v185.py
+      - name: Verifier 1.8.5
         shell: bash
         run: |
           set -euo pipefail
           FILE='EssenceLanaudiere/app/src/main/java/quebec/lanaudiere/essence/MainActivity.java'
-          grep -F 'ESSENCE_QUEBEC_184' "$FILE"
+          grep -F 'ESSENCE_QUEBEC_185' "$FILE"
+          grep -F 'apiSort=radius>=60?"distance":sort' "$FILE"
+          grep -F 'apiLimit=radius>=60?250:50' "$FILE"
+          grep -F 'limit=%d&sort=%s' "$FILE"
           grep -F 'iconSize:[48,64],iconAnchor:[24,64]' "$FILE"
           grep -F 'setLatLng(ll)' "$FILE"
-          grep -F 'setIcon(ico)' "$FILE"
-          grep -F 'eqUserLeafletIcon' "$FILE"
-          grep -F 'width:48px!important' "$FILE"
-          grep -F 'height:64px!important' "$FILE"
-          test -s EssenceLanaudiere/app/src/main/assets/marker_user_stationary.png
-          test -s EssenceLanaudiere/app/src/main/assets/marker_user_moving.png
-          grep -F "versionName '1.8.4'" EssenceLanaudiere/app/build.gradle
+          grep -F "versionName '1.8.5'" EssenceLanaudiere/app/build.gradle
       - name: Deployer logo Essence Quebec
         shell: bash
         run: |
@@ -103,11 +101,11 @@ jobs:
           unzip -l "$APK" | grep -F 'essence_quebec_logo.png'
           unzip -l "$APK" | grep -F 'money_bundle.png'
       - name: Nommer APK
-        run: cp EssenceLanaudiere/app/build/outputs/apk/debug/app-debug.apk Essence-Quebec-1.8.4.apk
+        run: cp EssenceLanaudiere/app/build/outputs/apk/debug/app-debug.apk Essence-Quebec-1.8.5.apk
       - name: Publier APK
         uses: actions/upload-artifact@v4
         with:
-          name: Essence-Quebec-1.8.4
-          path: Essence-Quebec-1.8.4.apk
+          name: Essence-Quebec-1.8.5
+          path: Essence-Quebec-1.8.5.apk
           retention-days: 30
           if-no-files-found: error

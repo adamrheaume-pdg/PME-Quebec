@@ -2,6 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 <uses-permission android:name="android.permission.INTERNET" />
 <application android:allowBackup="true" android:label="Culture du Québec" android:theme="@style/AppTheme" android:usesCleartextTraffic="false">
+<activity android:name=".SearchActivity" android:exported="false" />
 <activity android:name=".LiveDataActivity" android:exported="false" />
 <activity android:name=".SectorGuideActivity" android:exported="false" />
 <activity android:name=".DocumentActivity" android:exported="false" />

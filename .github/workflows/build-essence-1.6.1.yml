@@ -1,4 +1,4 @@
-name: Compiler Essence Quebec 1.8.8
+name: Compiler Essence Quebec 1.8.9
 
 on:
   workflow_dispatch:
@@ -64,21 +64,31 @@ jobs:
           python3 EssenceLanaudiere/build_tools/patch_v186.py
           python3 EssenceLanaudiere/build_tools/patch_v187.py
           python3 EssenceLanaudiere/build_tools/patch_v188.py
-      - name: Verifier 1.8.8
+          python3 EssenceLanaudiere/build_tools/patch_v189_layers.py
+          python3 EssenceLanaudiere/build_tools/patch_v189_sync.py
+          python3 EssenceLanaudiere/build_tools/patch_v189_finalize.py
+      - name: Verifier 1.8.9
         shell: bash
         run: |
           set -euo pipefail
           FILE='EssenceLanaudiere/app/src/main/java/quebec/lanaudiere/essence/MainActivity.java'
-          grep -F 'ESSENCE_QUEBEC_188' "$FILE"
+          grep -F 'ESSENCE_QUEBEC_189' "$FILE"
           grep -F 'marker_mccafe.png' "$FILE"
           grep -F 'marker_timhortons.webp' "$FILE"
-          grep -F "iconSize:kind==='atm'?[50,50]:[40,40]" "$FILE"
-          grep -F "iconAnchor:kind==='atm'?[25,25]:[20,20]" "$FILE"
-          grep -F 'width:36px!important' "$FILE"
+          grep -F 'marker_finance.png' "$FILE"
+          grep -F 'layerLegendJavascript()' "$FILE"
+          grep -F 'Stations-service' "$FILE"
+          grep -F 'Tout afficher' "$FILE"
+          grep -F 'Tout masquer' "$FILE"
+          grep -F 'around:50000' "$FILE"
+          grep -F 'office=\"financial\"' "$FILE"
+          grep -F 'eqAutoSyncHandler' "$FILE"
+          grep -F '180000L' "$FILE"
+          grep -F 'no-cache, no-store, max-age=0' "$FILE"
           grep -F 'eqGoogleHoursView(result)' "$FILE"
           grep -F 'iconSize:[28,28],iconAnchor:[14,14]' "$FILE"
           grep -F 'apiLimit=radius>=60?250:50' "$FILE"
-          grep -F "versionName '1.8.8'" EssenceLanaudiere/app/build.gradle
+          grep -F "versionName '1.8.9'" EssenceLanaudiere/app/build.gradle
       - name: Deployer logo Essence Quebec
         shell: bash
         run: |
@@ -107,14 +117,16 @@ jobs:
           unzip -l "$APK" | grep -F 'assets/marker_user_moving.png'
           unzip -l "$APK" | grep -F 'assets/marker_mccafe.png'
           unzip -l "$APK" | grep -F 'assets/marker_timhortons.webp'
+          unzip -l "$APK" | grep -F 'assets/marker_finance.png'
           unzip -l "$APK" | grep -F 'essence_quebec_logo.png'
           unzip -l "$APK" | grep -F 'money_bundle.png'
+          ${ANDROID_HOME}/build-tools/35.0.0/apksigner verify --verbose "$APK"
       - name: Nommer APK
-        run: cp EssenceLanaudiere/app/build/outputs/apk/debug/app-debug.apk Essence-Quebec-1.8.8.apk
+        run: cp EssenceLanaudiere/app/build/outputs/apk/debug/app-debug.apk Essence-Quebec-1.8.9.apk
       - name: Publier APK
         uses: actions/upload-artifact@v4
         with:
-          name: Essence-Quebec-1.8.8
-          path: Essence-Quebec-1.8.8.apk
+          name: Essence-Quebec-1.8.9
+          path: Essence-Quebec-1.8.9.apk
           retention-days: 30
           if-no-files-found: error

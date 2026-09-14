@@ -14,14 +14,23 @@ b64dir=root/'build_tools/eq188_assets_b64'
 p=main/'java/quebec/lanaudiere/essence/MainActivity.java'
 s=p.read_text(encoding='utf-8')
 
-# Remplacer la fonction POI quelle que soit la variante générée par les patchs précédents.
-new="function poiIcon(kind){const src=kind==='mcd'?'file:///android_asset/marker_mccafe.png':'file:///android_asset/marker_timhortons.webp';const cls=kind==='mcd'?'mcdPoi':'timPoi';return L.divIcon({className:'',html:\"<div class='foodPoi \"+cls+\"'><img src='\"+src+\"'></div>\",iconSize:[40,40],iconAnchor:[20,20]});}"
-pat=re.compile(r"function poiIcon\(kind\)\{.*?return L\.divIcon\(\{className:'',html:.*?iconAnchor:\[[0-9]+,[0-9]+\]\}\);\}")
-s,n=pat.subn(lambda m:new,s,count=1)
-if n!=1:
-    raise SystemExit('poiIcon McDonald/Tim Hortons introuvable')
+# Les patchs precedents peuvent enrichir poiIcon (ATM/banques, etc.).
+# On ne remplace donc pas toute la fonction : on remplace seulement les deux anciens emoji,
+# puis on fixe la taille Leaflet a l'interieur de poiIcon, sans toucher aux autres marqueurs.
+start=s.find('function poiIcon(kind)')
+end=s.find('function escPoi',start)
+if start < 0 or end < 0:
+    raise SystemExit('bloc poiIcon/escPoi introuvable')
+seg=s[start:end]
+if '🍔' not in seg or '☕' not in seg:
+    raise SystemExit('anciens marqueurs cafe introuvables dans poiIcon')
+seg=seg.replace('🍔','<img src=file:///android_asset/marker_mccafe.png>',1)
+seg=seg.replace('☕','<img src=file:///android_asset/marker_timhortons.webp>',1)
+seg=re.sub(r'iconSize:\[[0-9]+,[0-9]+\],iconAnchor:\[[0-9]+,[0-9]+\]',
+           'iconSize:[40,40],iconAnchor:[20,20]',seg,count=1)
+s=s[:start]+seg+s[end:]
 
-# Surcharge CSS finale : taille fixe à l'écran, indépendante du niveau de zoom.
+# Surcharge CSS finale : taille fixe a l'ecran, independante du niveau de zoom.
 css=".foodPoi{width:40px!important;height:40px!important;border-radius:10px!important;display:flex!important;align-items:center!important;justify-content:center!important;border:1px solid #ffffff99!important;box-shadow:0 3px 10px #0008!important;background:#101522!important;overflow:hidden!important}.foodPoi img{display:block!important;width:36px!important;height:36px!important;max-width:none!important;max-height:none!important;object-fit:contain!important;transform:none!important}"
 pos=s.find('</style>')
 if pos<0: raise SystemExit('style carte introuvable')

@@ -1,0 +1,76 @@
+name: Compiler Detecteur 360 Quebec APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ detecteur-360-quebec ]
+    paths:
+      - 'Detecteur360Quebec/**'
+      - '.github/workflows/build-detecteur-360-quebec.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'Detecteur360Quebec/**'
+      - '.github/workflows/build-detecteur-360-quebec.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Recuperer le depot
+        uses: actions/checkout@v4
+
+      - name: Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Installer Android 35
+        run: sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
+
+      - name: Appliquer interface v2
+        run: python3 Detecteur360Quebec/build_tools/fix_safe_insets.py
+
+      - name: Finaliser logo et signature v3
+        run: python3 Detecteur360Quebec/build_tools/finalize_v3_small.py
+
+      - name: Verifier ressources critiques
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s Detecteur360Quebec/app/src/main/res/drawable/detecteur_logo.webp
+          test -s Detecteur360Quebec/d360-release.jks
+          grep -F 'android:icon="@drawable/detecteur_logo"' Detecteur360Quebec/app/src/main/AndroidManifest.xml
+          grep -F "applicationId 'quebec.detecteur360.qc'" Detecteur360Quebec/app/build.gradle
+          file Detecteur360Quebec/app/src/main/res/drawable/detecteur_logo.webp | grep -Ei 'Web/P|WebP'
+
+      - name: Installer Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.10.2'
+
+      - name: Compiler APK signee
+        run: gradle -p Detecteur360Quebec :app:assembleDebug --stacktrace
+
+      - name: Verifier APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          APK=Detecteur360Quebec/app/build/outputs/apk/debug/app-debug.apk
+          unzip -t "$APK" >/dev/null
+          unzip -l "$APK" | grep -E 'detecteur_logo.*webp'
+          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose --print-certs "$APK"
+
+      - name: Renommer APK
+        run: cp Detecteur360Quebec/app/build/outputs/apk/debug/app-debug.apk 'Detecteur-360-Quebec-v3.apk'
+
+      - name: Publier APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Detecteur-360-Quebec-v3-APK
+          path: Detecteur-360-Quebec-v3.apk
+          retention-days: 30

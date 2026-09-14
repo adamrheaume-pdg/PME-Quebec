@@ -18,7 +18,7 @@ for dep in [
     "<script src='https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js'></script>"
 ]: s=s.replace(dep,'')
 
-# 3) McDonald's + Tim Hortons as a completely separate POI layer using OpenStreetMap Overpass.
+# 3) McDonald's + Tim Hortons as a separate POI layer using OpenStreetMap Overpass.
 if 'FOOD_POI_OVERPASS' not in s:
     anchor='    private static final String CHANNEL_ID="best_price";\n'
     add='    private static final String FOOD_POI_OVERPASS="https://overpass-api.de/api/interpreter";\n'
@@ -37,7 +37,7 @@ if 'foodPoiJavascript' not in s:
             ");out center tags;";
         return "const poiEndpoint="+endpoint+";const poiQuery="+JSONObject.quote(q)+";"
             +"const foodLayer=L.layerGroup().addTo(map);"
-            +"function poiIcon(kind){const emo=kind==='mcd'?'🍔':'☕';const cls=kind==='mcd'?'mcdPoi':'timPoi';return L.divIcon({className:'',html:\"<div class='foodPoi \"+cls+\"'>\"+emo+\"</div>\",iconSize:[38,38],iconAnchor:[19,19]});}"
+            +"function poiIcon(kind){const src=kind==='mcd'?'file:///android_asset/marker_mccafe.png':'file:///android_asset/marker_timhortons.webp';const cls=kind==='mcd'?'mcdPoi':'timPoi';return L.divIcon({className:'',html:\"<div class='foodPoi \"+cls+\"'><img src='\"+src+\"'></div>\",iconSize:[40,40],iconAnchor:[20,20]});}"
             +"function escPoi(x){return String(x||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}"
             +"fetch(poiEndpoint,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},body:'data='+encodeURIComponent(poiQuery)}).then(r=>r.json()).then(d=>{const seen=new Set();for(const e of (d.elements||[])){const t=e.tags||{},name=String(t.name||t.brand||'');const low=name.toLowerCase();const kind=low.includes(\"mcdonald\")?'mcd':(low.includes('tim hortons')?'tim':null);if(!kind)continue;const la=Number(e.lat||(e.center&&e.center.lat)),lo=Number(e.lon||(e.center&&e.center.lon));if(!isFinite(la)||!isFinite(lo))continue;const key=kind+':'+la.toFixed(5)+':'+lo.toFixed(5);if(seen.has(key))continue;seen.add(key);const addr=[t['addr:housenumber'],t['addr:street'],t['addr:city']].filter(Boolean).join(' ');L.marker([la,lo],{icon:poiIcon(kind)}).addTo(foodLayer).bindPopup('<b>'+escPoi(name)+'</b>'+(addr?'<br>'+escPoi(addr):''));}}).catch(()=>{});";
     }
@@ -46,25 +46,22 @@ if 'foodPoiJavascript' not in s:
     if marker not in s: raise SystemExit('radar method anchor missing')
     s=s.replace(marker,methods+marker,1)
 
-# CSS injection is intentionally independent of radar CSS wording.
-css_add=".foodPoi{width:34px;height:34px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:21px;border:2px solid #fff;box-shadow:0 3px 10px #0007}.mcdPoi{background:#efc200}.timPoi{background:#8b2c1d}"
-if '.foodPoi{' not in s:
-    # Insert immediately before the first </style> embedded in the Java map HTML.
+css_add=".foodPoi{width:40px!important;height:40px!important;border-radius:10px!important;display:flex!important;align-items:center!important;justify-content:center!important;border:1px solid #ffffff99!important;box-shadow:0 3px 10px #0008!important;background:#101522!important;overflow:hidden!important}.foodPoi img{display:block!important;width:36px!important;height:36px!important;max-width:none!important;max-height:none!important;object-fit:contain!important;transform:none!important}"
+if '.foodPoi img{' not in s:
     pos=s.find('</style>')
     if pos < 0: raise SystemExit('map style closing tag missing')
     s=s[:pos]+css_add+s[pos:]
 
-# Inject POI fetch after station rendering and radar overlay.
 needle='js+radarSafetyJavascript(centerLat,centerLng)+"</script></body></html>";'
 if 'foodPoiJavascript(centerLat,centerLng)' not in s:
     if needle not in s: raise SystemExit('map script injection anchor missing')
     s=s.replace(needle,'js+radarSafetyJavascript(centerLat,centerLng)+foodPoiJavascript(centerLat,centerLng)+"</script></body></html>";',1)
 
-required=['FOOD_POI_OVERPASS','foodPoiJavascript','🍔','☕','McDonald','Tim Hortons','.foodPoi{']
+required=['FOOD_POI_OVERPASS','foodPoiJavascript','marker_mccafe.png','marker_timhortons.webp','iconSize:[40,40],iconAnchor:[20,20]','McDonald','Tim Hortons','.foodPoi img{']
 missing=[x for x in required if x not in s]
 if missing: raise SystemExit('poi patch incomplete: '+repr(missing))
 if 'markerClusterGroup' in s or 'cluster.addLayer' in s or 'map.addLayer(cluster)' in s:
     raise SystemExit('station clustering still present')
 
 p.write_text(s,encoding='utf-8')
-print('Gas clustering removed; McDonald burger and Tim Hortons coffee markers added')
+print('Gas clustering removed; McCafe and Tim Hortons image markers added at fixed 40x40')

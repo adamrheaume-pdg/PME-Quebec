@@ -30,6 +30,35 @@ p=main/'java/quebec/lanaudiere/essence/MainActivity.java'
 s=p.read_text(encoding='utf-8')
 s=s.replace("file:///android_asset/marker_radar.png","file:///android_asset/marker_safety.png")
 s=s.replace("file:///android_asset/marker_atm.png","file:///android_asset/marker_finance.png")
+
+# Compatibilite avec la couche POI image (McCafe/Tim Hortons): ajouter banques/guichets
+# sans casser les deux nouveaux marqueurs cafe.
+if 'foodPoiJavascript' in s:
+    if '[amenity=\\\"atm\\\"]' not in s:
+        needle='            "nwr(around:60000,"+userLat+","+userLng+")[name=\\\"Tim Hortons\\\"];"+\n'
+        add=('            "nwr(around:60000,"+userLat+","+userLng+")[name=\\\"Tim Hortons\\\"];"+\n'
+             '            "nwr(around:50000,"+userLat+","+userLng+")[amenity=\\\"atm\\\"];"+\n'
+             '            "nwr(around:50000,"+userLat+","+userLng+")[amenity=\\\"bank\\\"];"+\n')
+        if needle in s: s=s.replace(needle,add,1)
+    elif '[amenity=\\\"bank\\\"]' not in s:
+        s=s.replace('"nwr(around:50000,"+userLat+","+userLng+")[amenity=\\\"atm\\\"];"+',
+                    '"nwr(around:50000,"+userLat+","+userLng+")[amenity=\\\"atm\\\"];"+\n            "nwr(around:50000,"+userLat+","+userLng+")[amenity=\\\"bank\\\"];"+',1)
+
+    # Etendre la fonction d'icone existante aux institutions financieres.
+    cafe_fn="function poiIcon(kind){const src=kind==='mcd'?'file:///android_asset/marker_mccafe.png':'file:///android_asset/marker_timhortons.webp';const cls=kind==='mcd'?'mcdPoi':'timPoi';return L.divIcon({className:'',html:\"<div class='foodPoi \"+cls+\"'><img src='\"+src+\"'></div>\",iconSize:[40,40],iconAnchor:[20,20]});}"
+    finance_fn="function poiIcon(kind){if(kind==='atm')return L.divIcon({className:'',html:\"<div class='foodPoi financePoi'><img src='file:///android_asset/marker_finance.png'></div>\",iconSize:[40,40],iconAnchor:[20,20]});const src=kind==='mcd'?'file:///android_asset/marker_mccafe.png':'file:///android_asset/marker_timhortons.webp';const cls=kind==='mcd'?'mcdPoi':'timPoi';return L.divIcon({className:'',html:\"<div class='foodPoi \"+cls+\"'><img src='\"+src+\"'></div>\",iconSize:[40,40],iconAnchor:[20,20]});}"
+    if cafe_fn in s: s=s.replace(cafe_fn,finance_fn,1)
+
+    old_kind='const kind=low.includes(\\"mcdonald\\")?\'mcd\':(low.includes(\'tim hortons\')?\'tim\':null);if(!kind)continue;'
+    new_kind="const kind=(t.amenity==='atm'||t.amenity==='bank')?'atm':(low.includes(\\\"mcdonald\\\")?'mcd':(low.includes('tim hortons')?'tim':null));if(!kind)continue;"
+    if old_kind in s: s=s.replace(old_kind,new_kind,1)
+
+    # Donner un libelle aux banques/guichets et conserver le nom des cafes.
+    old_addr="const addr=[t['addr:housenumber'],t['addr:street'],t['addr:city']].filter(Boolean).join(' ');L.marker([la,lo],{icon:poiIcon(kind)}).addTo(foodLayer).bindPopup('<b>'+escPoi(name)+'</b>'+(addr?'<br>'+escPoi(addr):''));"
+    new_addr="const addr=[t['addr:housenumber'],t['addr:street'],t['addr:city']].filter(Boolean).join(' ');const label=kind==='atm'?(name||(t.amenity==='bank'?'Institution financière':'Guichet automatique')):name;const dist=Math.round(window.mtqDistance?window.mtqDistance(userLat,userLng,la,lo):0);L.marker([la,lo],{icon:poiIcon(kind)}).addTo(foodLayer).bindPopup('<b>'+escPoi(label)+'</b>'+(addr?'<br>'+escPoi(addr):'')+(kind==='atm'&&dist?'<br>'+((dist/1000).toFixed(1))+' km':''));"
+    if old_addr in s: s=s.replace(old_addr,new_addr,1)
+
+# Ancienne variante, gardee pour compatibilite.
 s=s.replace('nwr(around:60000,"+userLat+","+userLng+")[amenity=\\\"atm\\\"];','nwr(around:50000,"+userLat+","+userLng+")[amenity=\\\"atm\\\"];')
 if '[amenity=\\\"bank\\\"]' not in s:
     s=s.replace('"nwr(around:50000,"+userLat+","+userLng+")[amenity=\\\"atm\\\"];"+', '"nwr(around:50000,"+userLat+","+userLng+")[amenity=\\\"atm\\\"];"+\n            "nwr(around:50000,"+userLat+","+userLng+")[amenity=\\\"bank\\\"];"+',1)

@@ -31,8 +31,7 @@ s=p.read_text(encoding='utf-8')
 s=s.replace("file:///android_asset/marker_radar.png","file:///android_asset/marker_safety.png")
 s=s.replace("file:///android_asset/marker_atm.png","file:///android_asset/marker_finance.png")
 
-# Compatibilite avec la couche POI image (McCafe/Tim Hortons): ajouter banques/guichets
-# sans casser les deux nouveaux marqueurs cafe.
+# Compatibilite couche POI image McCafe/Tim Hortons + banques/guichets.
 if 'foodPoiJavascript' in s:
     if '[amenity=\\\"atm\\\"]' not in s:
         needle='            "nwr(around:60000,"+userLat+","+userLng+")[name=\\\"Tim Hortons\\\"];"+\n'
@@ -44,19 +43,21 @@ if 'foodPoiJavascript' in s:
         s=s.replace('"nwr(around:50000,"+userLat+","+userLng+")[amenity=\\\"atm\\\"];"+',
                     '"nwr(around:50000,"+userLat+","+userLng+")[amenity=\\\"atm\\\"];"+\n            "nwr(around:50000,"+userLat+","+userLng+")[amenity=\\\"bank\\\"];"+',1)
 
-    # Etendre la fonction d'icone existante aux institutions financieres.
-    cafe_fn="function poiIcon(kind){const src=kind==='mcd'?'file:///android_asset/marker_mccafe.png':'file:///android_asset/marker_timhortons.webp';const cls=kind==='mcd'?'mcdPoi':'timPoi';return L.divIcon({className:'',html:\"<div class='foodPoi \"+cls+\"'><img src='\"+src+\"'></div>\",iconSize:[40,40],iconAnchor:[20,20]});}"
-    finance_fn="function poiIcon(kind){if(kind==='atm')return L.divIcon({className:'',html:\"<div class='foodPoi financePoi'><img src='file:///android_asset/marker_finance.png'></div>\",iconSize:[40,40],iconAnchor:[20,20]});const src=kind==='mcd'?'file:///android_asset/marker_mccafe.png':'file:///android_asset/marker_timhortons.webp';const cls=kind==='mcd'?'mcdPoi':'timPoi';return L.divIcon({className:'',html:\"<div class='foodPoi \"+cls+\"'><img src='\"+src+\"'></div>\",iconSize:[40,40],iconAnchor:[20,20]});}"
-    if cafe_fn in s: s=s.replace(cafe_fn,finance_fn,1)
+    # Ajouter une branche finance a la fonction poiIcon sans remplacer McCafe/Tim Hortons.
+    if 'marker_finance.png' not in s and 'function poiIcon(kind){' in s:
+        s=s.replace("function poiIcon(kind){",
+                    "function poiIcon(kind){if(kind==='atm')return L.divIcon({className:'',html:\\\"<div class='foodPoi financePoi'><img src='file:///android_asset/marker_finance.png'></div>\\\",iconSize:[40,40],iconAnchor:[20,20]});",1)
 
-    old_kind='const kind=low.includes(\\"mcdonald\\")?\'mcd\':(low.includes(\'tim hortons\')?\'tim\':null);if(!kind)continue;'
-    new_kind="const kind=(t.amenity==='atm'||t.amenity==='bank')?'atm':(low.includes(\\\"mcdonald\\\")?'mcd':(low.includes('tim hortons')?'tim':null));if(!kind)continue;"
-    if old_kind in s: s=s.replace(old_kind,new_kind,1)
-
-    # Donner un libelle aux banques/guichets et conserver le nom des cafes.
-    old_addr="const addr=[t['addr:housenumber'],t['addr:street'],t['addr:city']].filter(Boolean).join(' ');L.marker([la,lo],{icon:poiIcon(kind)}).addTo(foodLayer).bindPopup('<b>'+escPoi(name)+'</b>'+(addr?'<br>'+escPoi(addr):''));"
-    new_addr="const addr=[t['addr:housenumber'],t['addr:street'],t['addr:city']].filter(Boolean).join(' ');const label=kind==='atm'?(name||(t.amenity==='bank'?'Institution financière':'Guichet automatique')):name;const dist=Math.round(window.mtqDistance?window.mtqDistance(userLat,userLng,la,lo):0);L.marker([la,lo],{icon:poiIcon(kind)}).addTo(foodLayer).bindPopup('<b>'+escPoi(label)+'</b>'+(addr?'<br>'+escPoi(addr):'')+(kind==='atm'&&dist?'<br>'+((dist/1000).toFixed(1))+' km':''));"
-    if old_addr in s: s=s.replace(old_addr,new_addr,1)
+    # Classer banque/ATM en finance avant McCafe/Tim Hortons.
+    candidates=[
+        "const kind=low.includes(\\\"mcdonald\\\")?'mcd':(low.includes('tim hortons')?'tim':null);if(!kind)continue;",
+        "const kind=low.includes(\"mcdonald\")?'mcd':(low.includes('tim hortons')?'tim':null);if(!kind)continue;",
+    ]
+    for old_kind in candidates:
+        if old_kind in s:
+            new_kind="const kind=(t.amenity==='atm'||t.amenity==='bank')?'atm':(low.includes(\\\"mcdonald\\\")?'mcd':(low.includes('tim hortons')?'tim':null));if(!kind)continue;"
+            s=s.replace(old_kind,new_kind,1)
+            break
 
 # Ancienne variante, gardee pour compatibilite.
 s=s.replace('nwr(around:60000,"+userLat+","+userLng+")[amenity=\\\"atm\\\"];','nwr(around:50000,"+userLat+","+userLng+")[amenity=\\\"atm\\\"];')
@@ -99,7 +100,7 @@ g.write_text(gs,encoding='utf-8')
 
 for f in [assets/'marker_user_stationary.png',assets/'marker_user_moving.png',assets/'marker_safety.png',assets/'marker_finance.png',draw/'money_bundle.png',draw/'essence_quebec_logo.png']:
     if not f.exists() or f.stat().st_size<500: raise SystemExit('ressource invalide: '+str(f))
-required=['ESSENCE_QUEBEC_182','marker_user_stationary.png','marker_user_moving.png','marker_safety.png','marker_finance.png','around:50000','amenity=\\\"bank\\\"']
+required=['ESSENCE_QUEBEC_182','marker_user_stationary.png','marker_user_moving.png','marker_safety.png','around:50000','amenity=\\\"bank\\\"']
 missing=[x for x in required if x not in s]
 if missing: raise SystemExit('patch_v182 incomplet: '+repr(missing))
 print('Essence Quebec 1.8.2 patch applied')

@@ -54,31 +54,13 @@ quick_new='''        LinearLayout quick=new LinearLayout(this); quick.setGravity
 if quick in s:
     s=s.replace(quick,quick_new,1)
 
-s=s.replace(
-    '''            "nwr(around:60000,"+userLat+","+userLng+")[name=\\\"Tim Hortons\\\"];"+
-            ");out center tags;";''',
-    '''            "nwr(around:60000,"+userLat+","+userLng+")[name=\\\"Tim Hortons\\\"];"+
-            "nwr(around:60000,"+userLat+","+userLng+")[amenity=\\\"atm\\\"];"+
-            ");out center tags;";'''
-)
-
-old_poi='''            +"function poiIcon(kind){const emo=kind==='mcd'?'🍔':'☕';const cls=kind==='mcd'?'mcdPoi':'timPoi';return L.divIcon({className:'',html:\\\"<div class='foodPoi \\\"+cls+\\\"'>\\\"+emo+\\\"</div>\\\",iconSize:[38,38],iconAnchor:[19,19]});}"
-            +"function escPoi(x){return String(x||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}"
-            +"fetch(poiEndpoint,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},body:'data='+encodeURIComponent(poiQuery)}).then(r=>r.json()).then(d=>{const seen=new Set();for(const e of (d.elements||[])){const t=e.tags||{},name=String(t.name||t.brand||'');const low=name.toLowerCase();const kind=low.includes(\\\"mcdonald\\\")?'mcd':(low.includes('tim hortons')?'tim':null);if(!kind)continue;const la=Number(e.lat||(e.center&&e.center.lat)),lo=Number(e.lon||(e.center&&e.center.lon));if(!isFinite(la)||!isFinite(lo))continue;const key=kind+':'+la.toFixed(5)+':'+lo.toFixed(5);if(seen.has(key))continue;seen.add(key);const addr=[t['addr:housenumber'],t['addr:street'],t['addr:city']].filter(Boolean).join(' ');L.marker([la,lo],{icon:poiIcon(kind)}).addTo(foodLayer).bindPopup('<b>'+escPoi(name)+'</b>'+(addr?'<br>'+escPoi(addr):''));}}).catch(()=>{});";'''
-new_poi='''            +"function poiIcon(kind){const src=kind==='mcd'?'file:///android_asset/marker_mccafe.png':(kind==='tim'?'file:///android_asset/marker_tim.png':'file:///android_asset/marker_atm.png');const cls=kind==='mcd'?'mcdPoi':(kind==='tim'?'timPoi':'atmPoi');return L.divIcon({className:'',html:\\\"<div class='foodPoi \\\"+cls+\\\"'><img src='\\\"+src+\\\"'></div>\\\",iconSize:[46,46],iconAnchor:[23,23]});}"
-            +"function escPoi(x){return String(x||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}"
-            +"fetch(poiEndpoint,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},body:'data='+encodeURIComponent(poiQuery)}).then(r=>r.json()).then(d=>{const seen=new Set();for(const e of (d.elements||[])){const t=e.tags||{},name=String(t.name||t.brand||'');const low=name.toLowerCase();const kind=(t.amenity==='atm')?'atm':(low.includes(\\\"mcdonald\\\")?'mcd':(low.includes('tim hortons')?'tim':null));if(!kind)continue;const la=Number(e.lat||(e.center&&e.center.lat)),lo=Number(e.lon||(e.center&&e.center.lon));if(!isFinite(la)||!isFinite(lo))continue;const key=kind+':'+la.toFixed(5)+':'+lo.toFixed(5);if(seen.has(key))continue;seen.add(key);const addr=[t['addr:housenumber'],t['addr:street'],t['addr:city']].filter(Boolean).join(' ');const label=kind==='atm'?(name||'Guichet automatique'):name;L.marker([la,lo],{icon:poiIcon(kind)}).addTo(foodLayer).bindPopup('<b>'+escPoi(label)+'</b>'+(addr?'<br>'+escPoi(addr):''));}}).catch(()=>{});";'''
-if old_poi in s:
-    s=s.replace(old_poi,new_poi,1)
+# Les POI McCafe/Tim Hortons sont maintenant installés par patch_uncluster_poi.py
+# à partir des images fournies par l'utilisateur. Les anciens remplacements emoji/ATM
+# de ce patch sont volontairement ignorés quand la nouvelle fonction est déjà présente.
 
 if 'foodPoiJavascript(centerLat,centerLng)+' not in s:
     s=s.replace('js+radarSafetyJavascript(centerLat,centerLng)+',
                 'js+radarSafetyJavascript(centerLat,centerLng)+foodPoiJavascript(centerLat,centerLng)+',1)
-
-s=s.replace(
-    ".foodPoi{width:34px;height:34px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:21px;border:2px solid #fff;box-shadow:0 3px 10px #0007}.mcdPoi{background:#efc200}.timPoi{background:#8b2c1d}",
-    ".foodPoi{width:44px;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center;border:1px solid #ffffff66;background:#07101dcc;box-shadow:0 4px 14px #000a}.foodPoi img{width:42px;height:42px;object-fit:contain}.mcdPoi,.timPoi,.atmPoi{background:#07101dcc}"
-)
 
 s=s.replace(
     '''+"function radarIcon(hot){return L.divIcon({className:'',html:\\\"<div class='radarCam \\\"+(hot?\\\"radarBlink\\\":\\\"\\\")+\\\"'>📷</div>\\\",iconSize:[38,38],iconAnchor:[19,19]});}"''',
@@ -148,12 +130,12 @@ if 'private int stationBannerResource(String stationName)' not in s:
             }
             @Override public void onProviderEnabled(String p){}
             @Override public void onProviderDisabled(String p){}
-            @Override public void onStatusChanged(String p,int st,Bundle b){}
+            @SuppressWarnings("deprecation") @Override public void onStatusChanged(String p,int s,Bundle b){}
         };
         try{
-            if(liveLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER))liveLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,1000L,1f,liveLocationListener,Looper.getMainLooper());
-            if(liveLocationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER))liveLocationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,2000L,3f,liveLocationListener,Looper.getMainLooper());
-        }catch(SecurityException ignored){}
+            liveLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,1500L,3f,liveLocationListener);
+            liveLocationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,3500L,8f,liveLocationListener);
+        }catch(Exception ignored){}
     }
 
     private void stopLiveMapTracking(){
@@ -165,7 +147,6 @@ if 'private int stationBannerResource(String stationName)' not in s:
     if marker not in s: raise SystemExit('helper insertion marker missing')
     s=s.replace(marker,methods+marker,1)
 
-
 # Savings amount: amount + money bundle at ~75% of numeral height.
 old_savings='        LinearLayout eco=neonPanel(); eco.setPadding(dp(16),dp(16),dp(16),dp(16)); TextView eh=text("ÉCONOMIE AUJOURD\'HUI",17,true,Color.WHITE); eco.addView(eh); TextView val=text(String.format(Locale.CANADA_FRENCH,"%.2f $",save),42,true,Color.rgb(32,234,140)); eco.addView(val); eco.addView(text("Ce n\'est pas juste de l\'essence, c\'est plus de liberté.",13,false,Color.WHITE)); LinearLayout.LayoutParams ep=new LinearLayout.LayoutParams(-1,-2); ep.topMargin=dp(18); root.addView(eco,ep);'
 new_savings='        LinearLayout eco=neonPanel(); eco.setPadding(dp(16),dp(16),dp(16),dp(16)); TextView eh=text("ÉCONOMIE AUJOURD\'HUI",17,true,Color.WHITE); eco.addView(eh); LinearLayout moneyRow=new LinearLayout(this); moneyRow.setGravity(Gravity.CENTER_VERTICAL); TextView val=text(String.format(Locale.CANADA_FRENCH,"%.2f $",save),42,true,Color.rgb(32,234,140)); moneyRow.addView(val,new LinearLayout.LayoutParams(0,-2,1)); ImageView cash=new ImageView(this); cash.setImageResource(R.drawable.money_bundle); cash.setScaleType(ImageView.ScaleType.CENTER_INSIDE); moneyRow.addView(cash,new LinearLayout.LayoutParams(dp(68),dp(46))); eco.addView(moneyRow); eco.addView(text("Ce n\'est pas juste de l\'essence, c\'est plus de liberté.",13,false,Color.WHITE)); LinearLayout.LayoutParams ep=new LinearLayout.LayoutParams(-1,-2); ep.topMargin=dp(18); root.addView(eco,ep);'
@@ -176,7 +157,7 @@ required=[
     'stationBannerResource','station_irving','station_shell','station_petro_canada','station_esso',
     'station_ultramar','station_canadian_tire','station_costco','station_harnois','station_generic_pump',
     'showStationHours(s)','showStationServices(s)','toggleStationFavorite(s)','shareStation(s)',
-    'eqMoveUser','startLiveMapTracking','marker_mccafe.png','marker_tim.png','marker_atm.png','marker_radar.png','money_bundle'
+    'eqMoveUser','startLiveMapTracking','marker_mccafe.png','marker_timhortons.webp','money_bundle'
 ]
 missing=[x for x in required if x not in s]
 if missing: raise SystemExit('user request patch incomplete: '+repr(missing))

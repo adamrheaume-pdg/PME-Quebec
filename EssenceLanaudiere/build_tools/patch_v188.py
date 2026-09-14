@@ -7,9 +7,17 @@ assets=main/'assets'
 assets.mkdir(parents=True,exist_ok=True)
 b64dir=root/'build_tools/eq188_assets_b64'
 
+def decode_b64_file(path):
+    txt=path.read_text(encoding='utf-8').strip().replace('\n','').replace('\r','')
+    txt += '=' * (-len(txt) % 4)
+    try:
+        return base64.b64decode(txt,validate=False)
+    except Exception as e:
+        raise SystemExit('ressource base64 invalide: '+str(path)+' : '+str(e))
+
 # Images fournies par l'utilisateur, avec transparence.
-(assets/'marker_mccafe.png').write_bytes(base64.b64decode((b64dir/'mccafe_00.txt').read_text(encoding='utf-8').strip()))
-(assets/'marker_timhortons.webp').write_bytes(base64.b64decode((b64dir/'timhortons.webp.b64').read_text(encoding='utf-8').strip()))
+(assets/'marker_mccafe.png').write_bytes(decode_b64_file(b64dir/'mccafe_00.txt'))
+(assets/'marker_timhortons.webp').write_bytes(decode_b64_file(b64dir/'timhortons.webp.b64'))
 
 p=main/'java/quebec/lanaudiere/essence/MainActivity.java'
 s=p.read_text(encoding='utf-8')

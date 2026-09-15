@@ -1,0 +1,56 @@
+schema_version: 1
+statuses: [EXPERIMENTAL, BUILD_OK, VALIDATED, DEPRECATED]
+components:
+  - id: android-build-sdk35
+    category: build
+    status: BUILD_OK
+    source_examples:
+      - youtube-playlist-player/app/build.gradle
+      - apps/PixelCastUniversal/app/build.gradle.kts
+      - apps/quebec360data/app/build.gradle.kts
+    verified:
+      compileSdk: 35
+    notes: "Configuration observée dans plusieurs projets du dépôt. Validation fonctionnelle séparée requise."
+
+  - id: core-ui
+    category: core
+    status: EXPERIMENTAL
+  - id: core-navigation
+    category: core
+    status: EXPERIMENTAL
+  - id: core-storage
+    category: core
+    status: EXPERIMENTAL
+  - id: core-network
+    category: core
+    status: EXPERIMENTAL
+  - id: core-permissions
+    category: core
+    status: EXPERIMENTAL
+  - id: core-files
+    category: core
+    status: EXPERIMENTAL
+  - id: core-diagnostics
+    category: core
+    status: EXPERIMENTAL
+  - id: feature-camera
+    category: feature
+    status: EXPERIMENTAL
+  - id: feature-qr-barcode
+    category: feature
+    status: EXPERIMENTAL
+  - id: feature-location
+    category: feature
+    status: EXPERIMENTAL
+  - id: feature-maps
+    category: feature
+    status: EXPERIMENTAL
+  - id: feature-pdf
+    category: feature
+    status: EXPERIMENTAL
+  - id: feature-sharing
+    category: feature
+    status: EXPERIMENTAL
+  - id: feature-supabase
+    category: feature
+    status: EXPERIMENTAL
